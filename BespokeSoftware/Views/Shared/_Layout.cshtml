@@ -1,49 +1,118 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BespokeSoftware</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/BespokeSoftware.styles.css" asp-append-version="true" />
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BespokeSoftware</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <meta name="viewport" content="width=device-width" />
+    <title>BioStar2</title>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - BespokeSoftware - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Nunito:300,400,600,700|Poppins:300,400,500,600,700" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+   
+    <link rel="stylesheet" href="~/Content/vendor/bootstrap/css/bootstrap.min.css" />
+
+    <link href="~/Content/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+    <link href="~/Content/vendor/bootstrap/css/bootstrap.css" rel="stylesheet" />
+
+    <script src="~/Content/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Content/js/main.js"></script>
+
+    <!-- Bootstrap Icons -->
+    <link href="~/Content/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" />
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="~/Content/css/style.css" />
+
+    <style>
+        #main {
+            margin-top: 58px;
+            padding: 0px 5px;
+            transition: all 0.3s;
+        }
+    </style>
+
+    <script>
+        function setHourglass() {
+            document.body.style.cursor = 'wait';
+        }
+
+        window.onload = function () {
+            document.body.style.cursor = 'default';
+        };
+    </script>
+</head>
+
+<body onbeforeunload="setHourglass();" onunload="setHourglass();">
+
+    <header id="header" class="header fixed-top d-flex align-items-center">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="javascript:void(0)" class="logo d-flex align-items-center">
+                <span class="d-none d-lg-block me-5">Bespoke Software</span>
+            </a>
+
+            <i class="bi bi-list toggle-sidebar-btn m-3"></i>
+
+            <img src="~/img/Magnum_Logo.jpg" style="height:60px;width:100px;padding:5px;" />
+        </div>
+
+    </header>
+
+
+    <aside id="sidebar" class="sidebar">
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-mask"></i>
+                    <span>Admin</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+
+                <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+
+                    <li>
+                        <a href="@Url.Action("LeaveApp", "Admin")">
+                            <i class="bi bi-circle"></i>
+                            <span>Add Leave Application</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+    <main id="main" class="main">
+        @RenderBody()
+    </main>
+
+
+    <footer id="footer" class="footer">
+        <div class="copyright">
+            All Rights Reserved. © 2025 Magnum Telesystem
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+
+    <!-- JS Files -->
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="~/Content/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+ 
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
 </body>
 </html>
