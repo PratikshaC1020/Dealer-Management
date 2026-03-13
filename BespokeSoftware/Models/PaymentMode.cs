@@ -6,6 +6,6 @@
         public string Payment { get; set; }
         public bool IsDelete { get; set; }
 
-        public List<PaymentMode> PaymentModeList { get; set; }
+        public List<PaymentMode> PaymentModeList { get; set; } = new List<PaymentMode>();
     }
 }

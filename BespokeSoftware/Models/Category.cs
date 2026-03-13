@@ -6,6 +6,6 @@
         public string CategoryName { get; set; }
         public bool IsDelete { get; set; }
 
-        public List<Category> CategoryList { get; set; }
+        public List<Category> CategoryList { get; set; } = new List<Category>();
     }
 }
