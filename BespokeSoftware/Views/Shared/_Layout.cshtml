@@ -60,6 +60,7 @@
             @* <img src="~/img/Magnum_Logo.jpg" style="height:60px;width:100px;padding:5px;" /> *@
         </div>
 
+
     </header>
 
 
@@ -103,6 +104,23 @@
                 </ul>
             </li>
 
+            <!-- Dealer Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#dealer-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-shop"></i>
+                    <span>Dealer</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+
+                <ul id="dealer-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="@Url.Action("Index", "Dealer")">
+                            <i class="bi bi-circle"></i>
+                            <span>Dealer Management</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
         </ul>
 
     </aside>
@@ -115,7 +133,7 @@
 
     <footer id="footer" class="footer">
         <div class="copyright">
-            All Rights Reserved. © 2025 Magnum Telesystem
+            All Rights Reserved. © @DateTime.Now.Year Bespoke Software
         </div>
     </footer>
 

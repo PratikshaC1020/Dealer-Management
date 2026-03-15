@@ -1,0 +1,25 @@
+﻿@using static BespokeSoftware.Models.Dealer
+@model List<Address>
+
+<table class="table table-bordered">
+
+    <tr>
+        <th>Type</th>
+        <th>Address</th>
+        <th>City</th>
+        <th>Pincode</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+
+            <td>@item.AddressType</td>
+            <td>@item.AddressLine</td>
+            <td>@item.CityName</td>
+            <td>@item.Pincode</td>
+
+        </tr>
+    }
+
+</table>

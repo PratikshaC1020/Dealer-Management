@@ -135,6 +135,7 @@ namespace BespokeSoftware.Models
             public int CityID { get; set; }
 
             public string Pincode { get; set; }
+            public string CityName { get; set; }
         }
 
         public class CommunicationDetails

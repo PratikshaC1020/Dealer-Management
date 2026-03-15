@@ -1,4 +1,5 @@
 ﻿using BespokeSoftware.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
@@ -6,6 +7,8 @@ using System;
 
 namespace BespokeSoftware.Controllers
 {
+
+    [Authorize(AuthenticationSchemes = "MyCookieAuth")]
     public class MasterDataController : Controller
     {
         private readonly string _connectionString;

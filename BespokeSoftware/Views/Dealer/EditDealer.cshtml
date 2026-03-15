@@ -1,0 +1,458 @@
+﻿@model BespokeSoftware.Models.Dealer.DealerViewModel
+
+<div class="card border border-info">
+
+        <div class="card-header">
+            <h5 class="bg-info text-center fw-bold p-2 text-black">Edit Dealer</h5>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="UpdateDealer" asp-controller="Dealer" method="post" id="dealerForm">
+
+                <input type="hidden" asp-for="Dealer.DealerId" />
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Dealer Code</label>
+                        <input asp-for="Dealer.DealerCode" class="form-control" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Dealer Name</label>
+                        <input asp-for="Dealer.DealerName" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Owner Name</label>
+                        <input asp-for="Dealer.OwnerName" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">GST</label>
+                        <input asp-for="Dealer.GSTNo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">PAN</label>
+                        <input asp-for="Dealer.PANNo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Department</label>
+                        <select asp-for="Dealer.DepartmentId" class="form-select">
+
+                            <option value="">Select</option>
+
+                            @foreach (var d in ViewBag.DepartmentList)
+                            {
+                                <option value="@d.DepID">@d.DepartmentName</option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Category</label>
+                        <select asp-for="Dealer.CategoryId" class="form-select">
+
+                            <option value="">Select</option>
+
+                            @foreach (var c in ViewBag.CategoryList)
+                            {
+                                <option value="@c.ID">@c.CategoryName</option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Payment Mode</label>
+                        <select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
+
+                            <option value="">Select</option>
+
+                            @foreach (var p in ViewBag.PaymentModeList)
+                            {
+                                <option value="@p.ID">@p.PaymentModeName</option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Weekly Off</label>
+                        <select asp-for="Dealer.WeeklyOffDayId" class="form-select">
+
+                            <option value="">Select</option>
+
+                            @foreach (var w in ViewBag.WeeklyOffList)
+                            {
+                                <option value="@w.ID">@w.Day</option>
+                            }
+
+                        </select>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <h5 class="fw-bold">Address</h5>
+
+                <table class="table table-bordered" id="addressTable">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Type</th>
+                            <th>Country</th>
+                            <th>State</th>
+                            <th>City</th>
+                            <th>Address</th>
+                            <th>Pincode</th>
+                            <th></th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="addressBody">
+
+                        @for (int i = 0; i < Model.Addresses.Count; i++)
+                        {
+                            <tr>
+
+                                <td style="width:140px;">
+
+                                    <input type="hidden" asp-for="Addresses[i].ID" />
+
+                                    <select asp-for="Addresses[i].AddressType"
+                                            class="form-select form-select-sm">
+
+                                        <option value="">Select</option>
+                                        <option value="Store">Store</option>
+                                        <option value="Godown">Godown</option>
+                                        <option value="Billing">Billing</option>
+
+                                    </select>
+
+                                </td>
+
+                                <td style="width:120px;">
+                                    <input type="text" value="India"
+                                           class="form-control form-control-sm"
+                                           readonly>
+                                </td>
+
+                                <td style="width:180px;">
+
+                                    <select asp-for="Addresses[i].StateID"
+                                            class="form-select form-select-sm stateDropdown">
+
+                                        <option value="">Select State</option>
+
+                                        @foreach (var s in Model.States)
+                                        {
+                                            <option value="@s.StateID">@s.StateName</option>
+                                        }
+
+                                    </select>
+
+                                </td>
+
+                                <td style="width:220px;">
+
+                                    <select asp-for="Addresses[i].CityID"
+                                            class="form-select form-select-sm cityDropdown">
+
+                                        <option value="@Model.Addresses[i].CityID">
+                                            @Model.Addresses[i].CityName
+                                        </option>
+
+                                    </select>
+
+                                </td>
+
+                                <td style="width:300px;">
+    <textarea asp-for="Addresses[i].AddressLine"
+              class="form-control form-control-sm"
+              rows="2"></textarea>
+                                </td>
+
+                                <td style="width:110px;">
+                                    <input asp-for="Addresses[i].Pincode"
+                                           class="form-control form-control-sm" />
+                                </td>
+
+                                <td style="width:60px;" class="text-center">
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm removeRow">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-success" onclick="AddAddressRow()">
+                    Add Address
+                </button>
+
+                <hr>
+
+                <h5 class="fw-bold">Communication</h5>
+
+                <table class="table table-bordered">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Type</th>
+                            <th>Value</th>
+                            <th></th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="communicationBody">
+
+                        @for (int i = 0; i < Model.Communications.Count; i++)
+                        {
+
+                            <tr>
+
+                                <td>
+
+                                    <input type="hidden" asp-for="Communications[i].CommunicationID" />
+
+                                    <select asp-for="Communications[i].Type" class="form-select commType">
+
+                                        <option value="Mobile">Mobile</option>
+                                        <option value="Email">Email</option>
+                                        <option value="Landline">Landline</option>
+
+                                    </select>
+
+                                </td>
+
+                                <td>
+
+                                    <input asp-for="Communications[i].Value" class="form-control commValue" />
+
+                                </td>
+
+                                <td style="width:60px;" class="text-center">
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm removeCommRow">
+
+                                        <i class="bi bi-x-lg"></i>
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        }
+
+                    </tbody>
+
+                </table>
+
+                <button type="button" class="btn btn-success" onclick="AddCommunicationRow()">
+                    Add Communication
+                </button>
+
+                <br><br>
+
+                <button type="submit" class="btn btn-info">
+                    Update Dealer
+                </button>
+
+                <a href="/Dealer/Index" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+        var addressIndex = @Model.Addresses.Count;
+
+    function AddAddressRow(){
+
+    var states = `@foreach (var s in Model.States)
+    {
+        <text><option value="@s.StateID">@s.StateName</option></text>
+    }
+`;
+
+    var row = `
+
+    <tr>
+
+    <td style="width:140px;">
+
+    <select name="Addresses[${addressIndex}].AddressType"
+    class="form-select form-select-sm">
+
+    <option value="">Select</option>
+    <option value="Store">Store</option>
+    <option value="Godown">Godown</option>
+    <option value="Billing">Billing</option>
+
+    </select>
+
+    </td>
+
+    <td style="width:120px;">
+    <input type="text"
+    value="India"
+    class="form-control form-control-sm"
+    readonly>
+    </td>
+
+    <td style="width:180px;">
+
+    <select name="Addresses[${addressIndex}].StateID"
+    class="form-select form-select-sm stateDropdown">
+
+    <option value="">Select State</option>
+
+    ${states}
+
+    </select>
+
+    </td>
+
+    <td style="width:220px;">
+
+    <select name="Addresses[${addressIndex}].CityID"
+    class="form-select form-select-sm cityDropdown">
+
+    <option value="">Select City</option>
+
+    </select>
+
+    </td>
+
+    <td style="width:300px;">
+
+    <textarea name="Addresses[${addressIndex}].AddressLine"
+    class="form-control form-control-sm"
+    rows="2"></textarea>
+
+    </td>
+
+    <td style="width:110px;">
+
+    <input type="text"
+    name="Addresses[${addressIndex}].Pincode"
+    class="form-control form-control-sm">
+
+    </td>
+
+    <td style="width:60px;" class="text-center">
+
+    <button type="button"
+    class="btn btn-danger btn-sm removeRow">
+
+    <i class="bi bi-x-lg"></i>
+
+    </button>
+
+    </td>
+
+    </tr>
+    `;
+
+    $("#addressBody").append(row);
+
+    addressIndex++;
+
+    }
+
+    $(document).on("click",".removeRow",function(){
+    $(this).closest("tr").remove();
+    });
+
+
+    var commIndex=@Model.Communications.Count;
+
+    function AddCommunicationRow(){
+
+    var row=`
+
+    <tr>
+
+    <td>
+
+    <select name="Communications[${commIndex}].Type" class="form-select commType">
+
+    <option value="">Select</option>
+    <option value="Mobile">Mobile</option>
+    <option value="Email">Email</option>
+    <option value="Landline">Landline</option>
+
+    </select>
+
+    </td>
+
+    <td>
+
+    <input type="text" name="Communications[${commIndex}].Value" class="form-control commValue">
+
+    </td>
+
+    <td>
+
+    <button type="button" class="btn btn-danger removeCommRow">X</button>
+
+    </td>
+
+    </tr>
+    `;
+
+    $("#communicationBody").append(row);
+
+    commIndex++;
+
+    }
+
+    $(document).on("click",".removeCommRow",function(){
+    $(this).closest("tr").remove();
+    });
+
+        $(document).on("change",".stateDropdown",function(){
+
+    var stateId=$(this).val();
+    var cityDrop=$(this).closest("tr").find(".cityDropdown");
+
+    $.get('/Dealer/GetCities',{stateId:stateId},function(data){
+
+    cityDrop.empty();
+    cityDrop.append('<option value="">Select City</option>');
+
+    $.each(data,function(i,item){
+
+    cityDrop.append('<option value="'+item.cityID+'">'+item.cityName+'</option>');
+
+    });
+
+    });
+
+    });
+
+</script>

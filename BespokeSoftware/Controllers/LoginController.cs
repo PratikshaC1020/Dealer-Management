@@ -1,7 +1,10 @@
 ﻿using BespokeSoftware.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 
 namespace BespokeSoftware.Controllers
 {
@@ -24,43 +27,52 @@ namespace BespokeSoftware.Controllers
         }
         // Login POST
         [HttpPost]
-        public IActionResult Login(Login model)
+        public async Task<IActionResult> Login(Login model)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     string query = @"SELECT u.UserID, u.Name, r.RoleName 
-                                     FROM T_User u left join T_Role r on u.RoleId = r.RoleID
-                                     WHERE Name=@UserName 
-                                     AND Password=@Password 
-                                     AND IsActive=1";
+                                 FROM T_User u 
+                                 LEFT JOIN T_Role r ON u.RoleId = r.RoleID
+                                 WHERE Name=@UserName AND Password=@Password AND IsActive=1";
 
                     using (SqlConnection con = new SqlConnection(_connectionString))
                     {
                         SqlCommand cmd = new SqlCommand(query, con);
-
                         cmd.Parameters.AddWithValue("@UserName", model.UserName.Trim());
                         cmd.Parameters.AddWithValue("@Password", model.Password.Trim());
 
                         con.Open();
-
                         SqlDataReader dr = cmd.ExecuteReader();
 
                         if (dr.Read())
                         {
-                            HttpContext.Session.SetString("UserID", dr["UserID"].ToString());
-                            HttpContext.Session.SetString("UserName", dr["Name"].ToString());
-                            HttpContext.Session.SetString("Role", dr["RoleName"].ToString());
+                            // CREATE CLAIMS
+                            var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, dr["UserID"].ToString()),
+                            new Claim(ClaimTypes.Name, dr["Name"].ToString()),
+                            new Claim(ClaimTypes.Role, dr["RoleName"].ToString())
+                        };
 
-                           // return RedirectToAction("AdminDashboard", "Admin");
+                            var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
+
+                            await HttpContext.SignInAsync("MyCookieAuth",
+                                new ClaimsPrincipal(claimsIdentity),
+                                new AuthenticationProperties
+                                {
+                                    IsPersistent = true
+                                });
+
+                            // Redirect to protected page
                             return RedirectToAction("Department", "MasterData");
                         }
                         else
                         {
                             TempData["SweetAlertMessage"] = "Invalid UserID or Password";
                             TempData["SweetAlertOptions"] = "error";
-                            //ViewBag.Error = "Invalid UserID or Password";
                         }
                     }
                 }
@@ -69,18 +81,16 @@ namespace BespokeSoftware.Controllers
             {
                 TempData["SweetAlertMessage"] = ex.Message;
                 TempData["SweetAlertOptions"] = "error";
-                ViewBag.Error = ex.Message;
             }
 
             return View(model);
         }
 
-        // Logout
-        public IActionResult Logout()
+        [HttpGet]
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Index");
+            await HttpContext.SignOutAsync("MyCookieAuth");
+            return RedirectToAction("Login", "Login");
         }
-
     }
 }
