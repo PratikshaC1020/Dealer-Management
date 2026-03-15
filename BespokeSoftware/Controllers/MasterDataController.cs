@@ -6,7 +6,7 @@ using System;
 
 namespace BespokeSoftware.Controllers
 {
-    public class MasterDataController : BaseController
+    public class MasterDataController : Controller
     {
         private readonly string _connectionString;
 
