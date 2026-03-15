@@ -58,13 +58,13 @@ namespace BespokeSoftware.Models
 
         public string WeeklyOff { get; set; }
 
-        public class Department
+        public class modelDepartment
         {
             public int DepID { get; set; }
 
             public string? DepartmentName { get; set; }
         }
-        public class Category
+        public class modelCategory
         {
             public int ID { get; set; }
 

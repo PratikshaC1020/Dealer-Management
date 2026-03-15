@@ -168,9 +168,9 @@ namespace BespokeSoftware.Repository
             cmd.ExecuteNonQuery();
         }
 
-        public List<Department> GetDepartments()
+        public List<modelDepartment> GetDepartments()
         {
-            List<Department> list = new List<Department>();
+            List<modelDepartment> list = new List<modelDepartment>();
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
@@ -184,7 +184,7 @@ namespace BespokeSoftware.Repository
 
                 while (rdr.Read())
                 {
-                    list.Add(new Department
+                    list.Add(new modelDepartment
                     {
                         DepID = Convert.ToInt32(rdr["DepID"]),
                         DepartmentName = rdr["Department"].ToString()
@@ -195,9 +195,9 @@ namespace BespokeSoftware.Repository
             return list;
         }
 
-        public List<Category> GetCategories()
+        public List<modelCategory> GetCategories()
         {
-            List<Category> list = new List<Category>();
+            List<modelCategory> list = new List<modelCategory>();
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
@@ -211,7 +211,7 @@ namespace BespokeSoftware.Repository
 
                 while (rdr.Read())
                 {
-                    list.Add(new Category
+                    list.Add(new modelCategory
                     {
                         ID = Convert.ToInt32(rdr["ID"]),
                         CategoryName = rdr["Category"].ToString()
