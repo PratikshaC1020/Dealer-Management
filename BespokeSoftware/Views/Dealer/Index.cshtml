@@ -1,0 +1,80 @@
+﻿@model IEnumerable<BespokeSoftware.Models.Dealer>
+
+@{
+    ViewBag.Title = "Dealer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card border border-info border-1">
+    <h2 class="bg-info text-center fw-bold p-2">Dealer List</h2>
+
+    <div class="card-body">
+
+        <div class="text-end">
+
+            <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-primary">
+                Add Dealer <i class="bi bi-plus"></i>
+            </a> 
+
+        </div>
+
+        <br />
+
+        <table class="table table-bordered table-hover" id="dealerTable">
+
+            <thead class="text-center">
+
+                <tr>
+                    <th>Dealer Code</th>
+                    <th>Dealer Name</th>
+                    <th>Owner Name</th>
+                    <th>GST</th>
+                    <th>PAN</th>
+                    <th>Department</th>
+                    <th>Category</th>
+                    <th>Payment Mode</th>
+                    <th>Weekly Off</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+
+                        <td>@item.DealerCode</td>
+                        <td>@item.DealerName</td>
+                        <td>@item.OwnerName</td>
+                        <td>@item.GSTNo</td>
+                        <td>@item.PANNo</td>
+                        <td>@item.DepartmentName</td>
+                        <td>@item.CategoryName</td>
+                        <td>@item.PaymentMode</td>
+                        <td>@item.WeeklyOff</td>
+                        <td>@(item.IsActive ? "Active" : "Inactive")</td>
+
+                        <td>
+
+                            <button class="btn btn-primary btn-sm editDealer"
+                                    data-id="@item.DealerId">
+                                Edit
+                            </button>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
