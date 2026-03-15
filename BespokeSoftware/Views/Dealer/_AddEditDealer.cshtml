@@ -214,6 +214,9 @@ Add Communication
 <br><br>
 
 <button type="submit" class="btn btn-primary">Save Dealer</button>
+                <button type="button" class="btn btn-secondary ms-2" onclick="ClearDealerForm()">
+                    Cancel
+                </button>
 
 </form>
 
@@ -224,6 +227,87 @@ Add Communication
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+        // Cancel button click -> complete form reset
+    function ClearDealerForm(){
+
+        // reset main form fields
+        document.getElementById("dealerForm").reset();
+
+        // address table reset -> keep only first row
+        $("#addressBody").html(`
+        <tr>
+            <td>
+                <select name="Addresses[0].AddressType" class="form-select">
+                    <option value="">Select</option>
+                    <option value="Store">Store</option>
+                    <option value="Godown">Godown</option>
+                    <option value="Billing">Billing</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" value="India" class="form-control" readonly>
+            </td>
+
+            <td>
+                <select name="Addresses[0].StateID" class="form-select stateDropdown">
+                    <option value="">Select State</option>
+                    @foreach (var s in Model.States)
+                    {
+                            <text><option value="@s.StateID">@s.StateName</option></text>
+                    }
+                </select>
+            </td>
+
+            <td>
+                <select name="Addresses[0].CityID" class="form-select cityDropdown">
+                    <option value="">Select City</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" name="Addresses[0].AddressLine" class="form-control">
+            </td>
+
+            <td>
+                <input type="text" name="Addresses[0].Pincode" class="form-control">
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-danger removeRow">X</button>
+            </td>
+        </tr>
+        `);
+
+        // communication table reset
+        $("#communicationBody").html(`
+        <tr>
+            <td>
+                <select name="Communications[0].Type" class="form-select commType">
+                    <option value="">Select</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="Email">Email</option>
+                    <option value="Landline">Landline</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" name="Communications[0].Value" class="form-control commValue">
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-danger removeCommRow">X</button>
+            </td>
+        </tr>
+        `);
+
+        // reset indexes
+        addressIndex = 1;
+        commIndex = 1;
+
+    }
+
+        // address rows index tracking
 
     var addressIndex = 1;
 
@@ -287,10 +371,12 @@ Add Communication
 
     }
 
+    // remove address row
 $(document).on("click",".removeRow",function(){
 $(this).closest("tr").remove();
 });
 
+    // state change -> fetch cities
     $(document).on("change",".stateDropdown",function(){
 
     var stateId=$(this).val();
@@ -312,8 +398,10 @@ $(this).closest("tr").remove();
     });
 
 
+        // state change -> fetch cities
     var commIndex = 1;
 
+        // communication rows index
     function AddCommunicationRow(){
 
     var row=`
@@ -349,10 +437,12 @@ $(this).closest("tr").remove();
 
     }
 
+    // remove communication row
 $(document).on("click",".removeCommRow",function(){
 $(this).closest("tr").remove();
 });
 
+     // communication validation before submit
 $("#dealerForm").submit(function(){
 
 var valid=true;
