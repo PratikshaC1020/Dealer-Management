@@ -15,16 +15,14 @@
     <link rel="stylesheet" href="~/Content/css/style.css">
     <link rel="stylesheet" href="~/Content/vendor/bootstrap/css/bootstrap.min.css" />
 
-
-
-
-
     <!-- Bootstrap Icons -->
     <link href="~/Content/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
 
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" />
+
+
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="~/Content/css/style.css" />
@@ -59,7 +57,7 @@
 
             <i class="bi bi-list toggle-sidebar-btn m-3"></i>
 
-            <img src="~/img/Magnum_Logo.jpg" style="height:60px;width:100px;padding:5px;" />
+            @* <img src="~/img/Magnum_Logo.jpg" style="height:60px;width:100px;padding:5px;" /> *@
         </div>
 
     </header>
@@ -79,9 +77,27 @@
                 <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
 
                     <li>
-                        <a href="@Url.Action("LeaveApp", "Admin")">
+                        <a href="@Url.Action("User", "MasterData")">
                             <i class="bi bi-circle"></i>
-                            <span>Add Leave Application</span>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Department", "MasterData")">
+                            <i class="bi bi-circle"></i>
+                            <span>Department Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Category", "MasterData")">
+                            <i class="bi bi-circle"></i>
+                            <span>Category Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Payment", "MasterData")">
+                            <i class="bi bi-circle"></i>
+                            <span>Payment Management</span>
                         </a>
                     </li>
                 </ul>

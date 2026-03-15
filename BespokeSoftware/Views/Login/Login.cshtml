@@ -1,0 +1,227 @@
+﻿@model BespokeSoftware.Models.Login
+
+@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+
+<!-- Bootstrap CSS -->
+
+<link rel="stylesheet" href="~/Content/vendor/bootstrap/css/bootstrap.min.css" />
+
+<!-- Bootstrap Icons -->
+<link href="~/Content/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@* <link href="@Url.Content("~/Content/sweetalert/sweet-alert.css")" rel="stylesheet" />
+<link href="~\content\sweetalert\sweet-alert.css" rel="stylesheet" />
+<script src="@Url.Content("~/Content/sweetalert/sweet-alert.js")"></script> *@
+
+@{
+    var sweetAlertMessage = TempData["SweetAlertMessage"] as string;
+    var sweetAlertOptions = TempData["SweetAlertOptions"] as string;
+}
+
+@if (!string.IsNullOrEmpty(sweetAlertMessage))
+{
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+        Swal.fire({
+            icon: '@sweetAlertOptions',
+            title: '@sweetAlertMessage',
+            confirmButtonColor: '#3085d6'
+        });
+
+        });
+
+    </script>
+}
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    main {
+        background: url('@Url.Content("~/Content/img/back1.jpg")') no-repeat center fixed;
+        background-size: cover;
+        height: 100vh;
+    }
+
+
+    .login-box {
+        width: 350px;
+        height: 450px;
+        background: rgba(255,255,255,0.25);
+        backdrop-filter: blur(20px);
+        border: 3px solid rgba(255,255,255,0.2);
+        border-radius: 35px;
+        transition: 0.4s;
+    }
+
+        /* STRONG HOVER EFFECT */
+
+        .login-box:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 40px rgba(0,150,255,0.5);
+        }
+
+    .card {
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transition: 0.4s;
+    }
+
+    .title {
+        text-decoration: underline;
+        color: white;
+        font-size: 24px;
+    }
+
+    label {
+        color: white;
+        font-weight: bold;
+    }
+
+    .login-btn {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .eye-icon {
+        cursor: pointer;
+    }
+
+</style>
+
+@using (Html.BeginForm("Login", "Login", FormMethod.Post, new { autocomplete = "off" }))
+{
+    @Html.AntiForgeryToken()
+
+    <main>
+
+        <div class="container">
+
+            <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center">
+
+                <div class="row justify-content-center">
+
+                    <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+                        <div class="login-box card mb-3 border border-info">
+
+                            <div class="card-body">
+
+                                <div class="pt-4 pb-2">
+
+                                    <div class="d-flex justify-content-center py-3">
+
+                                        <span class="title fw-bolder text-decoration-underline">
+                                            Bespoke System
+                                        </span>
+
+                                    </div>
+
+                                    <h5 class="card-title text-center pb-0 fs-4 text-white fw-bold">
+                                        Login
+                                    </h5>
+
+                                </div>
+
+                                <div class="row g-3">
+
+                                    <div class="col-12 mt-3">
+
+                                        <label>User Name</label>
+
+                                        <div class="input-group">
+
+                                            <span class="input-group-text bi bi-person" id="inputGroupPrepend" style="font-size: 1.5rem; color: rgb(0, 0, 255);"></span>
+
+                                            @Html.TextBoxFor(m=>m.UserName,new{
+                                            @class = "form-control",
+                                            placeholder = "Enter User Name",
+                                            autocomplete = "off",
+                                            required = "required"
+                                            })
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label>Password</label>
+
+                                    <div class="input-group">
+
+                                       @*  <span class="input-group-text">
+                                            <i class="bi bi-key-fill"></i>
+                                        </span> *@
+                                        <span class="input-group-text bi bi-key" id="inputGroupPrepend" style="font-size: 1.5rem; color: rgb(0, 0, 255);"></span>
+
+                                        @Html.PasswordFor(m=>m.Password,new{
+                                        @class = "form-control",
+                                        id = "password",
+                                        placeholder = "Enter Password",
+                                        autocomplete = "off",
+                                        required = "required"
+                                        })
+                                        <span class="input-group-text bi bi-eye-fill" id="inputGroupPrepend" style="font-size: 1.1rem; color: rgb(0, 0, 255);" onclick="togglePassword()"></span>
+
+                                        @* <span class="input-group-text eye-icon" onclick="togglePassword()">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </span> *@
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12 mt-5">
+
+                                    <button class="btn btn-primary w-100 login-btn fs-6 fw-bold" type="submit">
+                                        <i class="bi bi-box-arrow-in-right"></i> Login
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+}
+
+<script>
+
+    function togglePassword(){
+
+    var x=document.getElementById("password");
+
+    if(x.type==="password")
+    {
+    x.type="text";
+    }
+    else
+    {
+    x.type="password";
+    }
+
+    }
+
+</script>
