@@ -1,0 +1,490 @@
+﻿@model BespokeSoftware.Models.Dealer.DealerViewModel
+
+<div class="container mt-4">
+
+<div class="card shadow">
+
+<div class="card-header bg-primary text-white">
+<h5 class="mb-0">Add Dealer</h5>
+</div>
+
+<div class="card-body">
+
+<form asp-action="InsertDealer" asp-controller="Dealer" method="post" id="dealerForm">
+
+<div class="row g-3">
+
+<div class="col-md-4">
+<label class="fw-bold">Dealer Code</label>
+<input asp-for="Dealer.DealerCode" class="form-control" readonly />
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Dealer Name</label>
+<input asp-for="Dealer.DealerName" class="form-control" required />
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Owner Name</label>
+<input asp-for="Dealer.OwnerName" class="form-control" required />
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">GST</label>
+<input asp-for="Dealer.GSTNo" id="gst" class="form-control" required />
+<span class="text-danger" id="gstError"></span>
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">PAN</label>
+<input asp-for="Dealer.PANNo" id="pan" class="form-control" required />
+<span class="text-danger" id="panError"></span>
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Department</label>
+<select asp-for="Dealer.DepartmentId" class="form-select" required>
+<option value="">Select</option>
+@foreach (var d in ViewBag.DepartmentList)
+{
+<option value="@d.DepID">@d.DepartmentName</option>
+}
+</select>
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Category</label>
+<select asp-for="Dealer.CategoryId" class="form-select" required>
+<option value="">Select</option>
+@foreach (var c in ViewBag.CategoryList)
+{
+<option value="@c.ID">@c.CategoryName</option>
+}
+</select>
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Payment Mode</label>
+<select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
+<option value="">Select</option>
+@foreach (var p in ViewBag.PaymentModeList)
+{
+<option value="@p.ID">@p.PaymentModeName</option>
+}
+</select>
+</div>
+
+<div class="col-md-4">
+<label class="fw-bold">Weekly Off</label>
+<select asp-for="Dealer.WeeklyOffDayId" class="form-select">
+<option value="">Select</option>
+@foreach (var w in ViewBag.WeeklyOffList)
+{
+<option value="@w.ID">@w.Day</option>
+}
+</select>
+</div>
+
+</div>
+
+<hr>
+
+<h5 class="fw-bold">Address</h5>
+
+<table class="table table-bordered" id="addressTable">
+
+<thead class="table-light">
+<tr>
+<th>Address Type</th>
+<th>Country</th>
+<th>State</th>
+<th>City</th>
+<th>Address</th>
+<th>Pincode</th>
+<th></th>
+</tr>
+</thead>
+
+                    <tbody id="addressBody">
+
+                        <tr>
+                            <td>
+                                <select name="Addresses[0].AddressType" class="form-select">
+                                    <option value="">Select</option>
+                                    <option value="Store">Store</option>
+                                    <option value="Godown">Godown</option>
+                                    <option value="Billing">Billing</option>
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="text" value="India" class="form-control" readonly>
+                            </td>
+
+                            <td>
+                                <select name="Addresses[0].StateID" class="form-select stateDropdown">
+
+                                    <option value="">Select State</option>
+
+                                    @foreach (var s in Model.States)
+                                    {
+                                        <option value="@s.StateID">@s.StateName</option>
+                                    }
+
+                                </select>
+                            </td>
+
+                            <td>
+                                <select name="Addresses[0].CityID" class="form-select cityDropdown">
+                                    <option>Select City</option>
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="text" name="Addresses[0].AddressLine" class="form-control">
+                            </td>
+
+                            <td>
+                                <input type="text" name="Addresses[0].Pincode" class="form-control">
+                            </td>
+
+                            <td>
+                                <button type="button" class="btn btn-danger removeRow">X</button>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+</table>
+
+<button type="button" class="btn btn-success" onclick="AddAddressRow()">
+Add Address
+</button>
+
+<hr>
+
+<h5 class="fw-bold">Communication</h5>
+
+<table class="table table-bordered" id="communicationTable">
+
+<thead class="table-light">
+<tr>
+<th style="width:30%">Type</th>
+<th style="width:60%">Value</th>
+<th style="width:10%"></th>
+</tr>
+</thead>
+
+                    <tbody id="communicationBody">
+
+                        <tr>
+
+                            <td>
+
+                                <select name="Communications[0].Type" class="form-select commType">
+
+                                    <option value="">Select</option>
+                                    <option value="Mobile">Mobile</option>
+                                    <option value="Email">Email</option>
+                                    <option value="Landline">Landline</option>
+
+                                </select>
+
+                            </td>
+
+                            <td>
+                                <input type="text" name="Communications[0].Value" class="form-control commValue">
+                            </td>
+
+                            <td>
+                                <button type="button" class="btn btn-danger removeCommRow">X</button>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+</table>
+
+<button type="button" class="btn btn-success" onclick="AddCommunicationRow()">
+Add Communication
+</button>
+
+<input type="hidden" id="communicationJson" name="CommunicationJson">
+
+<br><br>
+
+<button type="submit" class="btn btn-primary">Save Dealer</button>
+                <button type="button" class="btn btn-secondary ms-2" onclick="ClearDealerForm()">
+                    Cancel
+                </button>
+
+</form>
+
+</div>
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+        // Cancel button click -> complete form reset
+    function ClearDealerForm(){
+
+        // reset main form fields
+        document.getElementById("dealerForm").reset();
+
+        // address table reset -> keep only first row
+        $("#addressBody").html(`
+        <tr>
+            <td>
+                <select name="Addresses[0].AddressType" class="form-select">
+                    <option value="">Select</option>
+                    <option value="Store">Store</option>
+                    <option value="Godown">Godown</option>
+                    <option value="Billing">Billing</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" value="India" class="form-control" readonly>
+            </td>
+
+            <td>
+                <select name="Addresses[0].StateID" class="form-select stateDropdown">
+                    <option value="">Select State</option>
+                    @foreach (var s in Model.States)
+                    {
+                            <text><option value="@s.StateID">@s.StateName</option></text>
+                    }
+                </select>
+            </td>
+
+            <td>
+                <select name="Addresses[0].CityID" class="form-select cityDropdown">
+                    <option value="">Select City</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" name="Addresses[0].AddressLine" class="form-control">
+            </td>
+
+            <td>
+                <input type="text" name="Addresses[0].Pincode" class="form-control">
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-danger removeRow">X</button>
+            </td>
+        </tr>
+        `);
+
+        // communication table reset
+        $("#communicationBody").html(`
+        <tr>
+            <td>
+                <select name="Communications[0].Type" class="form-select commType">
+                    <option value="">Select</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="Email">Email</option>
+                    <option value="Landline">Landline</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text" name="Communications[0].Value" class="form-control commValue">
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-danger removeCommRow">X</button>
+            </td>
+        </tr>
+        `);
+
+        // reset indexes
+        addressIndex = 1;
+        commIndex = 1;
+
+    }
+
+        // address rows index tracking
+
+    var addressIndex = 1;
+
+    function AddAddressRow(){
+
+    var states = `@foreach (var s in Model.States)
+    {
+        <text><option value="@s.StateID">@s.StateName</option></text>
+    }
+`;
+
+    var row = `
+
+    <tr>
+
+         <td>
+    <select name="Addresses[${addressIndex}].AddressType" class="form-select">
+    <option value="">Select</option>
+    <option value="Store">Store</option>
+    <option value="Godown">Godown</option>
+    <option value="Billing">Billing</option>
+    </select>
+    </td>
+
+    <td>
+    <input type="text" value="India" class="form-control" readonly>
+    </td>
+
+    <td>
+    <select name="Addresses[${addressIndex}].StateID" class="form-select stateDropdown">
+    <option>Select State</option>
+    ${states}
+    </select>
+    </td>
+
+    <td>
+    <select name="Addresses[${addressIndex}].CityID" class="form-select cityDropdown">
+    <option>Select City</option>
+    </select>
+    </td>
+
+    <td>
+    <input type="text" name="Addresses[${addressIndex}].AddressLine" class="form-control">
+    </td>
+
+    <td>
+    <input type="text" name="Addresses[${addressIndex}].Pincode" class="form-control">
+    </td>
+
+    <td>
+    <button type="button" class="btn btn-danger removeRow">X</button>
+    </td>
+
+    </tr>
+
+    `;
+
+    $("#addressBody").append(row);
+
+    addressIndex++;
+
+    }
+
+    // remove address row
+$(document).on("click",".removeRow",function(){
+$(this).closest("tr").remove();
+});
+
+    // state change -> fetch cities
+    $(document).on("change",".stateDropdown",function(){
+
+    var stateId=$(this).val();
+    var cityDrop=$(this).closest("tr").find(".cityDropdown");
+
+    $.get('/Dealer/GetCities',{stateId:stateId},function(data){
+
+    cityDrop.empty();
+    cityDrop.append('<option value="">Select City</option>');
+
+    $.each(data,function(i,item){
+
+    cityDrop.append('<option value="'+item.cityID+'">'+item.cityName+'</option>');
+
+    });
+
+    });
+
+    });
+
+
+        // state change -> fetch cities
+    var commIndex = 1;
+
+        // communication rows index
+    function AddCommunicationRow(){
+
+    var row=`
+
+    <tr>
+
+    <td>
+
+    <select name="Communications[${commIndex}].Type" class="form-select commType">
+    <option value="">Select</option>
+    <option value="Mobile">Mobile</option>
+    <option value="Email">Email</option>
+    <option value="Landline">Landline</option>
+    </select>
+
+    </td>
+
+    <td>
+    <input type="text" name="Communications[${commIndex}].Value" class="form-control commValue">
+    </td>
+
+    <td>
+    <button type="button" class="btn btn-danger removeCommRow">X</button>
+    </td>
+
+    </tr>
+
+    `;
+
+    $("#communicationBody").append(row);
+
+    commIndex++;
+
+    }
+
+    // remove communication row
+$(document).on("click",".removeCommRow",function(){
+$(this).closest("tr").remove();
+});
+
+     // communication validation before submit
+$("#dealerForm").submit(function(){
+
+var valid=true;
+
+$(".commError").text("");
+
+$("#communicationTable tbody tr").each(function(){
+
+var type=$(this).find(".commType").val();
+var value=$(this).find(".commValue").val();
+var error=$(this).find(".commError");
+
+if(type=="Email")
+{
+
+var emailPattern=/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+
+if(!emailPattern.test(value))
+{
+error.text("Invalid Email");
+valid=false;
+}
+
+}
+
+if(type=="Mobile")
+{
+
+var mobilePattern=/^[6-9][0-9]{9}$/;
+
+if(!mobilePattern.test(value))
+{
+error.text("Invalid Mobile Number");
+valid=false;
+}
+
+}
+
+});
+
+return valid;
+
+});
+
+</script>
