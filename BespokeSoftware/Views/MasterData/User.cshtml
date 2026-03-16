@@ -25,10 +25,15 @@
 
     #userTable {
         margin-top: 10px;
+        table-layout: fixed;
+        width: 100%;
     }
 
-        #userTable th, #userTable td {
+        #userTable th,
+        #userTable td {
             border: 1px solid #ccc !important;
+            word-wrap: break-word;
+            white-space: normal !important;
         }
 
         #userTable tbody tr:hover {
@@ -45,7 +50,6 @@
         margin-right: auto;
     }
 
-
 </style>
 
 @{
@@ -55,11 +59,9 @@
 
 @if (!string.IsNullOrEmpty(sweetAlertMessage))
 {
-
     <script>
         Swal.fire('@sweetAlertMessage','','@sweetAlertOptions');
     </script>
-
 }
 
 @using (Html.BeginForm())
@@ -76,8 +78,6 @@
         <div class="card-body mt-4">
 
             <div class="form-box">
-
-                <!-- ROW 1 -->
 
                 <div class="row mb-3">
 
@@ -110,11 +110,10 @@
 
                 </div>
 
-                <!-- ROW 2 -->
 
                 <div class="row">
 
-                    <div class="col-md-3">
+                    <div class="col-md-4">
 
                         <label class="fw-bold">Department :</label>
 
@@ -127,7 +126,8 @@
 
                 </div>
 
-                <div class="col-md-3">
+
+                <div class="col-md-4">
 
                     <label class="fw-bold">Role :</label>
 
@@ -140,23 +140,15 @@
 
                 </div>
 
-                <div class="col-md-3">
 
-                    <label class="fw-bold">Password :</label>
-
-                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", id = "Password" })
-                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-
-                </div>
-
-                <div class="col-md-3">
+                <div class="col-md-4">
 
                     <label class="fw-bold">Status :</label>
 
-                    @Html.DropDownListFor(m=>m.IsActive,
+                    @Html.DropDownListFor(m => m.IsActive,
                                         new List<SelectListItem>
                                         {
-                                        new SelectListItem{Text="Active",Value="true",Selected = true},
+                                        new SelectListItem{Text="Active",Value="true",Selected=true},
                                         new SelectListItem{Text="Inactive",Value="false"}
                                         },
                                         new { @class = "form-control form-select" })
@@ -182,16 +174,14 @@
             <thead class="bg-info text-black">
 
                 <tr>
-
-                    <th class="text-center">ID</th>
-                    <th class="text-center">Name</th>
-                    <th class="text-center">Email</th>
-                    <th class="text-center">Mobile</th>
-                    <th class="text-center">Department</th>
-                    <th class="text-center">Role</th>
-                    <th class="text-center">Status</th>
-                    <th class="text-center">Action</th>
-
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Department</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
                 </tr>
 
             </thead>
@@ -214,18 +204,28 @@
                             <td>
 
                                 <a href="@Url.Action("User", "MasterData", new { id = item.UserID })"
-                                   class="btn btn-info btn-sm fw-bold">
+                                   class="btn btn-info btn-sm">
 
                                     <i class="bi bi-pencil-square"></i>
 
                                 </a>
-                                <a href="javascript:void(0);"
-                                       onclick="DeleteUser(@item.UserID)"
-                                       class="btn btn-danger btn-sm">
+
+                                <a href="javascript:void(0)"
+                                   onclick="DeleteUser(@item.UserID)"
+                                   class="btn btn-danger btn-sm">
 
                                     <i class="bi bi-trash"></i>
 
                                 </a>
+
+                                <a href="javascript:void(0)"
+                                   class="btn btn-warning btn-sm"
+                                   onclick="OpenPasswordModal(@item.UserID,'@item.Password')">
+
+                                    <i class="bi bi-key"></i>
+
+                                </a>
+
                             </td>
 
                         </tr>
@@ -239,49 +239,163 @@
         </div>
 
     </div>
-    <script>
-
-        $(document).ready(function(){
-
-        $('#userTable').DataTable({
-
-        pageLength:5,
-        lengthMenu:[5,10,20,50],
-        ordering:true,
-        searching:true,
-
-        columnDefs:[
-        {orderable:false,targets:6}
-        ]
-
-        });
-
-        });
-            $('#MobileNo').on('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-
-        function DeleteUser(id)
-        {
-        Swal.fire({
-        title: 'Are you sure?',
-        text: "You want to delete this user!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Delete'
-        }).then((result) => {
-
-        if (result.isConfirmed)
-        {
-        window.location.href = '/MasterData/DeleteUser/' + id;
-        }
-
-        });
-        }
-    </script>
 
 }
 
+<!-- PASSWORD MODAL -->
+
+<div class="modal fade" id="passwordModal">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning">
+
+                <h5 class="modal-title">Update Password</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="UserId">
+
+                <label class="fw-bold">Current Password</label>
+
+                <div class="input-group mb-3">
+
+                    <input type="password"
+                           id="CurrentPassword"
+                           class="form-control"
+                           readonly />
+
+                    <button class="btn btn-outline-secondary"
+                            onclick="TogglePassword()">
+
+                        <i class="bi bi-eye"></i>
+
+                    </button>
+
+                </div>
+
+                <label class="fw-bold">New Password</label>
+
+                <input type="password"
+                       id="NewPassword"
+                       class="form-control" />
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-success"
+                        onclick="UpdatePassword()">
+
+                    Update Password
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    function OpenPasswordModal(id,password)
+    {
+    $("#UserId").val(id);
+    $("#CurrentPassword").val(password);
+    $("#NewPassword").val("");
+
+    var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    modal.show();
+    }
+
+    function TogglePassword()
+    {
+    var field=document.getElementById("CurrentPassword");
+
+    if(field.type==="password")
+    field.type="text";
+    else
+    field.type="password";
+    }
+
+    function UpdatePassword()
+    {
+
+    var userId=$("#UserId").val();
+    var password=$("#NewPassword").val();
+
+    $.ajax({
+
+    url:'/MasterData/UpdatePassword',
+    type:'POST',
+
+    data:{
+    userId:userId,
+    password:password
+    },
+
+    success:function(){
+
+    Swal.fire("Password Updated","","success");
+    location.reload();
+
+    }
+
+    });
+
+    }
+
+    $('#userTable').DataTable({
+
+    pageLength:5,
+    lengthMenu:[5,10,20,50],
+    ordering:true,
+    searching:true,
+
+    columnDefs:[
+    {orderable:false,targets:7}
+    ]
+
+    });
+
+    $('#MobileNo').on('input',function(){
+
+    this.value=this.value.replace(/[^0-9]/g,'');
+
+    });
+
+    function DeleteUser(id)
+    {
+
+    Swal.fire({
+
+    title:'Are you sure?',
+    text:"You want to delete this user!",
+    icon:'warning',
+    showCancelButton:true,
+    confirmButtonColor:'#d33',
+    cancelButtonColor:'#3085d6',
+    confirmButtonText:'Delete'
+
+    }).then((result)=>{
+
+    if(result.isConfirmed)
+    {
+    window.location.href='/MasterData/DeleteUser/'+id;
+    }
+
+    });
+
+    }
+
+</script>

@@ -499,6 +499,7 @@ namespace BespokeSoftware.Controllers
                         Name = dr2["Name"].ToString(),
                         Email = dr2["Email"].ToString(),
                         MobileNo = dr2["MobileNo"].ToString(),
+                        Password = dr2["Password"].ToString(),
                         RoleId = Convert.ToInt32(dr2["RoleId"]),
                         Role = dr2["RoleName"].ToString(),
                         DepID = Convert.ToInt32(dr2["DepID"]),
@@ -514,44 +515,38 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult User(User model)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.DepartmentList = GetDepartmentList();
-                ViewBag.RoleList = GetRoleList();
-                return View(model);
-            }
-
+            
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
 
                 if (model.UserID == 0)
                 {
+                    string generatedPassword = GeneratePassword();
+
                     SqlCommand cmd = new SqlCommand(
                     "INSERT INTO T_User(Name,Email,MobileNo,DepID,Password,RoleId,IsActive) VALUES(@Name,@Email,@MobileNo,@DepID,@Password,@RoleId,@IsActive)", con);
 
-                    cmd.Parameters.AddWithValue("@Name", model.Name.Trim());
-                    cmd.Parameters.AddWithValue("@Email", model.Email.Trim());
-                    cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo.Trim());
-                    cmd.Parameters.AddWithValue("@Password", model.Password.Trim());
-                    cmd.Parameters.AddWithValue("@DepID", (object?)model.DepID ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@RoleId", (object?)model.RoleId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Name", model.Name);
+                    cmd.Parameters.AddWithValue("@Email", model.Email);
+                    cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
+                    cmd.Parameters.AddWithValue("@Password", generatedPassword);
+                    cmd.Parameters.AddWithValue("@DepID", model.DepID);
+                    cmd.Parameters.AddWithValue("@RoleId", model.RoleId);
                     cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
 
                     cmd.ExecuteNonQuery();
 
-                    TempData["SweetAlertMessage"] = "User Saved Successfully";
-                    TempData["SweetAlertOptions"] = "success";
+                    TempData["SweetAlertMessage"] = "User Created Password : " + generatedPassword;
                 }
                 else
                 {
                     SqlCommand cmd = new SqlCommand(
-                    "UPDATE T_User SET Name=@Name,Email=@Email,MobileNo=@MobileNo,Password=@Password,DepID=@DepID ,RoleId=@RoleId,IsActive=@IsActive WHERE UserID=@UserID", con);
+                    "UPDATE T_User SET Name=@Name,Email=@Email,MobileNo=@MobileNo,DepID=@DepID ,RoleId=@RoleId,IsActive=@IsActive WHERE UserID=@UserID", con);
 
                     cmd.Parameters.AddWithValue("@Name", model.Name.Trim());
                     cmd.Parameters.AddWithValue("@Email", model.Email.Trim());
                     cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo.Trim());
-                    cmd.Parameters.AddWithValue("@Password", model.Password.Trim());
                     cmd.Parameters.AddWithValue("@DepID", (object?)model.DepID ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@RoleId", (object?)model.RoleId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
@@ -630,6 +625,42 @@ namespace BespokeSoftware.Controllers
             }
 
             return roleList;
+        }
+
+        public string GeneratePassword()
+        {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+
+            return new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword(int id)
+        {
+            User model = new User();
+            model.UserID = id;
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult UpdatePassword(int userId, string password)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(
+                "UPDATE T_User SET Password=@Password WHERE UserID=@UserID", con);
+
+                cmd.Parameters.AddWithValue("@Password", password);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            return Json(new { success = true });
         }
     }
 }
