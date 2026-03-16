@@ -488,7 +488,29 @@ namespace BespokeSoftware.Controllers
                     dr.Close();
                 }
 
-                SqlCommand cmd2 = new SqlCommand("SELECT * FROM T_User u left join T_Role r on r.RoleID = u.RoleId left join T_Department d on d.DepID = u.DepID", con);
+                // LIST QUERY
+                SqlCommand cmd2;
+
+                if (id != null)
+                {
+                    cmd2 = new SqlCommand(@"
+                            SELECT * 
+                            FROM T_User u 
+                            LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
+                            LEFT JOIN T_Department d ON d.DepID = u.DepID
+                            WHERE u.UserID=@id", con);
+
+                    cmd2.Parameters.AddWithValue("@id", id);
+                }
+                else
+                {
+                    cmd2 = new SqlCommand(@"
+                        SELECT * 
+                        FROM T_User u 
+                        LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
+                        LEFT JOIN T_Department d ON d.DepID = u.DepID", con);
+                }
+
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
                 while (dr2.Read())
