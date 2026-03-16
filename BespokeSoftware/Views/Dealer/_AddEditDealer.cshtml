@@ -1,11 +1,9 @@
 ﻿@model BespokeSoftware.Models.Dealer.DealerViewModel
 
-<div class="container mt-4">
+<div class="card border border-info">
 
-<div class="card shadow">
-
-<div class="card-header bg-primary text-white">
-<h5 class="mb-0">Add Dealer</h5>
+<div class="card-header">
+ <h5 class="bg-info text-center fw-bold p-2 text-black">Add Dealer</h5>
 </div>
 
 <div class="card-body">
@@ -29,17 +27,32 @@
 <input asp-for="Dealer.OwnerName" class="form-control" required />
 </div>
 
-<div class="col-md-4">
-<label class="fw-bold">GST</label>
-<input asp-for="Dealer.GSTNo" id="gst" class="form-control" required />
-<span class="text-danger" id="gstError"></span>
-</div>
+                <div class="col-md-4">
 
-<div class="col-md-4">
-<label class="fw-bold">PAN</label>
-<input asp-for="Dealer.PANNo" id="pan" class="form-control" required />
-<span class="text-danger" id="panError"></span>
-</div>
+                    <label class="fw-bold">GST</label>
+
+                    <input asp-for="Dealer.GSTNo"
+                           id="gst"
+                           class="form-control"
+                           onchange="validateGST()" />
+
+                    <span class="text-danger" id="gstError"></span>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label class="fw-bold">PAN</label>
+
+                    <input asp-for="Dealer.PANNo"
+                           id="pan"
+                           class="form-control"
+                           onchange="validatePAN()" />
+
+                    <span class="text-danger" id="panError"></span>
+
+                </div>
 
 <div class="col-md-4">
 <label class="fw-bold">Department</label>
@@ -108,8 +121,9 @@
                     <tbody id="addressBody">
 
                         <tr>
-                            <td>
-                                <select name="Addresses[0].AddressType" class="form-select">
+
+                            <td style="width:140px;">
+                                <select name="Addresses[0].AddressType" class="form-select form-select-sm">
                                     <option value="">Select</option>
                                     <option value="Store">Store</option>
                                     <option value="Godown">Godown</option>
@@ -117,12 +131,12 @@
                                 </select>
                             </td>
 
-                            <td>
-                                <input type="text" value="India" class="form-control" readonly>
+                            <td style="width:120px;">
+                                <input type="text" value="India" class="form-control form-control-sm" readonly>
                             </td>
 
-                            <td>
-                                <select name="Addresses[0].StateID" class="form-select stateDropdown">
+                            <td style="width:180px;">
+                                <select name="Addresses[0].StateID" class="form-select form-select-sm stateDropdown">
 
                                     <option value="">Select State</option>
 
@@ -134,28 +148,39 @@
                                 </select>
                             </td>
 
-                            <td>
-                                <select name="Addresses[0].CityID" class="form-select cityDropdown">
+                            <td style="width:220px;">
+                                <select name="Addresses[0].CityID" class="form-select form-select-sm cityDropdown">
                                     <option>Select City</option>
                                 </select>
                             </td>
 
-                            <td>
-                                <input type="text" name="Addresses[0].AddressLine" class="form-control">
+                            <td style="width:300px;">
+<textarea name="Addresses[0].AddressLine"
+          class="form-control form-control-sm"
+          rows="2"></textarea>
                             </td>
 
-                            <td>
-                                <input type="text" name="Addresses[0].Pincode" class="form-control">
+                            <td style="width:110px;">
+                                <input type="text"
+                                       name="Addresses[0].Pincode"
+                                       class="form-control form-control-sm">
                             </td>
 
-                            <td>
-                                <button type="button" class="btn btn-danger removeRow">X</button>
+                            <td style="width:60px;" class="text-center">
+
+                                <button type="button"
+                                        class="btn btn-danger btn-sm removeRow">
+
+                                    <i class="bi bi-x-lg"></i>
+
+                                </button>
+
                             </td>
 
                         </tr>
 
                     </tbody>
-</table>
+                </table>
 
 <button type="button" class="btn btn-success" onclick="AddAddressRow()">
 Add Address
@@ -196,8 +221,16 @@ Add Address
                                 <input type="text" name="Communications[0].Value" class="form-control commValue">
                             </td>
 
-                            <td>
-                                <button type="button" class="btn btn-danger removeCommRow">X</button>
+                           
+                            <td style="width:60px;" class="text-center">
+
+                                <button type="button"
+                                        class="btn btn-danger btn-sm removeCommRow">
+
+                                    <i class="bi bi-x-lg"></i>
+
+                                </button>
+
                             </td>
 
                         </tr>
@@ -213,14 +246,13 @@ Add Communication
 
 <br><br>
 
-<button type="submit" class="btn btn-primary">Save Dealer</button>
-                <button type="button" class="btn btn-secondary ms-2" onclick="ClearDealerForm()">
+<button type="submit" class="btn btn-info">Save Dealer</button>
+                <a href="/Dealer/Index" class="btn btn-secondary">
                     Cancel
-                </button>
+                </a>
 
 </form>
 
-</div>
 </div>
 </div>
 
@@ -311,7 +343,7 @@ Add Communication
 
     var addressIndex = 1;
 
-    function AddAddressRow(){
+        function AddAddressRow(){
 
     var states = `@foreach (var s in Model.States)
     {
@@ -323,8 +355,8 @@ Add Communication
 
     <tr>
 
-         <td>
-    <select name="Addresses[${addressIndex}].AddressType" class="form-select">
+    <td style="width:140px;">
+    <select name="Addresses[${addressIndex}].AddressType" class="form-select form-select-sm">
     <option value="">Select</option>
     <option value="Store">Store</option>
     <option value="Godown">Godown</option>
@@ -332,33 +364,40 @@ Add Communication
     </select>
     </td>
 
-    <td>
-    <input type="text" value="India" class="form-control" readonly>
+    <td style="width:120px;">
+    <input type="text" value="India" class="form-control form-control-sm" readonly>
     </td>
 
-    <td>
-    <select name="Addresses[${addressIndex}].StateID" class="form-select stateDropdown">
-    <option>Select State</option>
+    <td style="width:180px;">
+    <select name="Addresses[${addressIndex}].StateID" class="form-select form-select-sm stateDropdown">
+    <option value="">Select State</option>
     ${states}
     </select>
     </td>
 
-    <td>
-    <select name="Addresses[${addressIndex}].CityID" class="form-select cityDropdown">
+    <td style="width:220px;">
+    <select name="Addresses[${addressIndex}].CityID" class="form-select form-select-sm cityDropdown">
     <option>Select City</option>
     </select>
     </td>
 
-    <td>
-    <input type="text" name="Addresses[${addressIndex}].AddressLine" class="form-control">
+    <td style="width:300px;">
+    <textarea name="Addresses[${addressIndex}].AddressLine"
+    class="form-control form-control-sm"
+    rows="2"></textarea>
     </td>
 
-    <td>
-    <input type="text" name="Addresses[${addressIndex}].Pincode" class="form-control">
+    <td style="width:110px;">
+    <input type="text"
+    name="Addresses[${addressIndex}].Pincode"
+    class="form-control form-control-sm">
     </td>
 
-    <td>
-    <button type="button" class="btn btn-danger removeRow">X</button>
+    <td style="width:60px;" class="text-center">
+    <button type="button"
+    class="btn btn-danger btn-sm removeRow">
+    <i class="bi bi-x-lg"></i>
+    </button>
     </td>
 
     </tr>
@@ -483,8 +522,67 @@ valid=false;
 
 });
 
+    if(!validateGST() || !validatePAN())
+    {
+    return false;
+    }
+
 return valid;
 
 });
+
+    function validatePAN(){
+
+    var pan = document.getElementById("pan").value;
+    var panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+    if(pan == "")
+    {
+    $("#panError").text("PAN is required");
+    return false;
+    }
+
+    if(!panRegex.test(pan))
+    {
+    $("#panError").text("Invalid PAN Number");
+    return false;
+    }
+
+    $("#panError").text("");
+
+    return true;
+
+    }
+
+    $("#gst").on("input",function(){
+    this.value = this.value.toUpperCase();
+    });
+
+    $("#pan").on("input",function(){
+    this.value = this.value.toUpperCase();
+    });
+
+        function validateGST(){
+
+    var gst = document.getElementById("gst").value;
+    var gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/;
+
+    if(gst == "")
+    {
+    $("#gstError").text("GST is required");
+    return false;
+    }
+
+    if(!gstRegex.test(gst))
+    {
+    $("#gstError").text("Invalid GST Number");
+    return false;
+    }
+
+    $("#gstError").text("");
+
+    return true;
+
+    }
 
 </script>

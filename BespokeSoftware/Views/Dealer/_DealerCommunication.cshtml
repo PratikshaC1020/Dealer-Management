@@ -1,0 +1,21 @@
+﻿@using static BespokeSoftware.Models.Dealer
+@model List<CommunicationDetails>
+
+<table class="table table-bordered">
+
+    <tr>
+        <th>Type</th>
+        <th>Value</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+
+            <td>@item.Type</td>
+            <td>@item.Value</td>
+
+        </tr>
+    }
+
+</table>
