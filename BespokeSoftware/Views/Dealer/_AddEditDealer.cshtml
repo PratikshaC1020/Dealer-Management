@@ -19,12 +19,14 @@
 
 <div class="col-md-4">
 <label class="fw-bold">Dealer Name</label>
-<input asp-for="Dealer.DealerName" class="form-control" required />
-</div>
+                    <input asp-for="Dealer.DealerName" class="form-control" />
+                    <span asp-validation-for="Dealer.DealerName" class="text-danger"></span>
+                </div>
 
 <div class="col-md-4">
 <label class="fw-bold">Owner Name</label>
 <input asp-for="Dealer.OwnerName" class="form-control" required />
+                    <span asp-validation-for="Dealer.OwnerName" class="text-danger"></span>
 </div>
 
                 <div class="col-md-4">
@@ -49,7 +51,7 @@
                            id="pan"
                            class="form-control"
                            onchange="validatePAN()" />
-
+                    <span asp-validation-for="Dealer.PANNo" class="text-danger"></span>
                     <span class="text-danger" id="panError"></span>
 
                 </div>
@@ -63,6 +65,7 @@
 <option value="@d.DepID">@d.DepartmentName</option>
 }
 </select>
+  <span asp-validation-for="Dealer.DepartmentId" class="text-danger"></span>
 </div>
 
 <div class="col-md-4">
@@ -74,6 +77,8 @@
 <option value="@c.ID">@c.CategoryName</option>
 }
 </select>
+ <span asp-validation-for="Dealer.CategoryId" class="text-danger"></span>
+
 </div>
 
 <div class="col-md-4">
@@ -85,6 +90,7 @@
 <option value="@p.ID">@p.PaymentModeName</option>
 }
 </select>
+<span asp-validation-for="Dealer.DefaultPaymentModeId" class="text-danger"></span>
 </div>
 
 <div class="col-md-4">
@@ -96,6 +102,7 @@
 <option value="@w.ID">@w.Day</option>
 }
 </select>
+                    <span asp-validation-for="Dealer.WeeklyOffDayId" class="text-danger"></span>
 </div>
 
 </div>
@@ -586,3 +593,4 @@ return valid;
     }
 
 </script>
+

@@ -49,6 +49,7 @@ namespace BespokeSoftware.Controllers
 
                         if (dr.Read())
                         {
+                            HttpContext.Session.SetString("UserName", dr["Name"].ToString());
                             // CREATE CLAIMS
                             var claims = new List<Claim>
                         {
@@ -92,18 +93,19 @@ namespace BespokeSoftware.Controllers
         {
             await HttpContext.SignOutAsync("MyCookieAuth");
             return RedirectToAction("Login", "Login");
+        }
         // Logout
         //public IActionResult Logout()
         //{
         //    HttpContext.Session.Clear();
         //    return RedirectToAction("Index");
         //}
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+        //public IActionResult Logout()
+        //{
+        //    HttpContext.Session.Clear();
+        //    return RedirectToAction("Login");
 
-        }
+        //}
     }
 }
 

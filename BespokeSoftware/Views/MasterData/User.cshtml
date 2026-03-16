@@ -156,8 +156,8 @@
                     @Html.DropDownListFor(m=>m.IsActive,
                                         new List<SelectListItem>
                                         {
-                                        new SelectListItem{Text="Active",Value="false"},
-                                        new SelectListItem{Text="Inactive",Value="true"}
+                                        new SelectListItem{Text="Active",Value="true",Selected = true},
+                                        new SelectListItem{Text="Inactive",Value="false"}
                                         },
                                         new { @class = "form-control form-select" })
 
@@ -216,10 +216,16 @@
                                 <a href="@Url.Action("User", "MasterData", new { id = item.UserID })"
                                    class="btn btn-info btn-sm fw-bold">
 
-                                    Edit
+                                    <i class="bi bi-pencil-square"></i>
 
                                 </a>
+                                <a href="javascript:void(0);"
+                                       onclick="DeleteUser(@item.UserID)"
+                                       class="btn btn-danger btn-sm">
 
+                                    <i class="bi bi-trash"></i>
+
+                                </a>
                             </td>
 
                         </tr>
@@ -255,6 +261,26 @@
             this.value = this.value.replace(/[^0-9]/g, '');
         });
 
+
+        function DeleteUser(id)
+        {
+        Swal.fire({
+        title: 'Are you sure?',
+        text: "You want to delete this user!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Delete'
+        }).then((result) => {
+
+        if (result.isConfirmed)
+        {
+        window.location.href = '/MasterData/DeleteUser/' + id;
+        }
+
+        });
+        }
     </script>
 
 }

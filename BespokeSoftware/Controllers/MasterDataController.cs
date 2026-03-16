@@ -45,7 +45,7 @@ namespace BespokeSoftware.Controllers
                     dr.Close();
                 }
 
-                SqlCommand cmd2 = new SqlCommand("SELECT DepID,Department,IsDelete FROM T_Department", con);
+                SqlCommand cmd2 = new SqlCommand("SELECT DepID,Department,IsDelete FROM T_Department  WHERE IsDelete = 0", con);
 
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
@@ -67,9 +67,51 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult Department(Department model)
         {
+            if (!ModelState.IsValid)
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT DepID,Department,IsDelete FROM T_Department", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    model.DepartmentList = new List<Department>();
+
+                    while (dr.Read())
+                    {
+                        model.DepartmentList.Add(new Department
+                        {
+                            DepID = Convert.ToInt32(dr["DepID"]),
+                            DepartmentName = dr["Department"].ToString(),
+                            IsDelete = Convert.ToBoolean(dr["IsDelete"])
+                        });
+                    }
+                }
+
+                return View(model);
+            }
+
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
+                // ✅ DUPLICATE CHECK
+                SqlCommand checkCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM T_Department WHERE LOWER(LTRIM(RTRIM(Department))) = LOWER(LTRIM(RTRIM(@Department))) AND DepID != @DepID",
+                con);
+
+                checkCmd.Parameters.AddWithValue("@Department", model.DepartmentName.Trim());
+                checkCmd.Parameters.AddWithValue("@DepID", model.DepID);
+
+                int exists = (int)checkCmd.ExecuteScalar();
+
+                if (exists > 0)
+                {
+                    TempData["SweetAlertMessage"] = "Department already exists";
+                    TempData["SweetAlertOptions"] = "error";
+
+                    return RedirectToAction("Department");
+                }
 
                 if (model.DepID == 0)
                 {
@@ -79,9 +121,6 @@ namespace BespokeSoftware.Controllers
                     cmd.Parameters.AddWithValue("@IsDelete", model.IsDelete);
 
                     cmd.ExecuteNonQuery();
-
-                    model.DepartmentName = "";
-                    model.IsDelete = false;
 
                     TempData["SweetAlertMessage"] = "Department Saved Successfully";
                     TempData["SweetAlertOptions"] = "success";
@@ -101,9 +140,28 @@ namespace BespokeSoftware.Controllers
                 }
             }
 
-            return RedirectToAction("Department", new { id = (int?)null });
+            return RedirectToAction("Department");
         }
 
+        public IActionResult DeleteDepartment(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(
+                "UPDATE T_Department SET IsDelete = 1 WHERE DepID=@id", con);
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            TempData["SweetAlertMessage"] = "Department Deleted Successfully";
+            TempData["SweetAlertOptions"] = "success";
+
+            return RedirectToAction("Department");
+        }
         [HttpGet]
         public IActionResult Category(int? id)
         {
@@ -133,8 +191,7 @@ namespace BespokeSoftware.Controllers
                 }
 
                 // Category list load
-                SqlCommand cmd2 = new SqlCommand("SELECT ID,Category,IsDelete FROM T_Category", con);
-
+                SqlCommand cmd2 = new SqlCommand("SELECT ID,Category,IsDelete FROM T_Category WHERE IsDelete = 0", con);
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
                 while (dr2.Read())
@@ -156,10 +213,51 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult Category(Category model)
         {
+            // ADD THIS BLOCK (validation fail झाला तर list परत load होईल)
+            if (!ModelState.IsValid)
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT ID,Category,IsDelete FROM T_Category", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    model.CategoryList = new List<Category>();
+
+                    while (dr.Read())
+                    {
+                        model.CategoryList.Add(new Category
+                        {
+                            CategoryID = Convert.ToInt32(dr["ID"]),
+                            CategoryName = dr["Category"].ToString(),
+                            IsDelete = Convert.ToBoolean(dr["IsDelete"])
+                        });
+                    }
+                }
+
+                return View(model);
+            }
+
+            // तुझा original code (UNCHANGED)
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
+                // DUPLICATE CHECK
+                SqlCommand checkCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM T_Category WHERE LOWER(LTRIM(RTRIM(Category))) = LOWER(LTRIM(RTRIM(@Category))) AND ID != @CategoryID", con);
 
+                checkCmd.Parameters.AddWithValue("@Category", model.CategoryName.Trim());
+                checkCmd.Parameters.AddWithValue("@CategoryID", model.CategoryID);
+
+                int exists = (int)checkCmd.ExecuteScalar();
+
+                if (exists > 0)
+                {
+                    TempData["SweetAlertMessage"] = "Category already exists";
+                    TempData["SweetAlertOptions"] = "error";
+                    return RedirectToAction("Category");
+                }
                 if (model.CategoryID == 0)
                 {
                     SqlCommand cmd = new SqlCommand("INSERT INTO T_Category(Category,IsDelete) VALUES(@Category,@IsDelete)", con);
@@ -190,6 +288,25 @@ namespace BespokeSoftware.Controllers
             return RedirectToAction("Category", new { id = (int?)null });
         }
 
+        public IActionResult DeleteCategory(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(
+                "UPDATE T_Category SET IsDelete = 1 WHERE ID=@id", con);
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            TempData["SweetAlertMessage"] = "Category Deleted Successfully";
+            TempData["SweetAlertOptions"] = "success";
+
+            return RedirectToAction("Category");
+        }
         [HttpGet]
         public IActionResult Payment(int? id)
         {
@@ -217,7 +334,7 @@ namespace BespokeSoftware.Controllers
                     dr.Close();
                 }
 
-                SqlCommand cmd2 = new SqlCommand("SELECT ID,PaymentMode,IsDelete FROM T_PaymentMode", con);
+                SqlCommand cmd2 = new SqlCommand("SELECT ID,PaymentMode,IsDelete FROM T_PaymentMode WHERE IsDelete = 0", con);
 
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
@@ -240,10 +357,51 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult Payment(PaymentMode model)
         {
+            // ADD THIS BLOCK
+            if (!ModelState.IsValid)
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT ID,PaymentMode,IsDelete FROM T_PaymentMode", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    model.PaymentModeList = new List<PaymentMode>();
+
+                    while (dr.Read())
+                    {
+                        model.PaymentModeList.Add(new PaymentMode
+                        {
+                            PaymentModeID = Convert.ToInt32(dr["ID"]),
+                            Payment = dr["PaymentMode"].ToString(),
+                            IsDelete = Convert.ToBoolean(dr["IsDelete"])
+                        });
+                    }
+                }
+
+                return View(model);
+            }
+
+            // तुझा original code
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
+                // DUPLICATE CHECK
+                SqlCommand checkCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM T_PaymentMode WHERE LOWER(LTRIM(RTRIM(PaymentMode))) = LOWER(LTRIM(RTRIM(@PaymentMode))) AND ID != @PaymentModeID", con);
 
+                checkCmd.Parameters.AddWithValue("@PaymentMode", model.Payment.Trim());
+                checkCmd.Parameters.AddWithValue("@PaymentModeID", model.PaymentModeID);
+
+                int exists = (int)checkCmd.ExecuteScalar();
+
+                if (exists > 0)
+                {
+                    TempData["SweetAlertMessage"] = "Payment Mode already exists";
+                    TempData["SweetAlertOptions"] = "error";
+                    return RedirectToAction("Payment");
+                }
                 if (model.PaymentModeID == 0)
                 {
                     SqlCommand cmd = new SqlCommand("INSERT INTO T_PaymentMode(PaymentMode,IsDelete) VALUES(@PaymentMode,@IsDelete)", con);
@@ -273,12 +431,33 @@ namespace BespokeSoftware.Controllers
 
             return RedirectToAction("Payment", new { id = (int?)null });
         }
+        public IActionResult DeletePaymentMode(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
 
+                SqlCommand cmd = new SqlCommand(
+                "UPDATE T_PaymentMode SET IsDelete = 1 WHERE ID=@id", con);
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            TempData["SweetAlertMessage"] = "Payment Mode Deleted Successfully";
+            TempData["SweetAlertOptions"] = "success";
+
+            return RedirectToAction("Payment");
+        }
         [HttpGet]
         public IActionResult User(int? id)
         {
             User model = new User();
-
+            if (id == null)
+            {
+                model.IsActive = true;   // default Active
+            }
             // dropdown load
             ViewBag.DepartmentList = GetDepartmentList();
             ViewBag.RoleList = GetRoleList();
@@ -387,7 +566,25 @@ namespace BespokeSoftware.Controllers
 
             return RedirectToAction("User", new { id = (int?)null });
         }
+        public IActionResult DeleteUser(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
 
+                SqlCommand cmd = new SqlCommand(
+                "DELETE FROM T_User WHERE UserID=@id", con);
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            TempData["SweetAlertMessage"] = "User Deleted Successfully";
+            TempData["SweetAlertOptions"] = "success";
+
+            return RedirectToAction("User");
+        }
         private List<SelectListItem> GetDepartmentList()
         {
             List<SelectListItem> deptList = new List<SelectListItem>();

@@ -78,7 +78,10 @@
                         <label class="fw-bold">Payment Mode :</label>
 
                         @Html.TextBoxFor(m => m.Payment,
-                        new { @class = "form-control", required = "required" })
+new { @class = "form-control" })
+
+                        @Html.ValidationMessageFor(m => m.Payment, "",
+                        new { @class = "text-danger" })
 
                 </div>
 
@@ -144,10 +147,15 @@
                                 <a href="@Url.Action("Payment", "MasterData", new { id = item.PaymentModeID })"
                                    class="btn btn-info btn-sm fw-bold">
 
-                                    Edit
+                                    <i class="bi bi-pencil-square"></i>
 
                                 </a>
+                                <a href="javascript:void(0);"
+                                       onclick="DeletePayment(@item.PaymentModeID)"
+                                       class="btn btn-danger btn-sm">
 
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </td>
 
                         </tr>
@@ -182,4 +190,24 @@
 
     });
 
+
+    function DeletePayment(id)
+    {
+    Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to delete this payment mode!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Delete'
+    }).then((result) => {
+
+    if (result.isConfirmed)
+    {
+    window.location.href = '/MasterData/DeletePaymentMode/' + id;
+    }
+
+    });
+    }
 </script>

@@ -25,16 +25,16 @@ namespace BespokeSoftware.Models
         [RegularExpression(@"[A-Z]{5}[0-9]{4}[A-Z]{1}", ErrorMessage = "Invalid PAN")]
         public string? PANNo { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Department is required")]
         public int DepartmentId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "WeeklyOffDay is required")]
         public int WeeklyOffDayId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Category is required")]
         public int CategoryId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Payment Mode is required")]
         public int DefaultPaymentModeId { get; set; }
 
         public string? PhotoType { get; set; }

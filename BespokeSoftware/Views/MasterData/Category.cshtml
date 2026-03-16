@@ -79,7 +79,10 @@
                         <label class="fw-bold">Category :</label>
 
                         @Html.TextBoxFor(m => m.CategoryName,
-                        new { @class = "form-control", required = "required" })
+new { @class = "form-control" })
+
+                        @Html.ValidationMessageFor(m => m.CategoryName, "",
+                        new { @class = "text-danger" })
 
                 </div>
 
@@ -146,10 +149,16 @@
                                                                       new { id = item.CategoryID })"
                            class="btn btn-info btn-sm fw-bold">
 
-                                    Edit
+                                    <i class="bi bi-pencil-square"></i>
 
                                 </a>
+                               <a href="javascript:void(0);"
+   onclick="DeleteCategory(@item.CategoryID)"
+   class="btn btn-danger btn-sm">
 
+    <i class="bi bi-trash"></i>
+
+</a>
                             </td>
 
                         </tr>
@@ -187,4 +196,24 @@
 
     });
 
+
+    function DeleteCategory(id)
+    {
+    Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to delete this category!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Delete'
+    }).then((result) => {
+
+    if (result.isConfirmed)
+    {
+    window.location.href = '/MasterData/DeleteCategory/' + id;
+    }
+
+    });
+    }
 </script>
