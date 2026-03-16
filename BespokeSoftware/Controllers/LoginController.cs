@@ -69,7 +69,7 @@ namespace BespokeSoftware.Controllers
                                 });
 
                             // Redirect to protected page
-                            return RedirectToAction("Department", "MasterData");
+                            return RedirectToAction("Index", "Dealer");
                         }
                         else
                         {

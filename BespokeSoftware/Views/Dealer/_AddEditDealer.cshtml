@@ -3,7 +3,7 @@
 <div class="card border border-info">
 
 <div class="card-header">
- <h5 class="bg-info text-center fw-bold p-2 text-black">Add Dealer</h5>
+ <h5 class="bg-info text-center fw-bold p-2 text-black">Add Dealer Information</h5>
 </div>
 
 <div class="card-body">
@@ -110,11 +110,11 @@
 <hr>
 
 <h5 class="fw-bold">Address</h5>
-
+            <div id="addressSection" style="display:none;">
 <table class="table table-bordered" id="addressTable">
 
 <thead class="table-light">
-<tr>
+                        <tr id="firstAddressRow" style="display:none;">
 <th>Address Type</th>
 <th>Country</th>
 <th>State</th>
@@ -188,7 +188,7 @@
 
                     </tbody>
                 </table>
-
+                                    </div>
 <button type="button" class="btn btn-success" onclick="AddAddressRow()">
 Add Address
 </button>
@@ -196,11 +196,11 @@ Add Address
 <hr>
 
 <h5 class="fw-bold">Communication</h5>
-
+            <div id="communicationSection" style="display:none;">
 <table class="table table-bordered" id="communicationTable">
 
 <thead class="table-light">
-<tr>
+                        <tr id="firstCommRow" style="display:none;">
 <th style="width:30%">Type</th>
 <th style="width:60%">Value</th>
 <th style="width:10%"></th>
@@ -244,7 +244,7 @@ Add Address
 
                     </tbody>
 </table>
-
+</div>
 <button type="button" class="btn btn-success" onclick="AddCommunicationRow()">
 Add Communication
 </button>
@@ -253,10 +253,17 @@ Add Communication
 
 <br><br>
 
-<button type="submit" class="btn btn-info">Save Dealer</button>
-                <a href="/Dealer/Index" class="btn btn-secondary">
+            <div class="text-center mt-3">
+
+                <button type="submit" class="btn btn-info fw-bold px-4">
+                    Save
+                </button>
+
+                <a href="/Dealer/Index" class="btn btn-secondary fw-bold px-4">
                     Cancel
                 </a>
+
+            </div>
 
 </form>
 
@@ -351,7 +358,12 @@ Add Communication
     var addressIndex = 1;
 
         function AddAddressRow(){
-
+    $("#addressSection").show();
+    if($("#firstAddressRow").is(":hidden"))
+    {
+    $("#firstAddressRow").show();
+    return;
+    }
     var states = `@foreach (var s in Model.States)
     {
         <text><option value="@s.StateID">@s.StateName</option></text>
@@ -449,7 +461,12 @@ $(this).closest("tr").remove();
 
         // communication rows index
     function AddCommunicationRow(){
-
+    $("#communicationSection").show(); 
+    if($("#firstCommRow").is(":hidden"))
+    {
+    $("#firstCommRow").show();
+    return;
+    }
     var row=`
 
     <tr>
@@ -469,9 +486,17 @@ $(this).closest("tr").remove();
     <input type="text" name="Communications[${commIndex}].Value" class="form-control commValue">
     </td>
 
-    <td>
-    <button type="button" class="btn btn-danger removeCommRow">X</button>
+    <td style="width:60px;" class="text-center">
+
+    <button type="button"
+    class="btn btn-danger btn-sm removeCommRow">
+
+    <i class="bi bi-x-lg"></i>
+
+    </button>
+
     </td>
+
 
     </tr>
 
