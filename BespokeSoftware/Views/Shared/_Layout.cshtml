@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var userId = Context.Session.GetString("UserId");
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
@@ -83,6 +86,13 @@
 
                     <ul class="dropdown-menu dropdown-menu-end">
 
+                    <li>
+                        <a class="dropdown-item"
+                           href="@Url.Action("User", "MasterData", new { id = userId })">
+                            <i class="bi bi-person"></i> View Profile
+                        </a>
+                    </li>
+
                         <li>
                             <a class="dropdown-item" href="@Url.Action("Logout", "Login")">
                                 <i class="bi bi-box-arrow-right"></i> Logout
@@ -113,7 +123,7 @@
                 <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
 
                     <li>
-                        <a href="@Url.Action("User", "MasterData")">
+                        <a href="@Url.Action("User", "MasterData", new { id = (int?)null })">
                             <i class="bi bi-circle"></i>
                             <span>User Management</span>
                         </a>
@@ -136,12 +146,25 @@
                             <span>Category Management</span>
                         </a>
                     </li>
+                      
                     <li>
                         <a href="@Url.Action("Payment", "MasterData")">
                             <i class="bi bi-circle"></i>
                             <span>Payment Management</span>
                         </a>
                     </li>
+                        <li>
+                            <a href="@Url.Action("Role", "MasterData")">
+                                <i class="bi bi-circle"></i>
+                                <span>Role Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("RolePermission", "MasterData")">
+                                <i class="bi bi-shield-lock"></i>
+                                <span>Role Permission</span>
+                            </a>
+                        </li>
                 </ul>
             </li>
 

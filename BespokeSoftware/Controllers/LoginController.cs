@@ -50,6 +50,7 @@ namespace BespokeSoftware.Controllers
                         if (dr.Read())
                         {
                             HttpContext.Session.SetString("UserName", dr["Name"].ToString());
+                            HttpContext.Session.SetString("UserId", dr["UserID"].ToString());
                             // CREATE CLAIMS
                             var claims = new List<Claim>
                         {
@@ -68,7 +69,7 @@ namespace BespokeSoftware.Controllers
                                 });
 
                             // Redirect to protected page
-                            return RedirectToAction("Department", "MasterData");
+                            return RedirectToAction("Index", "Dealer");
                         }
                         else
                         {

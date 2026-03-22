@@ -213,7 +213,6 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult Category(Category model)
         {
-            // ADD THIS BLOCK (validation fail झाला तर list परत load होईल)
             if (!ModelState.IsValid)
             {
                 using (SqlConnection con = new SqlConnection(_connectionString))
@@ -239,11 +238,9 @@ namespace BespokeSoftware.Controllers
                 return View(model);
             }
 
-            // तुझा original code (UNCHANGED)
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
-                // DUPLICATE CHECK
                 SqlCommand checkCmd = new SqlCommand(
                 "SELECT COUNT(*) FROM T_Category WHERE LOWER(LTRIM(RTRIM(Category))) = LOWER(LTRIM(RTRIM(@Category))) AND ID != @CategoryID", con);
 
@@ -358,7 +355,6 @@ namespace BespokeSoftware.Controllers
         [HttpPost]
         public IActionResult Payment(PaymentMode model)
         {
-            // ADD THIS BLOCK
             if (!ModelState.IsValid)
             {
                 using (SqlConnection con = new SqlConnection(_connectionString))
@@ -384,11 +380,9 @@ namespace BespokeSoftware.Controllers
                 return View(model);
             }
 
-            // तुझा original code
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
-                // DUPLICATE CHECK
                 SqlCommand checkCmd = new SqlCommand(
                 "SELECT COUNT(*) FROM T_PaymentMode WHERE LOWER(LTRIM(RTRIM(PaymentMode))) = LOWER(LTRIM(RTRIM(@PaymentMode))) AND ID != @PaymentModeID", con);
 
@@ -489,7 +483,29 @@ namespace BespokeSoftware.Controllers
                     dr.Close();
                 }
 
-                SqlCommand cmd2 = new SqlCommand("SELECT * FROM T_User u left join T_Role r on r.RoleID = u.RoleId left join T_Department d on d.DepID = u.DepID", con);
+                // LIST QUERY
+                SqlCommand cmd2;
+
+                if (id != null)
+                {
+                    cmd2 = new SqlCommand(@"
+                            SELECT * 
+                            FROM T_User u 
+                            LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
+                            LEFT JOIN T_Department d ON d.DepID = u.DepID
+                            WHERE u.UserID=@id", con);
+
+                    cmd2.Parameters.AddWithValue("@id", id);
+                }
+                else
+                {
+                    cmd2 = new SqlCommand(@"
+                        SELECT * 
+                        FROM T_User u 
+                        LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
+                        LEFT JOIN T_Department d ON d.DepID = u.DepID", con);
+                }
+
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
                 while (dr2.Read())
