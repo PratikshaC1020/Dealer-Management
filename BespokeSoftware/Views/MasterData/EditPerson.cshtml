@@ -1,0 +1,348 @@
+﻿@model BespokeSoftware.Models.Person
+
+@{
+    ViewBag.Title = "Edit Person";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card border border-warning">
+
+    <div class="card-header">
+        <h4 class="bg-info text-center fw-bold p-2 text-black">Update Person</h4>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="UpdatePerson" method="post">
+
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ImagePath" id="base64Image" />
+            <input type="hidden" asp-for="FileName" id="fileName" />
+
+            <div class="row g-3">
+
+                <div class="col-md-3 fw-bold">
+                    <label>Title</label>
+                    <select asp-for="Title" class="form-control">
+                        <option value="">Select</option>
+                        <option>Mr</option>
+                        <option>Ms</option>
+                        <option>Mrs</option>
+                        <option>Miss</option>
+                        <option>Dr</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>First Name</label>
+                    <input asp-for="FirstName" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>Middle Name</label>
+                    <input asp-for="MiddleName" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>Last Name</label>
+                    <input asp-for="LastName" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>Gender</label>
+                    <select asp-for="Gender" class="form-control">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Aadhaar</label>
+                    <input asp-for="AadhaarNo" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>PAN</label>
+                    <input asp-for="PANNo" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>Person Type</label>
+                    <input asp-for="PersonType" class="form-control" />
+                </div>
+
+                <!-- IMAGE -->
+                <div class="row">
+
+                    <!-- 🔥 EXISTING IMAGE -->
+                    <div class="col-md-4">
+
+                        <label class="fw-bold">Existing Image</label>
+
+                        @if (!string.IsNullOrEmpty(Model.ImagePath))
+                        {
+                            <div id="existingWrapper" style="position:relative; width:100px;">
+
+                                <img src="@Html.Raw(Model.ImagePath)"
+                                     style="width:100px; height:100px; border:1px solid #ccc;" />
+
+                                <!-- DELETE EXISTING -->
+                                <i class="bi bi-x-circle text-danger"
+                                   onclick="removeExistingImage()"
+                                   style="position:absolute; top:-8px; right:-8px; cursor:pointer; background:white; border-radius:50%;"></i>
+
+                                <div style="font-size:12px;">@Model.FileName</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted">No Image</div>
+                        }
+
+                    </div>
+
+
+                    <!-- 🔥 NEW IMAGE -->
+                    <div class="col-md-4">
+
+                        <label class="fw-bold">Upload New Image</label>
+
+                        <input type="file" id="imgInputNew" class="form-control" />
+
+                        <!-- PREVIEW -->
+                        <div id="previewWrapper" style="position:relative; display:none; width:100px; margin-top:10px;">
+
+                            <img id="previewNew"
+                                 style="width:100px; height:100px; border:1px solid #ccc;" />
+
+                            <!-- DELETE NEW -->
+                            <i class="bi bi-x-circle text-danger"
+                               onclick="removeNewImage()"
+                               style="position:absolute; top:-8px; right:-8px; cursor:pointer; background:white; border-radius:50%;"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                <input type="hidden" asp-for="ImagePath" id="base64Image" />
+                <input type="hidden" asp-for="FileName" id="fileName" />
+                <input type="hidden" id="isImageDeleted" name="IsImageDeleted" value="false" />
+            </div>
+
+            <hr />
+
+            <!-- 🔥 COMMUNICATION -->
+            <h5>
+                Communication
+                <i class="bi bi-plus-circle text-success" style="cursor:pointer;"
+                   onclick="addCommunication()"></i>
+            </h5>
+            <div id="commContainer" class="row"></div>
+
+            <hr />
+
+            <!-- 🔥 ADDRESS -->
+            <h5>
+                Address
+                <i class="bi bi-plus-circle text-success" style="cursor:pointer;"
+                   onclick="addAddress()"></i>
+            </h5>
+            <div id="addressContainer" class="row"></div>
+
+            <br />
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-warning fw-bold">
+                    Update
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    var commIndex = 0;
+    var addrIndex = 0;
+
+    $(document).ready(function(){
+
+        var commData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Communications ?? new List<BespokeSoftware.Models.PersonCommunication>()));
+        var addrData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Addresses ?? new List<BespokeSoftware.Models.PersonAddress>()));
+
+        $("#commContainer").html("");
+        $("#addressContainer").html("");
+
+        // COMM
+        if(commData.length > 0){
+            commData.forEach(c => {
+                addCommunication(c.CommunicationType, c.Value);
+            });
+        } else {
+            addCommunication();
+        }
+
+        // ADDRESS
+        if(addrData.length > 0){
+            addrData.forEach(a => {
+                addAddress(a.AddressType, a.AddressLine);
+            });
+        } else {
+            addAddress();
+        }
+
+    });
+
+    // 🔥 IMAGE
+    $("#imgInput").change(function(e){
+        let file = e.target.files[0];
+        if(file){
+            let reader = new FileReader();
+            reader.onload = function(){
+                let base64 = reader.result;
+                $("#preview").attr("src", base64).show();
+                $("#base64Image").val(base64);
+                $("#fileName").val(file.name);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+        // 🔥 NEW IMAGE SELECT
+    $("#imgInputNew").change(function(e){
+
+        let file = e.target.files[0];
+
+        if(file){
+            let reader = new FileReader();
+
+            reader.onload = function(){
+
+                let base64 = reader.result;
+
+                $("#previewNew").attr("src", base64);
+                $("#previewWrapper").show();
+
+                $("#base64Image").val(base64);
+                $("#fileName").val(file.name);
+
+                $("#isImageDeleted").val("false"); // reset
+            }
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 🔥 REMOVE NEW IMAGE
+    function removeNewImage(){
+
+        $("#imgInputNew").val("");
+        $("#previewWrapper").hide();
+
+        $("#base64Image").val("");
+        $("#fileName").val("");
+    }
+
+    // 🔥 REMOVE EXISTING IMAGE
+    function removeExistingImage(){
+
+        $("#existingWrapper").remove();
+
+        $("#base64Image").val("");
+        $("#fileName").val("");
+
+        $("#isImageDeleted").val("true");
+    }
+
+    // 🔥 ADD COMM
+    function addCommunication(type = "", value = ""){
+        let html = `
+        <div class="col-md-6 item-card">
+            <div class="border p-2 position-relative mb-2">
+
+                <i class="bi bi-x-circle text-danger"
+                   style="position:absolute; right:5px; top:5px; cursor:pointer;"
+                   onclick="removeItem(this, 'comm')"></i>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <input name="Communications[${commIndex}].CommunicationType"
+                               value="${type}" class="form-control"/>
+                    </div>
+                    <div class="col-md-8">
+                        <input name="Communications[${commIndex}].Value"
+                               value="${value}" class="form-control"/>
+                    </div>
+                </div>
+
+            </div>
+        </div>`;
+        $("#commContainer").append(html);
+        commIndex++;
+    }
+
+    // 🔥 ADD ADDRESS
+    function addAddress(type = "", value = ""){
+        let html = `
+        <div class="col-md-6 item-card">
+            <div class="border p-2 position-relative mb-2">
+
+                <i class="bi bi-x-circle text-danger"
+                   style="position:absolute; right:5px; top:5px; cursor:pointer;"
+                   onclick="removeItem(this, 'addr')"></i>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <input name="Addresses[${addrIndex}].AddressType"
+                               value="${type}" class="form-control"/>
+                    </div>
+                    <div class="col-md-8">
+                        <textarea name="Addresses[${addrIndex}].AddressLine"
+                                  class="form-control">${value}</textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>`;
+        $("#addressContainer").append(html);
+        addrIndex++;
+    }
+
+    // 🔥 REMOVE
+    function removeItem(el, type){
+        $(el).closest(".item-card").remove();
+
+        if(type === 'comm'){
+            reindexComm();
+        } else {
+            reindexAddr();
+        }
+    }
+
+    // 🔥 REINDEX COMM
+    function reindexComm(){
+        commIndex = 0;
+        $("#commContainer .item-card").each(function(){
+            let inputs = $(this).find("input");
+            $(inputs[0]).attr("name", "Communications[" + commIndex + "].CommunicationType");
+            $(inputs[1]).attr("name", "Communications[" + commIndex + "].Value");
+            commIndex++;
+        });
+    }
+
+    // 🔥 REINDEX ADDRESS
+    function reindexAddr(){
+        addrIndex = 0;
+        $("#addressContainer .item-card").each(function(){
+            $(this).find("input").attr("name", "Addresses[" + addrIndex + "].AddressType");
+            $(this).find("textarea").attr("name", "Addresses[" + addrIndex + "].AddressLine");
+            addrIndex++;
+        });
+    }
+
+</script>

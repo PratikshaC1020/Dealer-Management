@@ -37,6 +37,25 @@ public class DealerController : Controller
     [HttpPost]
     public IActionResult InsertDealer(DealerViewModel model)
     {
+        // direct available
+        var noteIds = model.Dealer.NoteIds;
+
+        // check
+        if (noteIds != null)
+        {
+            foreach (var id in noteIds)
+            {
+                Console.WriteLine(id);
+            }
+        }
+        if (model.NotesA != null)
+        {
+            foreach (var note in model.NotesA)
+            {
+                var cat = note.CategoryId;
+                var text = note.NoteText;
+            }
+        }
         if (model != null)
         {
             repo.InsertDealerFull(model);

@@ -1,0 +1,442 @@
+﻿@model BespokeSoftware.Models.Person
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+
+@{
+    var sweetAlertMessage = TempData["SweetAlertMessage"] as string;
+    var sweetAlertOptions = TempData["SweetAlertOptions"] as string;
+}
+@if (!string.IsNullOrEmpty(sweetAlertMessage))
+{
+    <script>
+        Swal.fire('@sweetAlertMessage', '', '@sweetAlertOptions');
+    </script>
+}
+<div class="card border border-info">
+
+    <div class="card-header">
+        <h4 class="bg-info text-center fw-bold p-2 text-black">Add Person</h4>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="InsertPerson" method="post" enctype="multipart/form-data" id="personForm" novalidate>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Title</label>
+                    <select asp-for="Title" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Mr">Mr</option>
+                        <option value="Ms">Ms</option>
+                        <option value="Mrs">Mrs</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Dr">Dr</option>
+                    </select>
+                    <span class="text-danger" id="titleError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">First Name</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span class="text-danger" id="fnameError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Middle Name</label>
+                    <input asp-for="MiddleName" class="form-control"  />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Last Name</label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span class="text-danger" id="lnameError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Gender</label>
+                    <select asp-for="Gender" class="form-select">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                    <span class="text-danger" id="genderError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">DOB</label>
+                    <input asp-for="DOB" type="date" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Anniversary</label>
+                    <input asp-for="AnniversaryDate" type="date" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Aadhaar</label>
+                    <input asp-for="AadhaarNo" id="aadhaar" class="form-control" />
+                    <span class="text-danger" id="aadhaarError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">PAN</label>
+                    <input asp-for="PANNo" id="pan" class="form-control" />
+                    <span class="text-danger" id="panError"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Person Type</label>
+                    <input asp-for="PersonType" class="form-control" />
+                    <span class="text-danger" id="ptypeError"></span>
+                </div>
+
+                <!-- IMAGE -->
+                <div class="col-md-4 position-relative">
+                    <label class="fw-bold">Image</label>
+
+                    <input type="file" name="ImageFile" id="imgInput"
+                           class="form-control" accept="image/*" />
+
+                    <img id="preview"
+                         style="width:80px; margin-top:5px; display:none;" />
+
+                    <i class="bi bi-x-circle text-danger"
+                       id="imgRemove"
+                       style="position:absolute; top:35px; right:10px; cursor:pointer; display:none;">
+                    </i>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="fw-bold">Remark</label>
+                    <textarea asp-for="Remark" class="form-control" ></textarea>
+                </div>
+                <input type="hidden" asp-for="ImagePath" id="base64Image" />
+                <input type="hidden" id="fileName" name="FileName" />
+            </div>
+
+            <hr />
+
+            <!-- COMMUNICATION -->
+            <h5 class="fw-bold">
+                Communication
+                <i class="bi bi-plus-circle text-success" onclick="addCommunication()" style="cursor:pointer;"></i>
+            </h5>
+
+            <div id="commContainer"></div>
+
+            <hr />
+
+            <!-- ADDRESS -->
+            <h5 class="fw-bold">
+                Address
+                <i class="bi bi-plus-circle text-success" onclick="addAddress()" style="cursor:pointer;"></i>
+            </h5>
+
+            <div id="addressContainer"></div>
+
+            <br />
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-info fw-bold">Save</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    var addrIndex = 0;
+    var addrRow = null;
+    var addrItem = 0;
+
+    var commIndex = 0;
+    var commRow = null;
+    var commItem = 0;
+
+    // DEFAULT LOAD
+    $(document).ready(function(){
+        addAddress();
+        addCommunication();
+    });
+
+    // ADDRESS
+       function addAddress(){
+
+        if(addrItem === 0){
+            addrRow = $('<div class="row mb-2"></div>');
+            $("#addressContainer").append(addrRow);
+        }
+
+        let html = `
+        <div class="col-md-6 item-card">
+            <div class="border p-2 position-relative">
+
+                <i class="bi bi-x-circle text-danger"
+                   style="position:absolute; right:5px; top:5px; cursor:pointer;"
+                   onclick="removeItem(this)"></i>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <input name="Addresses[${addrIndex}].AddressType"
+                               placeholder="Type"
+                               class="form-control"/>
+                    </div>
+
+                    <div class="col-md-8">
+                        <textarea name="Addresses[${addrIndex}].AddressLine"
+                                  placeholder="Address"
+                                  class="form-control"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>`;
+
+        addrRow.append(html);
+
+        addrIndex++;
+        addrItem++;
+
+        if(addrItem === 2){
+            addrItem = 0;
+        }
+    }
+
+    // COMMUNICATION
+        function addCommunication(){
+
+        if(commItem === 0){
+            commRow = $('<div class="row mb-2"></div>');
+            $("#commContainer").append(commRow);
+        }
+
+        let html = `
+        <div class="col-md-6 item-card">
+            <div class="border p-2 position-relative">
+
+                <i class="bi bi-x-circle text-danger"
+                   style="position:absolute; right:5px; top:5px; cursor:pointer;"
+                   onclick="removeItem(this)"></i>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <input name="Communications[${commIndex}].CommunicationType"
+                               placeholder="Type"
+                               class="form-control"/>
+                    </div>
+
+                    <div class="col-md-8">
+                        <input name="Communications[${commIndex}].Value"
+                               placeholder="Value"
+                               class="form-control"/>
+                    </div>
+                </div>
+
+            </div>
+        </div>`;
+
+        commRow.append(html);
+
+        commIndex++;
+        commItem++;
+
+        if(commItem === 2){
+            commItem = 0;
+        }
+    }
+
+    // REMOVE
+    function removeItem(el){
+
+        // 🔥 COMMUNICATION last delete
+        if($(el).closest("#commContainer").length > 0){
+
+            let items = $("#commContainer .item-card");
+
+            if(items.length > 0){
+                items.last().remove();
+            }
+
+            // empty row clean
+            $("#commContainer .row").each(function(){
+                if($(this).children().length === 0){
+                    $(this).remove();
+                }
+            });
+
+            // reindex
+            let cindex = 0;
+            $("#commContainer .item-card").each(function(){
+
+                let inputs = $(this).find("input");
+
+                $(inputs[0]).attr("name", "Communications[" + cindex + "].CommunicationType");
+                $(inputs[1]).attr("name", "Communications[" + cindex + "].Value");
+
+                cindex++;
+            });
+        }
+
+        // 🔥 ADDRESS last delete
+        if($(el).closest("#addressContainer").length > 0){
+
+            let items = $("#addressContainer .item-card");
+
+            if(items.length > 0){
+                items.last().remove();
+            }
+
+            // empty row clean
+            $("#addressContainer .row").each(function(){
+                if($(this).children().length === 0){
+                    $(this).remove();
+                }
+            });
+
+            // reindex
+            let aindex = 0;
+            $("#addressContainer .item-card").each(function(){
+
+                $(this).find("input").attr("name", "Addresses[" + aindex + "].AddressType");
+                $(this).find("textarea").attr("name", "Addresses[" + aindex + "].AddressLine");
+
+                aindex++;
+            });
+        }
+    }
+
+    function validateForm(){
+
+        let isValid = true;
+
+        // CLEAR ALL
+        $(".text-danger").text("");
+
+        // TITLE
+        if($("#Title").val() === ""){
+            $("#titleError").text("Select Title");
+            isValid = false;
+        }
+
+        // FIRST NAME
+        if($("#FirstName").val().trim() === ""){
+            $("#fnameError").text("Enter First Name");
+            isValid = false;
+        }
+
+        // LAST NAME
+        if($("#LastName").val().trim() === ""){
+            $("#lnameError").text("Enter Last Name");
+            isValid = false;
+        }
+
+        // GENDER
+        if($("#Gender").val() === ""){
+            $("#genderError").text("Select Gender");
+            isValid = false;
+        }
+
+        // PERSON TYPE
+        if($("#PersonType").val().trim() === ""){
+            $("#ptypeError").text("Enter Person Type");
+            isValid = false;
+        }
+
+        // PAN
+        let pan = $("#pan").val();
+        let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+        if(pan === "" || !panRegex.test(pan)){
+            $("#panError").text("Invalid PAN");
+            isValid = false;
+        }
+
+        // AADHAAR
+        let ad = $("#aadhaar").val();
+        let adRegex = /^[0-9]{12}$/;
+
+        if(ad === "" || !adRegex.test(ad)){
+            $("#aadhaarError").text("Invalid Aadhaar");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+
+    // REINDEX + SUBMIT
+         $("#personForm").submit(function(){
+
+        // REINDEX
+        let index = 0;
+        $("#addressContainer .col-md-6").each(function(){
+            $(this).find("input").attr("name", "Addresses[" + index + "].AddressType");
+            $(this).find("textarea").attr("name", "Addresses[" + index + "].AddressLine");
+            index++;
+        });
+
+        let cindex = 0;
+        $("#commContainer .col-md-6").each(function(){
+            let inputs = $(this).find("input");
+            $(inputs[0]).attr("name", "Communications[" + cindex + "].CommunicationType");
+            $(inputs[1]).attr("name", "Communications[" + cindex + "].Value");
+            cindex++;
+        });
+
+        // 🔥 VALIDATION
+        return validateForm();  // TRUE → submit, FALSE → stop
+    });
+
+    // PAN UPPERCASE
+    $("#pan").on("input", function(){
+        this.value = this.value.toUpperCase();
+    });
+
+    // IMAGE PREVIEW + DELETE
+       $("#imgInput").change(function(e){
+
+        let file = e.target.files[0];
+        let fileName = file.name;
+
+        if(file){
+            let reader = new FileReader();
+
+            reader.onload = function(){
+
+                let base64 = reader.result;
+
+                // 🔥 preview
+                $("#preview").attr("src", base64).show();
+                $("#imgRemove").show();
+
+                // 🔥 hidden field मध्ये store
+                $("#base64Image").val(base64);
+                    // 🔥 new hidden field
+                $("#fileName").val(fileName);
+            }
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+       $("#imgRemove").click(function(){
+
+        $("#imgInput").val("");
+        $("#preview").attr("src","").hide();
+        $("#base64Image").val(""); // 🔥 important
+        $(this).hide();
+    });
+
+</script>

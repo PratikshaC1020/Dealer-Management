@@ -9,6 +9,7 @@ namespace BespokeSoftware.Models
         [Required(ErrorMessage = "Dealer Code is required")]
         [StringLength(50)]
         public string? DealerCode { get; set; }
+        public string? Remark { get; set; }
 
         [Required(ErrorMessage = "Dealer Name is required")]
         [StringLength(200)]
@@ -57,7 +58,14 @@ namespace BespokeSoftware.Models
         public string PaymentMode { get; set; }
 
         public string WeeklyOff { get; set; }
+        public List<int> CommunicationIds { get; set; }
+        public List<int> NoteIds { get; set; }
 
+        public class NoteVM
+        {
+            public int CategoryId { get; set; }
+            public string NoteText { get; set; }
+        }
         public class modelDepartment
         {
             public int DepID { get; set; }
@@ -119,6 +127,7 @@ namespace BespokeSoftware.Models
 
             public List<City> Cities { get; set; }
             public List<State> States { get; set; }
+            public List<NoteVM> NotesA { get; set; }
         }
         public class Address
         {

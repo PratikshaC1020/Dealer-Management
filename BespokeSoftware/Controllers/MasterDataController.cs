@@ -307,6 +307,7 @@ namespace BespokeSoftware.Controllers
 
             return RedirectToAction("Category");
         }
+
         [HttpGet]
         public IActionResult Payment(int? id)
         {
@@ -661,6 +662,569 @@ namespace BespokeSoftware.Controllers
             }
 
             return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public IActionResult Person()
+        {
+            return View(new Person
+            {
+                Addresses = new List<PersonAddress>(),
+                Communications = new List<PersonCommunication>()
+            });
+        }
+
+        [HttpPost]
+        public IActionResult InsertPerson(Person model)
+        {
+            if (model == null)
+                return View("Person");
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+                SqlTransaction tran = con.BeginTransaction();
+
+                try
+                {
+                    // ================= INSERT PERSON =================
+                    int personId = 0;
+
+                    string personSql = @"
+                INSERT INTO T_Person
+                (Title, FirstName, MiddleName, LastName, Gender, DOB, AnniversaryDate,
+                 AadhaarNo, PANNo, PersonType, Remark)
+                OUTPUT INSERTED.PersonID
+                VALUES
+                (@Title, @FirstName, @MiddleName, @LastName, @Gender, @DOB, @AnniversaryDate,
+                 @AadhaarNo, @PANNo, @PersonType, @Remark)";
+
+                    using (SqlCommand cmd = new SqlCommand(personSql, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@Title", model.Title ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FirstName", model.FirstName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@MiddleName", model.MiddleName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@LastName", model.LastName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Gender", model.Gender ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DOB", model.DOB ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@AnniversaryDate", model.AnniversaryDate ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@AadhaarNo", model.AadhaarNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PANNo", model.PANNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PersonType", model.PersonType ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remark", model.Remark ?? (object)DBNull.Value);
+
+                        personId = (int)cmd.ExecuteScalar();
+                    }
+
+                    // ================= INSERT COMMUNICATION =================
+                    if (model.Communications != null)
+                    {
+                        foreach (var c in model.Communications)
+                        {
+                            if (!string.IsNullOrWhiteSpace(c?.CommunicationType) ||
+                                !string.IsNullOrWhiteSpace(c?.Value))
+                            {
+                                string commSql = @"
+                            INSERT INTO T_PersonCommunication
+                            (PersonID, CommunicationType, Value)
+                            VALUES (@PersonID, @Type, @Value)";
+
+                                using (SqlCommand cmd = new SqlCommand(commSql, con, tran))
+                                {
+                                    cmd.Parameters.AddWithValue("@PersonID", personId);
+                                    cmd.Parameters.AddWithValue("@Type", c.CommunicationType ?? (object)DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@Value", c.Value ?? (object)DBNull.Value);
+
+                                    cmd.ExecuteNonQuery();
+                                }
+                            }
+                        }
+                    }
+
+                    // ================= INSERT ADDRESS =================
+                    if (model.Addresses != null)
+                    {
+                        foreach (var a in model.Addresses)
+                        {
+                            if (!string.IsNullOrWhiteSpace(a?.AddressType) ||
+                                !string.IsNullOrWhiteSpace(a?.AddressLine))
+                            {
+                                string addrSql = @"
+                            INSERT INTO T_PersonAddress
+                            (PersonID, AddressType, AddressLine)
+                            VALUES (@PersonID, @Type, @Address)";
+
+                                using (SqlCommand cmd = new SqlCommand(addrSql, con, tran))
+                                {
+                                    cmd.Parameters.AddWithValue("@PersonID", personId);
+                                    cmd.Parameters.AddWithValue("@Type", a.AddressType ?? (object)DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@Address", a.AddressLine ?? (object)DBNull.Value);
+
+                                    cmd.ExecuteNonQuery();
+                                }
+                            }
+                        }
+                    }
+
+                    // ================= INSERT IMAGE (BASE64 + FILE NAME) =================
+                    if (!string.IsNullOrEmpty(model.ImagePath))
+                    {
+                        string imgSql = @"
+                    INSERT INTO T_Image (Type, IdentityID, ImageBase64, FileName)
+                    VALUES ('Person', @IdentityID, @Image, @FileName)";
+
+                        using (SqlCommand cmd = new SqlCommand(imgSql, con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@IdentityID", personId.ToString());
+                            cmd.Parameters.AddWithValue("@Image", model.ImagePath);
+                            cmd.Parameters.AddWithValue("@FileName", model.FileName ?? (object)DBNull.Value);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // ================= COMMIT =================
+                    tran.Commit();
+
+                    TempData["SweetAlertMessage"] = "Person Save Successfully";
+                    TempData["SweetAlertOptions"] = "success";
+                    return RedirectToAction("Person");
+                }
+                catch (Exception ex)
+                {
+                    tran.Rollback();
+                    TempData["SweetAlertMessage"] = ex.Message;
+                    TempData["SweetAlertOptions"] = "warning";
+                    return View("Person", model);
+                }
+            }
+        }
+
+        [HttpGet]
+        public IActionResult PersonList()
+        {
+            List<Person> list = new List<Person>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                string sql = @"
+        SELECT p.*, i.ImageBase64
+        FROM T_Person p
+        LEFT JOIN T_Image i 
+            ON i.IdentityID = CAST(p.PersonID AS NVARCHAR) 
+            AND i.Type = 'Person'";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        list.Add(new Person
+                        {
+                            Id = Convert.ToInt32(rdr["PersonID"]),
+                            Title = rdr["Title"].ToString(),
+                            FirstName = rdr["FirstName"].ToString(),
+                            MiddleName = rdr["MiddleName"].ToString(),
+                            LastName = rdr["LastName"].ToString(),
+                            Gender = rdr["Gender"].ToString(),
+                            AadhaarNo = rdr["AadhaarNo"].ToString(),
+                            PANNo = rdr["PANNo"].ToString(),
+                            PersonType = rdr["PersonType"].ToString(),
+                            ImagePath = rdr["ImageBase64"]?.ToString()
+                        });
+                    }
+                }
+            }
+
+            return View(list);
+        }
+        public JsonResult GetCommunication(int id)
+        {
+            var list = new List<PersonCommunication>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                string sql = "SELECT * FROM T_PersonCommunication WHERE PersonID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            list.Add(new PersonCommunication
+                            {
+                                CommunicationType = rdr["CommunicationType"].ToString(),
+                                Value = rdr["Value"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return Json(list);
+        }
+        public JsonResult GetAddress(int id)
+        {
+            var list = new List<PersonAddress>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                string sql = "SELECT * FROM T_PersonAddress WHERE PersonID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            list.Add(new PersonAddress
+                            {
+                                AddressType = rdr["AddressType"].ToString(),
+                                AddressLine = rdr["AddressLine"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return Json(list);
+        }
+
+        [HttpGet]
+        public IActionResult EditPerson(int id)
+        {
+            Person model = new Person();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                // PERSON
+                string sql = @"SELECT * FROM T_Person WHERE PersonID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        if (rdr.Read())
+                        {
+                            model.Id = id;
+                            model.Title = rdr["Title"].ToString();
+                            model.FirstName = rdr["FirstName"].ToString();
+                            model.MiddleName = rdr["MiddleName"].ToString();
+                            model.LastName = rdr["LastName"].ToString();
+                            model.Gender = rdr["Gender"].ToString();
+                            model.AadhaarNo = rdr["AadhaarNo"].ToString();
+                            model.PANNo = rdr["PANNo"].ToString();
+                            model.PersonType = rdr["PersonType"].ToString();
+                            model.Remark = rdr["Remark"].ToString();
+                        }
+                    }
+                }
+
+                // IMAGE
+                string imgSql = @"SELECT TOP 1 * FROM T_Image 
+                          WHERE Type='Person' AND IdentityID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(imgSql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id.ToString());
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        if (rdr.Read())
+                        {
+                            model.ImagePath = rdr["ImageBase64"]?.ToString();
+                            model.FileName = rdr["FileName"]?.ToString();
+                        }
+                    }
+                }
+
+                // COMMUNICATION
+                model.Communications = new List<PersonCommunication>();
+                string commSql = "SELECT * FROM T_PersonCommunication WHERE PersonID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(commSql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            model.Communications.Add(new PersonCommunication
+                            {
+                                CommunicationType = rdr["CommunicationType"].ToString(),
+                                Value = rdr["Value"].ToString()
+                            });
+                        }
+                    }
+                }
+
+                // ADDRESS
+                model.Addresses = new List<PersonAddress>();
+                string addrSql = "SELECT * FROM T_PersonAddress WHERE PersonID=@id";
+
+                using (SqlCommand cmd = new SqlCommand(addrSql, con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            model.Addresses.Add(new PersonAddress
+                            {
+                                AddressType = rdr["AddressType"].ToString(),
+                                AddressLine = rdr["AddressLine"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return View("EditPerson", model); // same view reuse
+        }
+
+        [HttpPost]
+        public IActionResult UpdatePerson(Person model)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlTransaction tran = con.BeginTransaction();
+
+                try
+                {
+                    // ================= PERSON UPDATE =================
+                    string updatePerson = @"UPDATE T_Person SET 
+                                    Title=@Title,
+                                    FirstName=@FirstName,
+                                    MiddleName=@MiddleName,
+                                    LastName=@LastName,
+                                    Gender=@Gender,
+                                    AadhaarNo=@AadhaarNo,
+                                    PANNo=@PANNo,
+                                    PersonType=@PersonType,
+                                    Remark=@Remark
+                                    WHERE PersonID=@Id";
+
+                    using (SqlCommand cmd = new SqlCommand(updatePerson, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@Title", model.Title ?? "");
+                        cmd.Parameters.AddWithValue("@FirstName", model.FirstName ?? "");
+                        cmd.Parameters.AddWithValue("@MiddleName", model.MiddleName ?? "");
+                        cmd.Parameters.AddWithValue("@LastName", model.LastName ?? "");
+                        cmd.Parameters.AddWithValue("@Gender", model.Gender ?? "");
+                        cmd.Parameters.AddWithValue("@AadhaarNo", model.AadhaarNo ?? "");
+                        cmd.Parameters.AddWithValue("@PANNo", model.PANNo ?? "");
+                        cmd.Parameters.AddWithValue("@PersonType", model.PersonType ?? "");
+                        cmd.Parameters.AddWithValue("@Remark", model.Remark ?? "");
+                        cmd.Parameters.AddWithValue("@Id", model.Id);
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // ================= IMAGE LOGIC =================
+                    string isDeleted = Request.Form["IsImageDeleted"];
+
+                    if (isDeleted == "true")
+                    {
+                        string delImg = @"DELETE FROM T_Image 
+                                  WHERE Type='Person' AND IdentityID=@id";
+
+                        using (SqlCommand cmd = new SqlCommand(delImg, con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@id", model.Id.ToString());
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(model.ImagePath))
+                    {
+                        string check = @"SELECT COUNT(*) FROM T_Image 
+                                 WHERE Type='Person' AND IdentityID=@id";
+
+                        SqlCommand cmdCheck = new SqlCommand(check, con, tran);
+                        cmdCheck.Parameters.AddWithValue("@id", model.Id.ToString());
+
+                        int count = (int)cmdCheck.ExecuteScalar();
+
+                        if (count > 0)
+                        {
+                            string updateImg = @"UPDATE T_Image 
+                                        SET ImageBase64=@img, FileName=@name
+                                        WHERE Type='Person' AND IdentityID=@id";
+
+                            SqlCommand cmd = new SqlCommand(updateImg, con, tran);
+                            cmd.Parameters.AddWithValue("@img", model.ImagePath);
+                            cmd.Parameters.AddWithValue("@name", model.FileName ?? "");
+                            cmd.Parameters.AddWithValue("@id", model.Id.ToString());
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            string insertImg = @"INSERT INTO T_Image(Type, IdentityID, ImageBase64, FileName)
+                                         VALUES('Person', @id, @img, @name)";
+
+                            SqlCommand cmd = new SqlCommand(insertImg, con, tran);
+                            cmd.Parameters.AddWithValue("@id", model.Id.ToString());
+                            cmd.Parameters.AddWithValue("@img", model.ImagePath);
+                            cmd.Parameters.AddWithValue("@name", model.FileName ?? "");
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // ================= DELETE OLD COMMUNICATION =================
+                    string delComm = "DELETE FROM T_PersonCommunication WHERE PersonID=@id";
+
+                    using (SqlCommand cmd = new SqlCommand(delComm, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", model.Id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // ================= INSERT NEW COMMUNICATION =================
+                    if (model.Communications != null)
+                    {
+                        foreach (var item in model.Communications)
+                        {
+                            if (!string.IsNullOrEmpty(item.CommunicationType) ||
+                                !string.IsNullOrEmpty(item.Value))
+                            {
+                                string ins = @"INSERT INTO T_PersonCommunication
+                                       (PersonID, CommunicationType, Value)
+                                       VALUES (@id, @type, @val)";
+
+                                SqlCommand cmd = new SqlCommand(ins, con, tran);
+                                cmd.Parameters.AddWithValue("@id", model.Id);
+                                cmd.Parameters.AddWithValue("@type", item.CommunicationType ?? "");
+                                cmd.Parameters.AddWithValue("@val", item.Value ?? "");
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+
+                    // ================= DELETE OLD ADDRESS =================
+                    string delAddr = "DELETE FROM T_PersonAddress WHERE PersonID=@id";
+
+                    using (SqlCommand cmd = new SqlCommand(delAddr, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", model.Id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // ================= INSERT NEW ADDRESS =================
+                    if (model.Addresses != null)
+                    {
+                        foreach (var item in model.Addresses)
+                        {
+                            if (!string.IsNullOrEmpty(item.AddressType) ||
+                                !string.IsNullOrEmpty(item.AddressLine))
+                            {
+                                string ins = @"INSERT INTO T_PersonAddress
+                                       (PersonID, AddressType, AddressLine)
+                                       VALUES (@id, @type, @line)";
+
+                                SqlCommand cmd = new SqlCommand(ins, con, tran);
+                                cmd.Parameters.AddWithValue("@id", model.Id);
+                                cmd.Parameters.AddWithValue("@type", item.AddressType ?? "");
+                                cmd.Parameters.AddWithValue("@line", item.AddressLine ?? "");
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+
+                    // ================= COMMIT =================
+                    tran.Commit();
+
+                    TempData["SweetAlertMessage"] = "Person Updated Successfully";
+                    TempData["SweetAlertType"] = "success";
+
+                    return RedirectToAction("PersonList");
+                }
+                catch (Exception ex)
+                {
+                    tran.Rollback();
+
+                    TempData["SweetAlertMessage"] = ex.Message;
+                    TempData["SweetAlertType"] = "error";
+
+                    return View("EditPerson", model);
+                }
+            }
+        }
+        public IActionResult DeletePerson(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlTransaction tran = con.BeginTransaction();
+
+                try
+                {
+                    // 🔥 DELETE COMMUNICATION
+                    string delComm = "DELETE FROM T_PersonCommunication WHERE PersonID=@id";
+                    using (SqlCommand cmd = new SqlCommand(delComm, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 🔥 DELETE ADDRESS
+                    string delAddr = "DELETE FROM T_PersonAddress WHERE PersonID=@id";
+                    using (SqlCommand cmd = new SqlCommand(delAddr, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 🔥 DELETE IMAGE
+                    string delImg = "DELETE FROM T_Image WHERE Type='Person' AND IdentityID=@id";
+                    using (SqlCommand cmd = new SqlCommand(delImg, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id.ToString());
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 🔥 DELETE PERSON
+                    string delPerson = "DELETE FROM T_Person WHERE PersonID=@id";
+                    using (SqlCommand cmd = new SqlCommand(delPerson, con, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    tran.Commit();
+
+                    TempData["SweetAlertMessage"] = "Person Deleted Successfully";
+                    TempData["SweetAlertType"] = "success";
+                }
+                catch (Exception ex)
+                {
+                    tran.Rollback();
+
+                    TempData["SweetAlertMessage"] = ex.Message;
+                    TempData["SweetAlertType"] = "error";
+                }
+            }
+
+            return RedirectToAction("PersonList");
         }
     }
 }
