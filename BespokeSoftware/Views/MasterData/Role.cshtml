@@ -1,0 +1,211 @@
+﻿@model BespokeSoftware.Models.Role
+
+@{
+    ViewBag.Title = "Role";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<style>
+    div.dataTables_filter {
+    margin-bottom: 15px;
+    }
+
+    #roleTable {
+    margin-top: 10px;
+    }
+
+    #roleTable th,
+    #roleTable td {
+    border: 1px solid #ccc !important;
+    }
+
+    #roleTable tbody tr:hover {
+    background-color: #e6f2ff;
+    }
+
+    .form-box {
+    border: 2px solid #6c757d;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 10px;
+    width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+    }
+</style>
+
+@{
+    var sweetAlertMessage = TempData["SweetAlertMessage"] as string;
+    var sweetAlertOptions = TempData["SweetAlertOptions"] as string;
+}
+
+@if (!string.IsNullOrEmpty(sweetAlertMessage))
+{
+    <script>
+        Swal.fire('@sweetAlertMessage', '', '@sweetAlertOptions');
+    </script>
+}
+
+
+<form method="post" action="/MasterData/Role" novalidate>
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.RoleID)
+
+    <div class="card border border-info">
+
+        <h3 class="bg-info text-black text-center p-2 fw-bold">
+            Role Management
+        </h3>
+
+        <div class="card-body mt-4">
+
+            <div class="form-box">
+
+                <div class="row justify-content-center p-3">
+
+                    <div class="col-sm-2"></div>
+
+                    <div class="col-sm-4">
+
+                        <label class="fw-bold">Role :</label>
+
+                        @Html.TextBoxFor(m => m.RoleName,
+                        new { @class = "form-control" })
+
+                        @Html.ValidationMessageFor(m => m.RoleName, "",
+                        new { @class = "text-danger" })
+
+                    </div>
+
+                    <div class="col-sm-4">
+
+                        <label class="fw-bold">Status :</label>
+
+                        @Html.DropDownListFor(m => m.IsDelete,
+                            new List<SelectListItem>
+                            {
+                                new SelectListItem{Text="Active",Value="false"},
+                                new SelectListItem{Text="Inactive",Value="true"}
+                            },
+                            new { @class = "form-control form-select" })
+
+                    </div>
+
+                    <div class="col-sm-2"></div>
+
+                </div>
+
+                <div class="text-center mt-4">
+
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        Save
+                    </button>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <table id="roleTable" class="table table-bordered table-hover text-center">
+
+                <thead class="bg-info text-black">
+
+                    <tr>
+                        <th class="text-center">ID</th>
+                        <th class="text-center">Role</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model.RoleList)
+                    {
+                        <tr>
+
+                            <td>@item.RoleID</td>
+
+                            <td>@item.RoleName</td>
+
+                            <td>
+                                @(item.IsDelete ? "Inactive" : "Active")
+                            </td>
+
+                            <td>
+
+                                <a href="@Url.Action("Role","MasterData",
+                                                                                                           new { id = item.RoleID })"
+                                       class="btn btn-info btn-sm fw-bold">
+
+                                    <i class="bi bi-pencil-square"></i>
+
+                                </a>
+
+                                <a href="javascript:void(0);"
+                                       onclick="DeleteRole(@item.RoleID)"
+                                       class="btn btn-danger btn-sm">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</form>
+
+<script>
+    $(document).ready(function () {
+
+    $('#roleTable').DataTable({
+    pageLength: 5,
+    lengthMenu: [5, 10, 20, 50],
+    ordering: true,
+    searching: true,
+    columnDefs: [
+    { orderable: false, targets: 3 }
+    ]
+    });
+
+    });
+
+    function DeleteRole(id)
+    {
+    Swal.fire({
+    title: 'Are you sure?',
+    text: "You want to delete this role!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Delete'
+    }).then((result) => {
+
+    if (result.isConfirmed)
+    {
+    window.location.href = '/MasterData/DeleteRole/' + id;
+    }
+
+    });
+    }
+</script>
