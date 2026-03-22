@@ -1,0 +1,129 @@
+﻿@model BespokeSoftware.Models.PermissionVM
+
+@{
+    ViewBag.Title = "Role Permission";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="card border border-info">
+
+    <h3 class="bg-info text-center p-2 fw-bold">
+        Role Permission
+    </h3>
+
+    <div class="card-body">
+
+        <!-- Role Dropdown -->
+        <div class="row mb-3">
+            <div class="col-sm-4">
+                <label class="fw-bold">Select Role :</label>
+
+                @Html.DropDownListFor(m => m.RoleId,
+                    Model.RoleList,
+                    "-- Select Role --",
+                    new { @class = "form-control", id = "ddlRole" })
+            </div>
+        </div>
+
+        <!-- Permission Table -->
+        <table class="table table-bordered text-center">
+            <thead class="bg-info">
+                <tr>
+                    <th>Add</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                    <th>List</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" id="chkAdd" /></td>
+                    <td><input type="checkbox" id="chkUpdate" /></td>
+                    <td><input type="checkbox" id="chkDelete" /></td>
+                    <td><input type="checkbox" id="chkList" /></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-primary px-4 fw-bold text-white"
+                    onclick="SavePermissions()">
+                Save
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+
+    $('#ddlRole').change(function () {
+
+    var roleId = $(this).val();
+
+    // 🔥 ALWAYS reset first
+    $('#chkAdd').prop('checked', false);
+    $('#chkUpdate').prop('checked', false);
+    $('#chkDelete').prop('checked', false);
+    $('#chkList').prop('checked', false);
+
+    // 👉 जर role select नाही केला तर इथेच stop
+    if (roleId == "") return;
+
+    // 👉 role select असेल तर permissions load कर
+    $.get('/MasterData/GetRolePermissions', { roleId: roleId }, function (data) {
+
+    data.forEach(function (item) {
+
+    if (item.permissionName == "Add")
+    $('#chkAdd').prop('checked', item.isAllowed);
+
+    if (item.permissionName == "Update")
+    $('#chkUpdate').prop('checked', item.isAllowed);
+
+    if (item.permissionName == "Delete")
+    $('#chkDelete').prop('checked', item.isAllowed);
+
+    if (item.permissionName == "List")
+    $('#chkList').prop('checked', item.isAllowed);
+    });
+
+    });
+
+    });
+
+    function SavePermissions() {
+
+    var roleId = $('#ddlRole').val();
+
+    if (roleId == "") {
+    Swal.fire("Please select role first", "", "warning");
+    return;
+    }
+
+    var data = {
+    RoleId: roleId,
+    Add: $('#chkAdd').is(':checked'),
+    Update: $('#chkUpdate').is(':checked'),
+    Delete: $('#chkDelete').is(':checked'),
+    List: $('#chkList').is(':checked')
+    };
+
+    $.post('/MasterData/SaveRolePermissions', data, function (res) {
+
+    Swal.fire(res.message, '', res.type);
+
+    }).fail(function () {
+
+    Swal.fire("Something went wrong!", "", "error");
+
+    });
+
+    }
+
+</script>
