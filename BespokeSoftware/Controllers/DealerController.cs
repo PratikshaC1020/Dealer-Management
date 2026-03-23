@@ -30,6 +30,7 @@ public class DealerController : Controller
         ViewBag.CategoryList = repo.GetCategories();
         ViewBag.PaymentModeList = repo.GetPaymentModes();
         ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
+        ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
         model.States = repo.GetStates();
         return View(model);
     }
@@ -67,7 +68,7 @@ public class DealerController : Controller
         ViewBag.CategoryList = repo.GetCategories();
         ViewBag.PaymentModeList = repo.GetPaymentModes();
         ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
-        model.States = repo.GetStates();
+        //model.States = repo.GetStates();
 
         return View("_AddEditDealer", model);
     }
