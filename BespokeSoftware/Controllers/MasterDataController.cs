@@ -1242,5 +1242,296 @@ namespace BespokeSoftware.Controllers
 
             return RedirectToAction("PersonList");
         }
+
+        [HttpGet]
+        public IActionResult Role(int? id)
+        {
+            Role model = new Role();
+            model.RoleList = new List<Role>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+
+                if (id != null)
+                {
+                    SqlCommand cmd = new SqlCommand("SELECT RoleID,RoleName,IsDelete FROM T_Role WHERE RoleID=@id", con);
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        model.RoleID = Convert.ToInt32(dr["RoleID"]);
+                        model.RoleName = dr["RoleName"].ToString();
+                        model.IsDelete = Convert.ToBoolean(dr["IsDelete"]);
+                    }
+
+                    dr.Close();
+                }
+
+
+                SqlCommand cmd2 = new SqlCommand("SELECT RoleID,RoleName,IsDelete FROM T_Role WHERE IsDelete = 0", con);
+                SqlDataReader dr2 = cmd2.ExecuteReader();
+
+                while (dr2.Read())
+                {
+                    model.RoleList.Add(new Role
+                    {
+                        RoleID = Convert.ToInt32(dr2["RoleID"]),
+                        RoleName = dr2["RoleName"].ToString(),
+                        IsDelete = Convert.ToBoolean(dr2["IsDelete"])
+                    });
+                }
+            }
+
+            return View(model);
+        }
+        [HttpPost]
+        public IActionResult Role(Role model)
+        {
+            ModelState.Remove("RoleList");
+
+            if (!ModelState.IsValid)
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT RoleID,RoleName,IsDelete FROM T_Role", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    model.RoleList = new List<Role>();
+
+                    while (dr.Read())
+                    {
+                        model.RoleList.Add(new Role
+                        {
+                            RoleID = Convert.ToInt32(dr["RoleID"]),
+                            RoleName = dr["RoleName"].ToString(),
+                            IsDelete = Convert.ToBoolean(dr["IsDelete"])
+                        });
+                    }
+                }
+
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+
+                SqlCommand checkCmd = new SqlCommand(
+                "SELECT COUNT(*) FROM T_Role WHERE LOWER(LTRIM(RTRIM(RoleName))) = LOWER(LTRIM(RTRIM(@RoleName))) AND RoleID != @RoleID", con);
+
+                checkCmd.Parameters.AddWithValue("@RoleName", model.RoleName.Trim());
+                checkCmd.Parameters.AddWithValue("@RoleID", model.RoleID);
+
+                int exists = (int)checkCmd.ExecuteScalar();
+
+                if (exists > 0)
+                {
+                    TempData["SweetAlertMessage"] = "Role already exists";
+                    TempData["SweetAlertOptions"] = "error";
+                    return RedirectToAction("Role");
+                }
+
+                if (model.RoleID == 0)
+                {
+                    SqlCommand cmd = new SqlCommand("INSERT INTO T_Role(RoleName,IsDelete) VALUES(@RoleName,@IsDelete)", con);
+
+                    cmd.Parameters.AddWithValue("@RoleName", model.RoleName.Trim());
+                    cmd.Parameters.AddWithValue("@IsDelete", model.IsDelete);
+
+                    cmd.ExecuteNonQuery();
+
+                    TempData["SweetAlertMessage"] = "Role Saved Successfully";
+                    TempData["SweetAlertOptions"] = "success";
+                }
+                else
+                {
+                    SqlCommand cmd = new SqlCommand("UPDATE T_Role SET RoleName=@RoleName,IsDelete=@IsDelete WHERE RoleID=@RoleID", con);
+
+                    cmd.Parameters.AddWithValue("@RoleName", model.RoleName.Trim());
+                    cmd.Parameters.AddWithValue("@IsDelete", model.IsDelete);
+                    cmd.Parameters.AddWithValue("@RoleID", model.RoleID);
+
+                    cmd.ExecuteNonQuery();
+
+                    TempData["SweetAlertMessage"] = "Role Updated Successfully";
+                    TempData["SweetAlertOptions"] = "success";
+                }
+            }
+
+            return RedirectToAction("Role", new { id = (int?)null });
+        }
+        public IActionResult DeleteRole(int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(
+                "UPDATE T_Role SET IsDelete = 1 WHERE RoleID=@id", con);
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            TempData["SweetAlertMessage"] = "Role Deleted Successfully";
+            TempData["SweetAlertOptions"] = "success";
+
+            return RedirectToAction("Role");
+        }
+
+        //===Role permission==
+
+        [HttpGet]
+        public IActionResult RolePermission()
+        {
+            PermissionVM model = new PermissionVM();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand("SELECT RoleID,RoleName FROM T_Role WHERE IsDelete=0", con);
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                model.RoleList = new List<SelectListItem>();
+
+                while (dr.Read())
+                {
+                    model.RoleList.Add(new SelectListItem
+                    {
+                        Value = dr["RoleID"].ToString(),
+                        Text = dr["RoleName"].ToString()
+                    });
+                }
+            }
+
+            return View(model);
+        }
+        public JsonResult GetRolePermissions(int roleId)
+        {
+            List<object> list = new List<object>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(@"
+    SELECT p.PermissionName, rp.IsAllowed
+    FROM T_Permissions p
+    LEFT JOIN T_RolePermissions rp 
+    ON p.PermissionId = rp.PermissionId AND rp.RoleId=@roleId
+", con);
+
+                cmd.Parameters.AddWithValue("@roleId", roleId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    list.Add(new
+                    {
+                        permissionName = dr["PermissionName"].ToString(),
+                        isAllowed = dr["IsAllowed"] != DBNull.Value && Convert.ToBoolean(dr["IsAllowed"])
+                    });
+                }
+            }
+
+            return Json(list);
+        }
+        [HttpPost]
+        public JsonResult SaveRolePermissions(PermissionVM model)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT PermissionId,PermissionName FROM T_Permissions", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    List<(int id, string name)> permissions = new();
+
+                    while (dr.Read())
+                    {
+                        permissions.Add((
+                            Convert.ToInt32(dr["PermissionId"]),
+                            dr["PermissionName"].ToString()
+                        ));
+                    }
+
+                    dr.Close();
+
+                    foreach (var p in permissions)
+                    {
+                        bool value = false;
+
+                        if (p.name == "Add") value = model.Add;
+                        if (p.name == "Update") value = model.Update;
+                        if (p.name == "Delete") value = model.Delete;
+                        if (p.name == "List") value = model.List;
+
+                        SqlCommand checkCmd = new SqlCommand(
+                            "SELECT COUNT(*) FROM T_RolePermissions WHERE RoleId=@RoleId AND PermissionId=@PermissionId",
+                            con);
+
+                        checkCmd.Parameters.AddWithValue("@RoleId", model.RoleId);
+                        checkCmd.Parameters.AddWithValue("@PermissionId", p.id);
+
+                        int exists = (int)checkCmd.ExecuteScalar();
+
+                        if (exists > 0)
+                        {
+                            SqlCommand updateCmd = new SqlCommand(
+                                "UPDATE T_RolePermissions SET IsAllowed=@IsAllowed WHERE RoleId=@RoleId AND PermissionId=@PermissionId",
+                                con);
+
+                            updateCmd.Parameters.AddWithValue("@IsAllowed", value);
+                            updateCmd.Parameters.AddWithValue("@RoleId", model.RoleId);
+                            updateCmd.Parameters.AddWithValue("@PermissionId", p.id);
+
+                            updateCmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            SqlCommand insertCmd = new SqlCommand(
+                                "INSERT INTO T_RolePermissions(RoleId,PermissionId,IsAllowed) VALUES(@RoleId,@PermissionId,@IsAllowed)",
+                                con);
+
+                            insertCmd.Parameters.AddWithValue("@RoleId", model.RoleId);
+                            insertCmd.Parameters.AddWithValue("@PermissionId", p.id);
+                            insertCmd.Parameters.AddWithValue("@IsAllowed", value);
+
+                            insertCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+
+                return Json(new
+                {
+                    message = "Permissions Saved Successfully",
+                    type = "success"
+                });
+            }
+            catch (Exception)
+            {
+
+                return Json(new
+                {
+                    message = "Something went wrong!",
+                    type = "error"
+                });
+            }
+        }
+
     }
 }
