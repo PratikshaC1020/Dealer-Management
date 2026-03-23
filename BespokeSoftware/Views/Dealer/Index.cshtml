@@ -185,7 +185,12 @@ Layout = "~/Views/Shared/_Layout.cshtml";
     // DATATABLE
     $(document).ready(function () {
         $('#dealerTable').DataTable({
-            pageLength: 5
+    paging: true,
+    searching: true,
+    ordering: true,
+    info: true,
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100],
         });
     });
 

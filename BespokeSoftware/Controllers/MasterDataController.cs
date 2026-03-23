@@ -1390,6 +1390,7 @@ namespace BespokeSoftware.Controllers
         //===Role permission==
 
         [HttpGet]
+        [HttpGet]
         public IActionResult RolePermission()
         {
             PermissionVM model = new PermissionVM();
@@ -1398,6 +1399,7 @@ namespace BespokeSoftware.Controllers
             {
                 con.Open();
 
+            
                 SqlCommand cmd = new SqlCommand("SELECT RoleID,RoleName FROM T_Role WHERE IsDelete=0", con);
                 SqlDataReader dr = cmd.ExecuteReader();
 
@@ -1409,6 +1411,37 @@ namespace BespokeSoftware.Controllers
                     {
                         Value = dr["RoleID"].ToString(),
                         Text = dr["RoleName"].ToString()
+                    });
+                }
+
+                dr.Close(); // ⚠️ IMPORTANT
+
+                // 🔥 LIST LOGIC ADD
+                SqlCommand cmd2 = new SqlCommand(@"
+        SELECT r.RoleName,
+               ISNULL(MAX(CASE WHEN p.PermissionName='Add' THEN CAST(rp.IsAllowed AS INT) END),0) AS AddPermission,
+               ISNULL(MAX(CASE WHEN p.PermissionName='Update' THEN CAST(rp.IsAllowed AS INT) END),0) AS UpdatePermission,
+               ISNULL(MAX(CASE WHEN p.PermissionName='Delete' THEN CAST(rp.IsAllowed AS INT) END),0) AS DeletePermission,
+               ISNULL(MAX(CASE WHEN p.PermissionName='List' THEN CAST(rp.IsAllowed AS INT) END),0) AS ListPermission
+        FROM T_Role r
+        LEFT JOIN T_RolePermissions rp ON r.RoleID = rp.RoleId
+        LEFT JOIN T_Permissions p ON p.PermissionId = rp.PermissionId
+        GROUP BY r.RoleName
+        ", con);
+
+                SqlDataReader dr2 = cmd2.ExecuteReader();
+
+                model.RolePermissionList = new List<dynamic>();
+
+                while (dr2.Read())
+                {
+                    model.RolePermissionList.Add(new
+                    {
+                        RoleName = dr2["RoleName"].ToString(),
+                        Add = Convert.ToBoolean(dr2["AddPermission"]),
+                        Update = Convert.ToBoolean(dr2["UpdatePermission"]),
+                        Delete = Convert.ToBoolean(dr2["DeletePermission"]),
+                        List = Convert.ToBoolean(dr2["ListPermission"])
                     });
                 }
             }
@@ -1532,6 +1565,43 @@ namespace BespokeSoftware.Controllers
                 });
             }
         }
+        [HttpGet]
+        public IActionResult RolePermissionList()
+        {
+            List<object> list = new List<object>();
 
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand(@"
+        SELECT r.RoleName,
+               MAX(CASE WHEN p.PermissionName='Add' THEN rp.IsAllowed END) AS AddPermission,
+               MAX(CASE WHEN p.PermissionName='Update' THEN rp.IsAllowed END) AS UpdatePermission,
+               MAX(CASE WHEN p.PermissionName='Delete' THEN rp.IsAllowed END) AS DeletePermission,
+               MAX(CASE WHEN p.PermissionName='List' THEN rp.IsAllowed END) AS ListPermission
+        FROM T_Role r
+        LEFT JOIN T_RolePermissions rp ON r.RoleID = rp.RoleId
+        LEFT JOIN T_Permissions p ON p.PermissionId = rp.PermissionId
+        GROUP BY r.RoleName
+        ", con);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    list.Add(new
+                    {
+                        RoleName = dr["RoleName"].ToString(),
+                        Add = dr["AddPermission"] != DBNull.Value && Convert.ToBoolean(dr["AddPermission"]),
+                        Update = dr["UpdatePermission"] != DBNull.Value && Convert.ToBoolean(dr["UpdatePermission"]),
+                        Delete = dr["DeletePermission"] != DBNull.Value && Convert.ToBoolean(dr["DeletePermission"]),
+                        List = dr["ListPermission"] != DBNull.Value && Convert.ToBoolean(dr["ListPermission"])
+                    });
+                }
+            }
+
+            return Json(list);
+        }
     }
 }

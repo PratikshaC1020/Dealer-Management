@@ -55,6 +55,38 @@
                 Save
             </button>
         </div>
+        <hr />
+
+        <h5 class="text-center fw-bold mt-3">Role Permission List</h5>
+
+        <table class="table table-bordered text-center mt-2" id="tblRolePermission">
+            <thead class="bg-info">
+                <tr>
+                    <th>Role</th>
+                    <th>Add</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                    <th>List</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.RolePermissionList != null)
+                {
+                    foreach (var item in Model.RolePermissionList)
+                    {
+                        <tr>
+                            <td>@item.RoleName</td>
+                            <td>@(item.Add ? "✔️" : "❌")</td>
+                            <td>@(item.Update ? "✔️" : "❌")</td>
+                            <td>@(item.Delete ? "✔️" : "❌")</td>
+                            <td>@(item.List ? "✔️" : "❌")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+
+        </table>
     </div>
 </div>
 
@@ -66,16 +98,13 @@
 
     var roleId = $(this).val();
 
-    // 🔥 ALWAYS reset first
     $('#chkAdd').prop('checked', false);
     $('#chkUpdate').prop('checked', false);
     $('#chkDelete').prop('checked', false);
     $('#chkList').prop('checked', false);
 
-    // 👉 जर role select नाही केला तर इथेच stop
     if (roleId == "") return;
 
-    // 👉 role select असेल तर permissions load कर
     $.get('/MasterData/GetRolePermissions', { roleId: roleId }, function (data) {
 
     data.forEach(function (item) {
@@ -117,6 +146,7 @@
     $.post('/MasterData/SaveRolePermissions', data, function (res) {
 
     Swal.fire(res.message, '', res.type);
+   
 
     }).fail(function () {
 
@@ -126,4 +156,7 @@
 
     }
 
+
+
+   
 </script>
