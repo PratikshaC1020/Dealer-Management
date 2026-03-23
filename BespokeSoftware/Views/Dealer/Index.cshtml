@@ -1,78 +1,90 @@
 ﻿@model IEnumerable<BespokeSoftware.Models.Dealer>
 
 @{
-    ViewBag.Title = "Dealer";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+ViewBag.Title = "Dealer";
+Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<!-- ✅ REQUIRED -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-
-    div.dataTables_filter {
-        margin-bottom: 15px;
+    #dealerTable th, #dealerTable td {
+        border: 1px solid #ccc !important;
     }
 
-    #dealerTable {
-        margin-top: 10px;
+    #dealerTable tbody tr:hover {
+        background-color: #e6f2ff;
     }
 
-        #dealerTable th,
-        #dealerTable td {
-            border: 1px solid #ccc !important;
-        }
-
-        #dealerTable tbody tr:hover {
-            background-color: #e6f2ff;
-        }
+    .img-box {
+        width:50px;
+        height:50px;
+        border-radius:6px;
+        object-fit:cover;
+    }
 </style>
-
 
 <div class="card border border-info">
 
-    <h2 class="bg-info text-black text-center fw-bold p-2">
-        Dealer List
-    </h2>
+```
+<h2 class="bg-info text-black text-center fw-bold p-2">
+    Dealer List
+</h2>
 
-    <div class="card-body">
+<div class="card-body">
 
-        <div class="text-end mb-3">
-            <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
-                Add Dealer <i class="bi bi-plus"></i>
-            </a>
+    <div class="text-end mb-3">
+        <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
+            Add Dealer <i class="bi bi-plus"></i>
+        </a>
+    </div>
 
-        </div>
-        <div class="table-responsive">
+    <div class="table-responsive">
         <table class="table table-bordered table-hover" id="dealerTable">
 
-                <thead class="bg-info text-black">
-
+            <thead class="bg-info text-black">
                 <tr>
-
-                        <th class="text-center">Code</th>
-                        <th class="text-center">Dealer Name</th>
-                        <th class="text-center">Owner Name</th>
-                        <th class="text-center">Department</th>
-                        <th class="text-center">Category</th>
-                        <th class="text-center">Payment Mode</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Action</th>
-
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Owner</th>
+                    <th>Payment</th>
+                    <th>Weekly Off</th>
+                    <th>Dealer Img</th>
+                    <th>Company Img</th>
+                    <th>Status</th>
+                    <th>Action</th>
                 </tr>
-
             </thead>
 
             <tbody>
-
                 @foreach (var item in Model)
                 {
                     <tr>
-
                         <td>@item.DealerCode</td>
                         <td>@item.DealerName</td>
                         <td>@item.OwnerName</td>
-                        <td>@item.DepartmentName</td>
-                        <td>@item.CategoryName</td>
                         <td>@item.PaymentMode</td>
-                        <td class="text-center">
+                        <td>@item.WeeklyOff</td>
 
+                        <!-- Dealer Image -->
+                        <td>
+                            <img src="data:image/png;base64,@item.DealerImage"
+                                 class="img-box" />
+                        </td>
+
+                        <!-- Company Image -->
+                        <td>
+                            <img src="data:image/png;base64,@item.CompanyImage"
+                                 class="img-box" />
+                        </td>
+
+                        <td class="text-center">
                             @if (item.IsActive)
                             {
                                 <span class="badge bg-success">Active</span>
@@ -81,162 +93,139 @@
                             {
                                 <span class="badge bg-danger">Inactive</span>
                             }
-
                         </td>
 
                         <td class="text-center">
 
-                            <a href="/Dealer/EditDealer/@item.DealerId"
-                               class="btn btn-info btn-sm">
+                            @* <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
                                 <i class="bi bi-pencil-square"></i>
+                            </a> *@
+
+                            <a href="javascript:void(0);" onclick="DeleteDealer(@item.DealerId)" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i>
                             </a>
-                                <a href="javascript:void(0);"
-                                       onclick="DeleteDealer(@item.DealerId)"
-                                       class="btn btn-danger btn-sm">
 
-                                    <i class="bi bi-trash"></i>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="ViewAddress(@item.DealerId)">
+                                <i class="bi bi-geo-alt"></i>
+                            </button>
 
-                                </a>
+                            <button class="btn btn-success btn-sm"
+                                    onclick="ViewPerson(@item.DealerId)">
+                                <i class="bi bi-people"></i>
+                            </button>
 
-                                <button class="btn btn-primary btn-sm"
-                                        onclick="ViewAddress(@item.DealerId)" title="View Address">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+                            <button class="btn btn-warning btn-sm"
+                                    onclick="ViewNotes(@item.DealerId)">
+                                <i class="bi bi-stickies"></i>
+                            </button>
 
-
-                                <button class="btn btn-success btn-sm"
-                                        onclick="ViewCommunication(@item.DealerId)" title="View Communication">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-
-
+                        </td>
                     </tr>
                 }
-
             </tbody>
+
         </table>
-        </div>
     </div>
 </div>
+```
 
-<div class="modal fade" id="commModal">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-                <div class="modal-header bg-info text-black fw-bold">
-
-                    <h5 class="fw-bold mb-0">Communication Details</h5>
-
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
-
-                </div>
-
-            <div class="modal-body" id="commBody">
-            </div>
-
-        </div>
-    </div>
 </div>
+
+<!-- ADDRESS MODAL -->
 
 <div class="modal fade" id="addressModal">
-
     <div class="modal-dialog modal-lg">
-
         <div class="modal-content">
-
-                <div class="modal-header bg-info">
-
-                    <h5 class="fw-bold text-black mb-0">
-                        Dealer Address
-                    </h5>
-
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
-
-                </div>
-
-            <div class="modal-body" id="addressBody">
+            <div class="modal-header bg-info">
+                <h5 class="fw-bold text-black">Address</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
+            <div class="modal-body" id="addressBody"></div>
         </div>
     </div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+<!-- PERSON MODAL -->
+
+<div class="modal fade" id="commModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5>Person List</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="commBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- NOTES MODAL -->
+
+<div class="modal fade" id="notesModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5>Notes</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="notesBody"></div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 
-    function ViewAddress(dealerId){
-
-    $.get('/Dealer/GetDealerAddress',{dealerId:dealerId},function(data){
-
-    $("#addressBody").html(data);
-
-    $("#addressModal").modal('show');
-
-    });
-
-    }
-
-        function ViewCommunication(dealerId){
-
-    $.get('/Dealer/GetDealerCommunication',{dealerId:dealerId},function(data){
-
-    $("#commBody").html(data);
-
-    var myModal = new bootstrap.Modal(document.getElementById('commModal'));
-    myModal.show();
-
-    });
-
-    }
-
-       $(document).ready(function () {
-
+    // DATATABLE
+    $(document).ready(function () {
         $('#dealerTable').DataTable({
-
-            pageLength: 5,
-
-            lengthMenu: [5, 10, 20, 50],
-
-            ordering: true,
-
-            searching: true,
-
-            columnDefs: [
-                { orderable: false, targets: 3 }
-            ]
-
+            pageLength: 5
         });
-
     });
 
-
-        function DeleteDealer(id)
-        {
-        Swal.fire({
-        title: 'Are you sure?',
-        text: "You want to delete this dealer!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Delete'
-        }).then((result) => {
-
-        if (result.isConfirmed)
-        {
-        window.location.href = '/Dealer/DeleteDealer/' + id;
-        }
-
+    // ADDRESS
+    function ViewAddress(id){
+        $.get('/Dealer/GetDealerAddress',{dealerId:id},function(data){
+            $("#addressBody").html(data);
+            new bootstrap.Modal(document.getElementById('addressModal')).show();
         });
-        }
+    }
+
+    // PERSON
+    function ViewPerson(id){
+        $.get('/Dealer/GetDealerCommunication',{dealerId:id},function(data){
+            $("#commBody").html(data);
+            new bootstrap.Modal(document.getElementById('commModal')).show();
+        });
+    }
+
+    // NOTES
+    function ViewNotes(id){
+        $.get('/Dealer/GetDealerNotes',{dealerId:id},function(data){
+            $("#notesBody").html(data);
+            new bootstrap.Modal(document.getElementById('notesModal')).show();
+        });
+    }
+
+    // DELETE
+    function DeleteDealer(id){
+        Swal.fire({
+            title: 'Delete?',
+            text: "Are you sure?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes'
+        }).then((result)=>{
+            if(result.isConfirmed){
+                window.location.href = '/Dealer/DeleteDealer/' + id;
+            }
+        });
+    }
+
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

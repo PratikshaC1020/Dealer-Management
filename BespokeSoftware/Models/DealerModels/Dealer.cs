@@ -65,6 +65,7 @@ namespace BespokeSoftware.Models
         {
             public int CategoryId { get; set; }
             public string NoteText { get; set; }
+            public string CategoryName { get; set; }
         }
         public class modelDepartment
         {
@@ -103,6 +104,14 @@ namespace BespokeSoftware.Models
             public string StateName { get; set; }
 
             public int CountryID { get; set; }
+        }
+        public class Person
+        {
+            public int PersonID { get; set; }
+
+            public string PersonName { get; set; }
+
+            public string PersonTYpe { get; set; }
         }
         public class City
         {
@@ -146,7 +155,8 @@ namespace BespokeSoftware.Models
             public string Pincode { get; set; }
             public string CityName { get; set; }
         }
-
+        public string DealerImage { get; set; }
+        public string CompanyImage { get; set; }
         public class CommunicationDetails
         {
             public int CommunicationID { get; set; }

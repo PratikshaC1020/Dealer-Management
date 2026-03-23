@@ -75,22 +75,106 @@
 
                 <div class="col-md-4">
                     <label class="fw-bold">Dealer Name</label>
-                    <input asp-for="Dealer.DealerName" class="form-control" />
+                    <input asp-for="Dealer.DealerName" class="form-control mt-1" />
                     <span asp-validation-for="Dealer.DealerName" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-4">
-                    <label class="fw-bold">Owner Name</label>
+                    <label class="fw-bold mb-1">Owner Name</label>
                     <input asp-for="Dealer.OwnerName" class="form-control" required />
                     <span asp-validation-for="Dealer.OwnerName" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-4">
+                    <label class="fw-bold">
+                        Person
+                        <i class="bi bi-plus-circle ms-2 text-success"
+                           style="cursor:pointer; font-size:20px;"
+                           onclick="redirectToCommunication()"></i>
+                    </label>
+
+                    <div class="custom-multi-dropdown">
+
+                        <!-- display -->
+                        <div class="dropdown-display form-control form-select" onclick="toggleCommDropdown()">
+                            Select Person
+                        </div>
+
+                        <!-- dropdown -->
+                        <div class="dropdown-content" id="commDropdown">
+
+                            <input type="text"
+                                   id="commSearch"
+                                   class="form-control mb-2 form-select"
+                                   placeholder="Search..."
+                                   onkeyup="filterComm()" />
+
+                            <div id="commOptions">
+
+                                @if (ViewBag.CommunicationIds != null)
+                                {
+                                    foreach (var c in ViewBag.CommunicationIds)
+                                    {
+                                        <div class="option">
+                                            <input type="checkbox"
+                                                   value="@c.PersonID"
+                                                   data-name="@c.PersonName"
+                                                   onchange="updateCommSelection()" />
+                                            <label>@c.PersonName</label>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- hidden -->
+                    <div id="commHiddenContainer"></div>
+                </div>
+
+                <div class="col-md-3">
                     <label class="fw-bold">GST</label>
                     <input asp-for="Dealer.GSTNo" id="gst" class="form-control" onchange="validateGST()" />
                     <span class="text-danger" id="gstError"></span>
                 </div>
 
+                
+
+                <div class="col-md-3">
+                    <label class="fw-bold">PAN</label>
+                    <input asp-for="Dealer.PANNo" id="pan" class="form-control" onchange="validatePAN()" />
+                    <span asp-validation-for="Dealer.PANNo" class="text-danger"></span>
+                    <span class="text-danger" id="panError"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="fw-bold">Payment Mode</label>
+                    <select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
+                        <option value="">Select</option>
+                        @foreach (var p in ViewBag.PaymentModeList)
+                        {
+                            <option value="@p.ID">@p.PaymentModeName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="fw-bold">Weekly Off</label>
+                    <select asp-for="Dealer.WeeklyOffDayId" class="form-select">
+                        <option value="">Select</option>
+                        @foreach (var w in ViewBag.WeeklyOffList)
+                        {
+                            <option value="@w.ID">@w.Day</option>
+                        }
+                    </select>
+                </div>
+               
+
+              
+
+               
                 <div class="col-md-4 position-relative">
                     <label class="fw-bold">Dealer Image</label>
 
@@ -123,111 +207,10 @@
                        style="position:absolute; top:35px; right:10px; cursor:pointer; display:none;">
                     </i>
                 </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">PAN</label>
-                    <input asp-for="Dealer.PANNo" id="pan" class="form-control" onchange="validatePAN()" />
-                    <span asp-validation-for="Dealer.PANNo" class="text-danger"></span>
-                    <span class="text-danger" id="panError"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">Category</label>
-                    <select asp-for="Dealer.CategoryId" class="form-select" required>
-                        <option value="">Select</option>
-                        @foreach (var c in ViewBag.CategoryList)
-                        {
-                            <option value="@c.ID">@c.CategoryName</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">
-                        Communication
-                        <i class="bi bi-plus-circle ms-2 text-success"
-                           style="cursor:pointer; font-size:20px;"
-                           onclick="redirectToCommunication()"></i>
-                    </label>
-
-                    <div class="custom-multi-dropdown">
-
-                        <!-- display -->
-                        <div class="dropdown-display" onclick="toggleCommDropdown()">
-                            Select Communication
-                        </div>
-
-                        <!-- dropdown -->
-                        <div class="dropdown-content" id="commDropdown">
-
-                            <input type="text"
-                                   id="commSearch"
-                                   class="form-control mb-2"
-                                   placeholder="Search..."
-                                   onkeyup="filterComm()" />
-
-                            <div id="commOptions">
-
-                                @if (ViewBag.CommunicationIds != null)
-                                {
-                                    foreach (var c in ViewBag.CommunicationIds)
-                                    {
-                                        <div class="option">
-                                            <input type="checkbox"
-                                                   value="@c.ID"
-                                                   data-name="@c.Name"
-                                                   onchange="updateCommSelection()" />
-                                            <label>@c.Name</label>
-                                        </div>
-                                    }
-                                }
-                                else
-                                {
-                                    <div class="option">
-                                        <input type="checkbox" value="1" data-name="Communication 1" onchange="updateCommSelection()" /> Communication 1
-                                    </div>
-                                    <div class="option">
-                                        <input type="checkbox" value="2" data-name="Communication 2" onchange="updateCommSelection()" /> Communication 2
-                                    </div>
-                                }
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- hidden -->
-                    <div id="commHiddenContainer"></div>
-                </div>
-
                 <div class="col-md-4">
                     <label class="fw-bold">Remark</label>
                     <textarea asp-for="Dealer.Remark" class="form-control" rows="2"></textarea>
                 </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">Payment Mode</label>
-                    <select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
-                        <option value="">Select</option>
-                        @foreach (var p in ViewBag.PaymentModeList)
-                        {
-                            <option value="@p.ID">@p.PaymentModeName</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">Weekly Off</label>
-                    <select asp-for="Dealer.WeeklyOffDayId" class="form-select">
-                        <option value="">Select</option>
-                        @foreach (var w in ViewBag.WeeklyOffList)
-                        {
-                            <option value="@w.ID">@w.Day</option>
-                        }
-                    </select>
-                </div>
-
             </div>
 
             <hr>
@@ -491,7 +474,11 @@
         $(this).hide();
     });
 </script>
-
+<script>
+    function redirectToCommunication() {
+        window.location.href = '@Url.Action("Person", "MasterData")';
+    }
+</script>
 <script>
 
 
@@ -533,10 +520,10 @@
         });
 
         if(count > 0){
-            $("#commDropdown").prev(".dropdown-display").text(count + " Communication Selected");
+            $("#commDropdown").prev(".dropdown-display").text(count + " Person Selected");
         }
         else{
-            $("#commDropdown").prev(".dropdown-display").text("Select Communication");
+            $("#commDropdown").prev(".dropdown-display").text("Select Person");
         }
     }
 

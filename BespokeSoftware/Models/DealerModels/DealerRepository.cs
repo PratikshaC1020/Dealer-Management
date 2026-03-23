@@ -22,26 +22,33 @@ namespace BespokeSoftware.Repository
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 string query = @"
-                    SELECT 
-                        d.DealerId,
-                        d.DealerCode,
-                        d.DealerName,
-                        d.OwnerName,
-                        d.GSTNo,
-                        d.PANNo,
-                        d.IsActive,
+        SELECT 
+            d.DealerId,
+            d.DealerCode,
+            d.DealerName,
+            d.OwnerName,
+            d.GSTNo,
+            d.PANNo,
+            d.IsActive,
 
-                        dep.Department AS DepartmentName,
-                        cat.Category AS CategoryName,
-                        pm.PaymentMode,
-                        w.Day AS WeeklyOff
+            pm.PaymentMode,
+            w.Day AS WeeklyOff,
 
-                    FROM T_Dealer d
+            -- 🔥 Dealer Image
+            (SELECT TOP 1 ImageBase64 
+             FROM T_Image 
+             WHERE IdentityID = d.DealerId AND Type = 'Dealer') AS DealerImage,
 
-                    LEFT JOIN T_Department dep ON d.DepartmentId = dep.DepID
-                    LEFT JOIN T_Category cat ON d.CategoryId = cat.ID
-                    LEFT JOIN T_PaymentMode pm ON d.DefaultPaymentModeId = pm.ID
-                    LEFT JOIN T_WeeklyOff w ON d.WeeklyOffDayId = w.ID";
+            -- 🔥 Company Image
+            (SELECT TOP 1 ImageBase64 
+             FROM T_Image 
+             WHERE IdentityID = d.DealerId AND Type = 'Company') AS CompanyImage
+
+        FROM T_Dealer d
+
+        LEFT JOIN T_PaymentMode pm ON d.DefaultPaymentModeId = pm.ID
+        LEFT JOIN T_WeeklyOff w ON d.WeeklyOffDayId = w.ID where d.IsActive='1'
+        ";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
@@ -60,10 +67,11 @@ namespace BespokeSoftware.Repository
                             dealer.GSTNo = rdr["GSTNo"]?.ToString();
                             dealer.PANNo = rdr["PANNo"]?.ToString();
 
-                            dealer.DepartmentName = rdr["DepartmentName"]?.ToString();
-                            dealer.CategoryName = rdr["CategoryName"]?.ToString();
                             dealer.PaymentMode = rdr["PaymentMode"]?.ToString();
                             dealer.WeeklyOff = rdr["WeeklyOff"]?.ToString();
+
+                            dealer.DealerImage = rdr["DealerImage"] == DBNull.Value ? "" : rdr["DealerImage"].ToString();
+                            dealer.CompanyImage = rdr["CompanyImage"] == DBNull.Value ? "" : rdr["CompanyImage"].ToString();
 
                             dealer.IsActive = Convert.ToBoolean(rdr["IsActive"]);
 
@@ -75,88 +83,299 @@ namespace BespokeSoftware.Repository
 
             return list;
         }
-        public void InsertDealerFull(DealerViewModel model)
+
+        public List<Dealer.Person> GetDealerPersons(int dealerId)
         {
-            using SqlConnection con = new SqlConnection(_connectionString);
+            List<Dealer.Person> list = new List<Dealer.Person>();
 
-            con.Open();
-
-            SqlTransaction tran = con.BeginTransaction();
-
-            try
+            using (SqlConnection con = new SqlConnection(_connectionString))
             {
+                string query = @"
+        SELECT 
+            p.PersonID,
+            (ISNULL(p.FirstName,'') + ' ' + ISNULL(p.LastName,'')) AS PersonName,
+            p.PersonType
+        FROM T_DealerCommunication dc
+        INNER JOIN T_Person p ON dc.PersonId = p.PersonID
+        WHERE dc.DealerId = @DealerId";
 
-                string dealerQuery = @"INSERT INTO T_Dealer
-                (DealerCode,DealerName,OwnerName,GSTNo,PANNo,
-                DepartmentId,WeeklyOffDayId,CategoryId,DefaultPaymentModeId,
-                Notes,IsActive,CreatedDate,CreatedBy)
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
 
-                VALUES
-                (@DealerCode,@DealerName,@OwnerName,@GSTNo,@PANNo,
-                @DepartmentId,@WeeklyOffDayId,@CategoryId,@DefaultPaymentModeId,
-                @Notes,@IsActive,GETDATE(),1);
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
 
-                SELECT SCOPE_IDENTITY();";
-
-                SqlCommand cmd = new SqlCommand(dealerQuery, con, tran);
-
-                cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode);
-                cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName);
-                cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName);
-                cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo);
-                cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo);
-                cmd.Parameters.AddWithValue("@DepartmentId", model.Dealer.DepartmentId);
-                cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
-                cmd.Parameters.AddWithValue("@CategoryId", model.Dealer.CategoryId);
-                cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
-                cmd.Parameters.AddWithValue("@Notes", model.Dealer.Notes ?? "");
-                cmd.Parameters.AddWithValue("@IsActive", model.Dealer.IsActive);
-
-                int dealerId = Convert.ToInt32(cmd.ExecuteScalar());
-
-                foreach (var addr in model.Addresses)
+                while (rdr.Read())
                 {
-                    string addrQuery = @"INSERT INTO T_Address
-            (DealerID,AddressType,AddressLine,CityID,Pincode)
-            VALUES
-            (@DealerID,@AddressType,@AddressLine,@CityID,@Pincode)";
-
-                    SqlCommand addrCmd = new SqlCommand(addrQuery, con, tran);
-
-                    addrCmd.Parameters.AddWithValue("@DealerID", dealerId);
-                    addrCmd.Parameters.AddWithValue("@AddressType", addr.AddressType);
-                    addrCmd.Parameters.AddWithValue("@AddressLine", addr.AddressLine);
-                    addrCmd.Parameters.AddWithValue("@CityID", addr.CityID);
-                    addrCmd.Parameters.AddWithValue("@Pincode", addr.Pincode);
-
-                    addrCmd.ExecuteNonQuery();
+                    list.Add(new Dealer.Person
+                    {
+                        PersonID = Convert.ToInt32(rdr["PersonID"]),
+                        PersonName = rdr["PersonName"].ToString(),
+                        PersonTYpe = rdr["PersonType"].ToString()
+                    });
                 }
-
-                foreach (var com in model.Communications)
-                {
-                    string commQuery = @"INSERT INTO T_CommunicationDetails
-            (DealerID,Type,Value,IsActive)
-            VALUES
-            (@DealerID,@Type,@Value,1)";
-
-                    SqlCommand comCmd = new SqlCommand(commQuery, con, tran);
-
-                    comCmd.Parameters.AddWithValue("@DealerID", dealerId);
-                    comCmd.Parameters.AddWithValue("@Type", com.Type);
-                    comCmd.Parameters.AddWithValue("@Value", com.Value);
-
-                    comCmd.ExecuteNonQuery();
-                }
-
-                tran.Commit();
-
             }
-            catch
+
+            return list;
+        }
+        public List<Dealer.NoteVM> GetDealerNotes(int dealerId)
+        {
+            List<Dealer.NoteVM> list = new List<Dealer.NoteVM>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                tran.Rollback();
-                throw;
+                string query = @"
+        SELECT 
+            n.NoteText,
+            c.Category
+        FROM T_DealerNotes n
+        LEFT JOIN T_Category c ON n.CategoryId = c.ID
+        WHERE n.DealerId = @DealerId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(new Dealer.NoteVM
+                    {
+                        NoteText = rdr["NoteText"].ToString(),
+                        CategoryName = rdr["Category"].ToString() // optional
+                    });
+                }
+            }
+
+            return list;
+        }
+        public void InsertDealerFull(DealerViewModel model, IFormFileCollection files)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                con.Open();
+
+                SqlTransaction trans = con.BeginTransaction();
+
+                try
+                {
+                    // ================= 1. INSERT DEALER =================
+                    string dealerQuery = @"
+            INSERT INTO T_Dealer
+            (DealerCode, DealerName, OwnerName, GSTNo, PANNo,
+             DefaultPaymentModeId, WeeklyOffDayId, IsActive, CreatedDate)
+            OUTPUT INSERTED.DealerId
+            VALUES
+            (@DealerCode, @DealerName, @OwnerName, @GSTNo, @PANNo,
+             @PaymentMode, @WeeklyOff, 1, GETDATE())";
+
+                    SqlCommand cmd = new SqlCommand(dealerQuery, con, trans);
+
+                    cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode ?? "");
+                    cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName ?? "");
+                    cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName ?? "");
+                    cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? "");
+                    cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? "");
+                    cmd.Parameters.AddWithValue("@PaymentMode", model.Dealer.DefaultPaymentModeId);
+                    cmd.Parameters.AddWithValue("@WeeklyOff", model.Dealer.WeeklyOffDayId);
+
+                    int dealerId = Convert.ToInt32(cmd.ExecuteScalar());
+
+                    // ================= 2. INSERT ADDRESS =================
+                    if (model.Addresses != null)
+                    {
+                        foreach (var add in model.Addresses)
+                        {
+                            string addrQuery = @"
+                    INSERT INTO T_DealerAddress
+                    (DealerId, AddressType, AddressLine)
+                    VALUES (@DealerId, @Type, @Line)";
+
+                            SqlCommand addrCmd = new SqlCommand(addrQuery, con, trans);
+
+                            addrCmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            addrCmd.Parameters.AddWithValue("@Type", add.AddressType ?? "");
+                            addrCmd.Parameters.AddWithValue("@Line", add.AddressLine ?? "");
+
+                            addrCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // ================= 3. INSERT NOTES =================
+                    if (model.NotesA != null)
+                    {
+                        foreach (var note in model.NotesA)
+                        {
+                            string noteQuery = @"
+                    INSERT INTO T_DealerNotes
+                    (DealerId, CategoryId, NoteText)
+                    VALUES (@DealerId, @Cat, @Text)";
+
+                            SqlCommand noteCmd = new SqlCommand(noteQuery, con, trans);
+
+                            noteCmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            noteCmd.Parameters.AddWithValue("@Cat", note.CategoryId);
+                            noteCmd.Parameters.AddWithValue("@Text", note.NoteText ?? "");
+
+                            noteCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // ================= 4. INSERT COMMUNICATION (Person Mapping) =================
+                    if (model.Dealer.CommunicationIds != null)
+                    {
+                        foreach (var pid in model.Dealer.CommunicationIds)
+                        {
+                            string commQuery = @"
+                    INSERT INTO T_DealerCommunication
+                    (DealerId, PersonId)
+                    VALUES (@DealerId, @PersonId)";
+
+                            SqlCommand commCmd = new SqlCommand(commQuery, con, trans);
+
+                            commCmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            commCmd.Parameters.AddWithValue("@PersonId", pid);
+
+                            commCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    // ================= 5. INSERT IMAGE =================
+                    // assume: T_Image (RefId, RefType, FileName)
+
+                    if (files != null && files.Count > 0)
+                    {
+                        foreach (var file in files)
+                        {
+                            if (file.Length > 0)
+                            {
+                                using (var ms = new MemoryStream())
+                                {
+                                    file.CopyTo(ms);
+                                    byte[] fileBytes = ms.ToArray();
+
+                                    string base64 = Convert.ToBase64String(fileBytes);
+                                    string fileName = Path.GetFileName(file.FileName);
+
+                                    // 🔥 IMPORTANT LOGIC
+                                    string type = "";
+
+                                    if (file.Name == "DealerImage")
+                                        type = "Dealer";
+                                    else if (file.Name == "CompanyImage")
+                                        type = "Company";
+
+                                    string query = @"
+                INSERT INTO T_Image
+                (Type, IdentityID, ImageBase64, CreatedDate, FileName)
+                VALUES
+                (@Type, @DealerId, @Base64, GETDATE(), @FileName)";
+
+                                    SqlCommand cmd1 = new SqlCommand(query, con, trans);
+
+                                    cmd1.Parameters.AddWithValue("@Type", type);
+                                    cmd1.Parameters.AddWithValue("@DealerId", dealerId);
+                                    cmd1.Parameters.AddWithValue("@Base64", base64);
+                                    cmd1.Parameters.AddWithValue("@FileName", fileName);
+
+                                    cmd1.ExecuteNonQuery();
+                                }
+                            }
+                        }
+                    }
+                    // ================= COMMIT =================
+                    trans.Commit();
+                }
+                catch (Exception ex)
+                {
+                    trans.Rollback();
+                    throw;
+                }
             }
         }
+        //public void InsertDealerFull(DealerViewModel model)
+        //{
+        //    using SqlConnection con = new SqlConnection(_connectionString);
+
+        //    con.Open();
+
+        //    SqlTransaction tran = con.BeginTransaction();
+
+        //    try
+        //    {
+
+        //        string dealerQuery = @"INSERT INTO T_Dealer
+        //        (DealerCode,DealerName,OwnerName,GSTNo,PANNo,
+        //        DepartmentId,WeeklyOffDayId,CategoryId,DefaultPaymentModeId,
+        //        Notes,IsActive,CreatedDate,CreatedBy)
+
+        //        VALUES
+        //        (@DealerCode,@DealerName,@OwnerName,@GSTNo,@PANNo,
+        //        @DepartmentId,@WeeklyOffDayId,@CategoryId,@DefaultPaymentModeId,
+        //        @Notes,@IsActive,GETDATE(),1);
+
+        //        SELECT SCOPE_IDENTITY();";
+
+        //        SqlCommand cmd = new SqlCommand(dealerQuery, con, tran);
+
+        //        cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode);
+        //        cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName);
+        //        cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName);
+        //        cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo);
+        //        cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo);
+        //        cmd.Parameters.AddWithValue("@DepartmentId", model.Dealer.DepartmentId);
+        //        cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
+        //        cmd.Parameters.AddWithValue("@CategoryId", model.Dealer.CategoryId);
+        //        cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
+        //        cmd.Parameters.AddWithValue("@Notes", model.Dealer.Notes ?? "");
+        //        cmd.Parameters.AddWithValue("@IsActive", model.Dealer.IsActive);
+
+        //        int dealerId = Convert.ToInt32(cmd.ExecuteScalar());
+
+        //        foreach (var addr in model.Addresses)
+        //        {
+        //            string addrQuery = @"INSERT INTO T_Address
+        //    (DealerID,AddressType,AddressLine,CityID,Pincode)
+        //    VALUES
+        //    (@DealerID,@AddressType,@AddressLine,@CityID,@Pincode)";
+
+        //            SqlCommand addrCmd = new SqlCommand(addrQuery, con, tran);
+
+        //            addrCmd.Parameters.AddWithValue("@DealerID", dealerId);
+        //            addrCmd.Parameters.AddWithValue("@AddressType", addr.AddressType);
+        //            addrCmd.Parameters.AddWithValue("@AddressLine", addr.AddressLine);
+        //            addrCmd.Parameters.AddWithValue("@CityID", addr.CityID);
+        //            addrCmd.Parameters.AddWithValue("@Pincode", addr.Pincode);
+
+        //            addrCmd.ExecuteNonQuery();
+        //        }
+
+        //        foreach (var com in model.Communications)
+        //        {
+        //            string commQuery = @"INSERT INTO T_CommunicationDetails
+        //    (DealerID,Type,Value,IsActive)
+        //    VALUES
+        //    (@DealerID,@Type,@Value,1)";
+
+        //            SqlCommand comCmd = new SqlCommand(commQuery, con, tran);
+
+        //            comCmd.Parameters.AddWithValue("@DealerID", dealerId);
+        //            comCmd.Parameters.AddWithValue("@Type", com.Type);
+        //            comCmd.Parameters.AddWithValue("@Value", com.Value);
+
+        //            comCmd.ExecuteNonQuery();
+        //        }
+
+        //        tran.Commit();
+
+        //    }
+        //    catch
+        //    {
+        //        tran.Rollback();
+        //        throw;
+        //    }
+        //}
 
         public DealerViewModel GetDealerFullById(int dealerId)
         {
@@ -360,48 +579,25 @@ namespace BespokeSoftware.Repository
 
             con.Open();
 
-            SqlTransaction tran = con.BeginTransaction();
-
             try
             {
-                // Delete Communication
-                SqlCommand commCmd = new SqlCommand(
-                "DELETE FROM T_CommunicationDetails WHERE DealerID=@DealerID",
-                con, tran);
+                string query = @"
+                UPDATE T_Dealer
+                SET IsActive = 0,
+                    UpdatedDate = GETDATE()
+                WHERE DealerId = @DealerID";
 
-                commCmd.Parameters.AddWithValue("@DealerID", dealerId);
+                SqlCommand cmd = new SqlCommand(query, con);
 
-                commCmd.ExecuteNonQuery();
+                cmd.Parameters.AddWithValue("@DealerID", dealerId);
 
-
-                // Delete Address
-                SqlCommand addrCmd = new SqlCommand(
-                "DELETE FROM T_Address WHERE DealerID=@DealerID",
-                con, tran);
-
-                addrCmd.Parameters.AddWithValue("@DealerID", dealerId);
-
-                addrCmd.ExecuteNonQuery();
-
-
-                // Delete Dealer
-                SqlCommand dealerCmd = new SqlCommand(
-                "DELETE FROM T_Dealer WHERE DealerID=@DealerID",
-                con, tran);
-
-                dealerCmd.Parameters.AddWithValue("@DealerID", dealerId);
-
-                dealerCmd.ExecuteNonQuery();
-
-                tran.Commit();
+                cmd.ExecuteNonQuery();
             }
             catch
             {
-                tran.Rollback();
                 throw;
             }
         }
-
         public List<modelDepartment> GetDepartments()
         {
             List<modelDepartment> list = new List<modelDepartment>();
@@ -422,6 +618,43 @@ namespace BespokeSoftware.Repository
                     {
                         DepID = Convert.ToInt32(rdr["DepID"]),
                         DepartmentName = rdr["Department"].ToString()
+                    });
+                }
+            }
+
+            return list;
+        }
+
+
+        public List<Models.Dealer.Person> GetPersonData()
+        {
+            List<Models.Dealer.Person> list = new List<Models.Dealer.Person>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                    SELECT PersonID, PersonType,
+                           ISNULL(Title,'') + ' ' +
+                           ISNULL(FirstName,'') + ' ' +
+                           ISNULL(MiddleName,'') + ' ' +
+                           ISNULL(LastName,'') AS FullName
+                    FROM T_Person";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                con.Open();
+
+                SqlDataReader rdr = cmd.ExecuteReader();
+
+                while (rdr.Read())
+                {
+                    list.Add(new Models.Dealer.Person
+                    {
+                        PersonID = Convert.ToInt32(rdr["PersonID"]),
+
+                        // 👉 Text: PersonType - FullName
+                        PersonName = rdr["PersonType"].ToString()
+                                     + " - " + rdr["FullName"].ToString().Trim()
                     });
                 }
             }
@@ -590,15 +823,12 @@ namespace BespokeSoftware.Repository
 
             using SqlConnection con = new SqlConnection(_connectionString);
 
-            string query = @"SELECT 
-                     a.ID,
-                     a.AddressType,
-                     a.AddressLine,
-                     a.Pincode,
-                     c.City
-                     FROM T_Address a
-                     INNER JOIN T_City c ON a.CityID = c.CityID
-                     WHERE a.DealerID=@DealerID";
+            string query = @"
+        SELECT 
+            AddressType,
+            AddressLine
+        FROM T_DealerAddress
+        WHERE DealerId = @DealerID";
 
             SqlCommand cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@DealerID", dealerId);
@@ -611,11 +841,8 @@ namespace BespokeSoftware.Repository
             {
                 list.Add(new Address
                 {
-                    ID = Convert.ToInt32(rdr["ID"]),
-                    AddressType = rdr["AddressType"].ToString(),
-                    AddressLine = rdr["AddressLine"].ToString(),
-                    Pincode = rdr["Pincode"].ToString(),
-                    CityName = rdr["City"].ToString()
+                    AddressType = rdr["AddressType"]?.ToString(),
+                    AddressLine = rdr["AddressLine"]?.ToString()
                 });
             }
 
@@ -628,13 +855,14 @@ namespace BespokeSoftware.Repository
 
             using SqlConnection con = new SqlConnection(_connectionString);
 
-            string query = @"SELECT 
-                     CommunicationID,
-                     Type,
-                     Value
-                     FROM T_CommunicationDetails
-                     WHERE DealerID=@DealerID
-                     AND IsActive=1";
+            string query = @"
+        SELECT 
+            p.PersonID,
+            (ISNULL(p.FirstName,'') + ' ' + ISNULL(p.LastName,'')) AS PersonName,
+            p.PersonType
+        FROM T_DealerCommunication dc
+        INNER JOIN T_Person p ON dc.PersonId = p.PersonID
+        WHERE dc.DealerId = @DealerID";
 
             SqlCommand cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@DealerID", dealerId);
@@ -647,9 +875,10 @@ namespace BespokeSoftware.Repository
             {
                 list.Add(new CommunicationDetails
                 {
-                    CommunicationID = Convert.ToInt32(rdr["CommunicationID"]),
-                    Type = rdr["Type"].ToString(),
-                    Value = rdr["Value"].ToString()
+                    // 👉 adjust as per your model
+                    CommunicationID = Convert.ToInt32(rdr["PersonID"]),
+                    Type = rdr["PersonType"]?.ToString(),
+                    Value = rdr["PersonName"]?.ToString()
                 });
             }
 

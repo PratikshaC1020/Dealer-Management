@@ -20,7 +20,23 @@ public class DealerController : Controller
         var dealers = repo.GetDealerList();
         return View(dealers);
     }
+    public IActionResult GetDealerAddress(int dealerId)
+    {
+        var list = repo.GetDealerAddress(dealerId);
+        return PartialView("_DealerAddress", list);
+    }
 
+    public IActionResult GetDealerCommunication(int dealerId)
+    {
+        var list = repo.GetDealerPersons(dealerId);
+        return PartialView("_DealerPersons", list);
+    }
+
+    public IActionResult GetDealerNotes(int dealerId)
+    {
+        var list = repo.GetDealerNotes(dealerId);
+        return PartialView("_DealerNotes", list);
+    }
     public IActionResult _AddEditDealer()
     {
         DealerViewModel model = new DealerViewModel();
@@ -30,46 +46,67 @@ public class DealerController : Controller
         ViewBag.CategoryList = repo.GetCategories();
         ViewBag.PaymentModeList = repo.GetPaymentModes();
         ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
-        ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
+        ViewBag.CommunicationIds = repo.GetPersonData();
         model.States = repo.GetStates();
         return View(model);
     }
 
+    //[HttpPost]
+    //public IActionResult InsertDealer(DealerViewModel model)
+    //{
+    //    // direct available
+    //    var noteIds = model.Dealer.NoteIds;
+
+    //    // check
+    //    if (noteIds != null)
+    //    {
+    //        foreach (var id in noteIds)
+    //        {
+    //            Console.WriteLine(id);
+    //        }
+    //    }
+    //    if (model.NotesA != null)
+    //    {
+    //        foreach (var note in model.NotesA)
+    //        {
+    //            var cat = note.CategoryId;
+    //            var text = note.NoteText;
+    //        }
+    //    }
+    //    model.Dealer.DealerCode = repo.GetDealerCode();
+    //    if (model != null)
+    //    {
+    //        repo.InsertDealerFull(model);
+
+    //        return RedirectToAction("Index");
+    //    }
+
+    //    ViewBag.DepartmentList = repo.GetDepartments();
+    //    ViewBag.CategoryList = repo.GetCategories();
+    //    ViewBag.PaymentModeList = repo.GetPaymentModes();
+    //    ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
+    //    ViewBag.CommunicationIds = repo.GetPersonData();
+    //    //model.States = repo.GetStates();
+
+    //    return View("_AddEditDealer", model);
+    //}
     [HttpPost]
     public IActionResult InsertDealer(DealerViewModel model)
     {
-        // direct available
-        var noteIds = model.Dealer.NoteIds;
+        var files = Request.Form.Files;
 
-        // check
-        if (noteIds != null)
-        {
-            foreach (var id in noteIds)
-            {
-                Console.WriteLine(id);
-            }
-        }
-        if (model.NotesA != null)
-        {
-            foreach (var note in model.NotesA)
-            {
-                var cat = note.CategoryId;
-                var text = note.NoteText;
-            }
-        }
+        model.Dealer.DealerCode = repo.GetDealerCode();
+
         if (model != null)
         {
-            repo.InsertDealerFull(model);
-
+            repo.InsertDealerFull(model, files);
             return RedirectToAction("Index");
         }
-
         ViewBag.DepartmentList = repo.GetDepartments();
         ViewBag.CategoryList = repo.GetCategories();
         ViewBag.PaymentModeList = repo.GetPaymentModes();
         ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
-        //model.States = repo.GetStates();
-
+        ViewBag.CommunicationIds = repo.GetPersonData();
         return View("_AddEditDealer", model);
     }
 
@@ -110,16 +147,16 @@ public class DealerController : Controller
         return RedirectToAction("Index");
     }
 
-    public IActionResult GetDealerAddress(int dealerId)
-    {
-        var addressList = repo.GetDealerAddress(dealerId);
+    //public IActionResult GetDealerAddress(int dealerId)
+    //{
+    //    var addressList = repo.GetDealerAddress(dealerId);
 
-        return PartialView("_DealerAddress", addressList);
-    }
-    public IActionResult GetDealerCommunication(int dealerId)
-    {
-        var commList = repo.GetDealerCommunication(dealerId);
+    //    return PartialView("_DealerAddress", addressList);
+    //}
+    //public IActionResult GetDealerCommunication(int dealerId)
+    //{
+    //    var commList = repo.GetDealerCommunication(dealerId);
 
-        return PartialView("_DealerCommunication", commList);
-    }
+    //    return PartialView("_DealerCommunication", commList);
+    //}
 }
