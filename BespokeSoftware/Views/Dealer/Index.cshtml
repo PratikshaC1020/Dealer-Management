@@ -50,13 +50,13 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
             <thead class="bg-info text-black">
                 <tr>
-                    <th>Code</th>
+                   @*  <th>Code</th> *@
                     <th>Name</th>
                     <th>Owner</th>
-                    <th>Payment</th>
+                   @*  <th>Payment</th>
                     <th>Weekly Off</th>
                     <th>Dealer Img</th>
-                    <th>Company Img</th>
+                    <th>Company Img</th> *@
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -66,10 +66,10 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.DealerCode</td>
+                       @*  <td>@item.DealerCode</td> *@
                         <td>@item.DealerName</td>
                         <td>@item.OwnerName</td>
-                        <td>@item.PaymentMode</td>
+                       @*  <td>@item.PaymentMode</td>
                         <td>@item.WeeklyOff</td>
 
                         <!-- Dealer Image -->
@@ -82,7 +82,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                         <td>
                             <img src="data:image/png;base64,@item.CompanyImage"
                                  class="img-box" />
-                        </td>
+                        </td> *@
 
                         <td class="text-center">
                             @if (item.IsActive)

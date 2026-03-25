@@ -2,667 +2,599 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.2/dist/css/bootstrap-multiselect.css">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.2/dist/js/bootstrap-multiselect.min.js"></script>
 <style>
-    .address-card {
-        border: 1px solid #0dcaf0;
-        border-radius: 6px;
-        padding: 10px;
-        background: #f8fcff;
-        position: relative;
-    }
+.section-title{color:#0dcaf0;font-weight:bold;}
+.section-box{
+    border:1px solid #0dcaf0;
+    border-radius:8px;
+    padding:12px;
+    background:#f8fcff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.inner-scroll{max-height:300px;overflow-y:auto;}
+.box{
+    border:1px solid #dee2e6;
+    padding:8px;
+    border-radius:6px;
+    background:#fff;
+    position:relative;
+    margin-bottom:8px;
+}
+.remove{position:absolute;top:5px;right:8px;cursor:pointer;}
 
-    .address-remove {
-        position: absolute;
-        top: 5px;
-        right: 8px;
-        cursor: pointer;
-    }
+.add-icon{
+    color:#0dcaf0;
+    font-size:20px;
+    cursor:pointer;
+    transition:0.2s;
+}
+.add-icon:hover{transform:scale(1.2);}
+.error-msg{
+    color:#dc3545;
+    font-size:13px;
+    margin-top:2px;
+}
 
-    .address-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .custom-multi-dropdown {
-        position: relative;
-    }
-
-    .dropdown-display {
-        border: 1px solid #ccc;
-        padding: 6px;
-        cursor: pointer;
-        background: white;
-    }
-
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        width: 100%;
-        background: white;
-        border: 1px solid #ccc;
-        z-index: 999;
-        max-height: 200px;
-        overflow-y: auto;
-    }
-
-    .option {
-        padding: 5px;
-    }
-
-    .option:hover {
-        background: #f1f1f1;
-    }
-
-    .dropdown-display {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
 </style>
 
-<div class="card border border-info">
+<div class="card border-info">
 
-    <div class="card-header">
-        <h4 class="bg-info text-center fw-bold p-2 text-black">Add Dealer</h4>
+<div class="card-header text-center fw-bold bg-info text-white">
+Add Dealer
+</div>
+
+<div class="card-body">
+
+<form id="dealerForm" method="post">
+
+<!-- ================= DEALER INFO ================= -->
+<div class="section-box mb-3">
+
+<h5 class="section-title">Dealer Information</h5>
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<label>Dealer Name</label>
+<input name="Dealer.DealerName" class="form-control"/>
+</div>
+
+<div class="col-md-3">
+<label>Owner Name</label>
+<input name="Dealer.OwnerName" class="form-control"/>
+</div>
+
+<div class="col-md-3">
+<label>GST</label>
+<input name="Dealer.GSTNo" class="form-control"/>
+</div>
+
+<div class="col-md-3">
+<label>PAN</label>
+<input name="Dealer.PANNo" class="form-control"/>
+</div>
+
+<div class="col-md-3">
+<label>Payment Mode</label>
+<select name="Dealer.DefaultPaymentModeId" class="form-select">
+<option>Select</option>
+@foreach(var p in ViewBag.PaymentModeList){
+<option value="@p.ID">@p.PaymentModeName</option>
+}
+</select>
+</div>
+
+<div class="col-md-3">
+<label>Weekly Off</label>
+<select name="Dealer.WeeklyOffDayId" class="form-select">
+<option>Select</option>
+@foreach(var w in ViewBag.WeeklyOffList){
+<option value="@w.ID">@w.Day</option>
+}
+</select>
+</div>
+
+</div>
+</div>
+
+<!-- ================= ADDRESS + NOTES ================= -->
+<div class="row mb-3">
+
+    <!-- ADDRESS (SMALL) -->
+    <div class="col-md-4">
+        <div class="section-box">
+            <div class="d-flex justify-content-between">
+                <h5 class="section-title">Dealer Address</h5>
+                <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
+            </div>
+            <div id="dealerAddressContainer" class="inner-scroll"></div>
+        </div>
     </div>
 
-    <div class="card-body">
-
-        <form asp-action="InsertDealer" asp-controller="Dealer" method="post" enctype="multipart/form-data" id="dealerForm">
-
-            <div class="row g-3">
-
-                <div class="col-md-4">
-                    <label class="fw-bold">Dealer Name</label>
-                    <input asp-for="Dealer.DealerName" class="form-control mt-1" />
-                    <span asp-validation-for="Dealer.DealerName" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold mb-1">Owner Name</label>
-                    <input asp-for="Dealer.OwnerName" class="form-control" required />
-                    <span asp-validation-for="Dealer.OwnerName" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="fw-bold">
-                        Person
-                        <i class="bi bi-plus-circle ms-2 text-success"
-                           style="cursor:pointer; font-size:20px;"
-                           onclick="redirectToCommunication()"></i>
-                    </label>
-
-                    <div class="custom-multi-dropdown">
-
-                        <!-- display -->
-                        <div class="dropdown-display form-control form-select" onclick="toggleCommDropdown()">
-                            Select Person
-                        </div>
-
-                        <!-- dropdown -->
-                        <div class="dropdown-content" id="commDropdown">
-
-                            <input type="text"
-                                   id="commSearch"
-                                   class="form-control mb-2 form-select"
-                                   placeholder="Search..."
-                                   onkeyup="filterComm()" />
-
-                            <div id="commOptions">
-
-                                @if (ViewBag.CommunicationIds != null)
-                                {
-                                    foreach (var c in ViewBag.CommunicationIds)
-                                    {
-                                        <div class="option">
-                                            <input type="checkbox"
-                                                   value="@c.PersonID"
-                                                   data-name="@c.PersonName"
-                                                   onchange="updateCommSelection()" />
-                                            <label>@c.PersonName</label>
-                                        </div>
-                                    }
-                                }
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- hidden -->
-                    <div id="commHiddenContainer"></div>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="fw-bold">GST</label>
-                    <input asp-for="Dealer.GSTNo" id="gst" class="form-control" onchange="validateGST()" />
-                    <span class="text-danger" id="gstError"></span>
-                </div>
-
-                
-
-                <div class="col-md-3">
-                    <label class="fw-bold">PAN</label>
-                    <input asp-for="Dealer.PANNo" id="pan" class="form-control" onchange="validatePAN()" />
-                    <span asp-validation-for="Dealer.PANNo" class="text-danger"></span>
-                    <span class="text-danger" id="panError"></span>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="fw-bold">Payment Mode</label>
-                    <select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
-                        <option value="">Select</option>
-                        @foreach (var p in ViewBag.PaymentModeList)
-                        {
-                            <option value="@p.ID">@p.PaymentModeName</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="fw-bold">Weekly Off</label>
-                    <select asp-for="Dealer.WeeklyOffDayId" class="form-select">
-                        <option value="">Select</option>
-                        @foreach (var w in ViewBag.WeeklyOffList)
-                        {
-                            <option value="@w.ID">@w.Day</option>
-                        }
-                    </select>
-                </div>
-               
-
-              
-
-               
-                <div class="col-md-4 position-relative">
-                    <label class="fw-bold">Dealer Image</label>
-
-                    <input type="file" name="DealerImage" id="dealerImageInput"
-                           class="form-control" accept="image/*" />
-
-                    <img id="dealerPreview"
-                         style="width:80px; margin-top:5px; display:none;" />
-
-                    <!-- DELETE -->
-                    <i class="bi bi-x-circle text-danger"
-                       id="dealerRemove"
-                       style="position:absolute; top:35px; right:10px; cursor:pointer; display:none;">
-                    </i>
-                </div>
-
-
-                <div class="col-md-4 position-relative">
-                    <label class="fw-bold">Company Image</label>
-
-                    <input type="file" name="CompanyImage" id="companyImageInput"
-                           class="form-control" accept="image/*" />
-
-                    <img id="companyPreview"
-                         style="width:80px; margin-top:5px; display:none;" />
-
-                    <!-- DELETE -->
-                    <i class="bi bi-x-circle text-danger"
-                       id="companyRemove"
-                       style="position:absolute; top:35px; right:10px; cursor:pointer; display:none;">
-                    </i>
-                </div>
-                <div class="col-md-4">
-                    <label class="fw-bold">Remark</label>
-                    <textarea asp-for="Dealer.Remark" class="form-control" rows="2"></textarea>
-                </div>
+    <!-- NOTES (BIG) -->
+    <div class="col-md-8">
+        <div class="section-box">
+            <div class="d-flex justify-content-between">
+                <h5 class="section-title">Notes</h5>
+                <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
             </div>
+            <div id="notesContainer" class="inner-scroll notes-big"></div>
+        </div>
+    </div>
 
-            <hr>
+</div>
 
-            <h5 class="fw-bold d-flex align-items-center">
-                Address
-                <i class="bi bi-plus-circle ms-2 text-success"
-                   style="cursor:pointer; font-size:20px;"
-                   onclick="addAddress()"></i>
-            </h5>
+<!-- ================= IMAGES + PERSON ================= -->
+<div class="row mb-3">
 
-            <div id="addressContainer" class="fw-bold"></div>
-            <hr>
+<div class="col-md-4">
+<div class="section-box">
+<div class="d-flex justify-content-between">
+<h5 class="section-title">Images</h5>
+<i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
+</div>
+<div id="imageGrid" class="row inner-scroll"></div>
+</div>
+</div>
 
-            <h5 class="fw-bold d-flex align-items-center">
-                Notes
-                <i class="bi bi-plus-circle ms-2 text-success"
-                   style="cursor:pointer; font-size:20px;"
-                   onclick="addNote()"></i>
-            </h5>
+<div class="col-md-8">
+<div class="section-box">
+<div class="d-flex justify-content-between">
+<h5 class="section-title">Person Details</h5>
+<i class="bi bi-plus-circle-fill add-icon" onclick="openPersonModal()"></i>
+</div>
+<div id="personGrid" class="inner-scroll"></div>
+</div>
+</div>
 
-            <div id="notesContainer" class="fw-bold"></div>
+</div>
 
-            <br><br>
-            <div class="fw-bold col-md-12 text-center">
-            <button type="submit" class="btn btn-info fw-bold">Save</button>
-            <a href="/Dealer/Index" class="btn btn-secondary fw-bold">Cancel</a>
-            </div>
-        </form>
+<div class="text-center">
+<button class="btn btn-info px-4 fw-bold">Save Dealer</button>
+</div>
+
+</form>
+
+</div>
+</div>
+
+<!-- ================= IMAGE MODAL ================= -->
+<div class="modal fade" id="imageModal">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header bg-info text-white">
+<h5>Add Images</h5>
+<button class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+<input type="file" id="multiImageInput" multiple class="form-control"/>
+</div>
+<div class="modal-footer">
+<button class="btn btn-info" onclick="saveImages()">Add</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ================= PERSON MODAL ================= -->
+<div class="modal fade" id="personModal">
+<div class="modal-dialog modal-xl">
+<div class="modal-content">
+
+<div class="modal-header bg-info text-white">
+<h5>Add Person</h5>
+<button class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+    <div class="row g-2">
+
+        <!-- ROW 1 -->
+        <div class="col-md-3">
+    <label class="fw-bold">Title</label>
+    <select id="pTitle" class="form-control">
+        <option value="">Select</option>
+        <option value="Mr">Mr</option>
+        <option value="Mrs">Mrs</option>
+        <option value="Miss">Miss</option>
+        <option value="Ms">Ms</option>
+        
+    </select>
+</div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">First Name</label>
+            <input id="pFirst" class="form-control" placeholder="First Name"/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">Middle Name</label>
+            <input id="pMiddle" class="form-control" placeholder="Middle Name"/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">Last Name</label>
+            <input id="pLast" class="form-control" placeholder="Last Name"/>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="col-md-3">
+            <label class="fw-bold">Gender</label>
+            <select id="pGender" class="form-control">
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">Date Of Birth</label>
+            <input type="date" id="pDOB" class="form-control"/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">Anniversary Date</label>
+            <input type="date" id="pAnniversary" class="form-control"/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="fw-bold">PAN</label>
+            <input id="pPAN" class="form-control" placeholder="PAN"/>
+        </div>
+
+        <!-- ROW 3 -->
+        <div class="col-md-6">
+            <label class="fw-bold">Designation</label>
+            <input id="pType" class="form-control" placeholder="Designation"/>
+        </div>
+
+        <div class="col-md-6">
+    <label class="fw-bold">Remark</label>
+    <input id="pRemark" class="form-control" placeholder="Remark"/>
+</div>
 
     </div>
+
+    <!-- ================= COMMUNICATION ================= -->
+    <h6 class="text-info mt-3 d-flex justify-content-between">
+        Communication
+        <i class="bi bi-plus-circle-fill add-icon" onclick="addComm()"></i>
+    </h6>
+
+    <div id="commContainer"></div>
+
+    <!-- ================= ADDRESS ================= -->
+    <h6 class="text-info mt-3 d-flex justify-content-between">
+        Address
+        <i class="bi bi-plus-circle-fill add-icon" onclick="addPersonAddress()"></i>
+    </h6>
+
+    <div id="personAddressContainer"></div>
+
+</div>
+
+<div class="modal-footer">
+<button class="btn btn-info" onclick="savePerson()">Save</button>
+</div>
+
+</div>
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.2/dist/js/bootstrap-multiselect.min.js"></script>
 <script>
 
-    // ================= IMAGE PREVIEW =================
-    $("input[name='CompanyImage']").change(function(e){
-        let reader = new FileReader();
-        reader.onload = function(){
-            $("#companyPreview").attr("src", reader.result).show();
-        }
-        reader.readAsDataURL(e.target.files[0]);
-    });
+// ADDRESS
+var dIndex=0;
+function addDealerAddress(){
+$("#dealerAddressContainer").append(`
 
-    $("input[name='DealerImage']").change(function(e){
-        let reader = new FileReader();
-        reader.onload = function(){
-            $("#dealerPreview").attr("src", reader.result).show();
-        }
-        reader.readAsDataURL(e.target.files[0]);
-    });
+<div class="box">
+
+    <i class="bi bi-x-circle text-danger remove"
+       onclick="$(this).parent().remove()"></i>
+
+    <!-- TYPE -->
+    <input name="DealerAddresses[${dIndex}].AddressType"
+           class="form-control mb-1"
+           placeholder="Type"/>
+
+    <!-- ADDRESS -->
+    <input name="DealerAddresses[${dIndex}].AddressLine"
+           class="form-control"
+           placeholder="Enter address"/>
+
+</div>
+
+`);
+dIndex++;
+}
+
+// NOTES
+var noteIndex=0;
+function addNote(){
+$("#notesContainer").append(`
+<div class="box">
+<i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+<select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
+<option value="">Select Notes Category</option>${getCategoryOptions()}
+</select>
+<textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
+</div>`);
+noteIndex++;
+}
+
+function getCategoryOptions(){
+var options='';
+@foreach(var c in ViewBag.CategoryList){
+<text>options+=`<option value="@c.ID">@c.CategoryName</option>`;</text>
+}
+return options;
+}
+
+// IMAGE
+
+// OPEN MODAL
+function openImageModal(){
+
+    // ✅ CLEAR OLD FILES
+    $("#multiImageInput").val("");
+
+    $("#imageModal").modal('show');
+}
 
 
-    // ================= ADDRESS (FINAL CARD DESIGN) =================
-    var addressIndex = 0;
-    var currentRow = null;
-    var itemInRow = 0;
+// SAVE IMAGES
+function saveImages(){
 
-    // default 2 address load
-    $(document).ready(function(){
-        addAddress();
-        addAddress();
-    });
+    let input = $("#multiImageInput")[0];
+    let files = input.files;
 
-    function addAddress(){
-
-        // new row
-        if(itemInRow === 0){
-            currentRow = $('<div class="row g-3 mb-2 address-row"></div>');
-            $("#addressContainer").append(currentRow);
-        }
-
-        var html = `
-        <div class="col-md-6 address-item">
-
-            <div class="address-card">
-
-                <!-- remove -->
-                <i class="bi bi-x-circle text-danger address-remove"
-                   onclick="removeAddress(this)"></i>
-
-                <div class="row">
-
-                    <div class="col-md-4">
-                        <label>Type</label>
-                        <input type="text"
-                               name="Addresses[${addressIndex}].AddressType"
-                               class="form-control" />
-                    </div>
-
-                    <div class="col-md-8">
-                        <label>Address</label>
-                        <textarea
-                            name="Addresses[${addressIndex}].AddressLine"
-                            class="form-control"
-                            rows="2"></textarea>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-        `;
-
-        currentRow.append(html);
-
-        addressIndex++;
-        itemInRow++;
-
-        // max 2 per row
-        if(itemInRow === 2){
-            itemInRow = 0;
-        }
+    // ✅ VALIDATION
+    if(files.length === 0){
+        alert("Please select at least one image");
+        return;
     }
 
+    for(let i=0; i<files.length; i++){
 
-    // ================= REMOVE ADDRESS =================
-    function removeAddress(el){
-
-        var card = $(el).closest(".address-item");
-        var row = card.closest(".address-row");
-
-        card.remove();
-
-        if(row.children().length === 0){
-            row.remove();
+        // ✅ IMAGE TYPE VALIDATION
+        if(!files[i].type.startsWith("image/")){
+            alert("Only image files allowed");
+            return;
         }
-    }
-
-
-    // ================= FORM SUBMIT + REINDEX =================
-       $("#dealerForm").submit(function(){
-
-        let index = 0;
-
-        $("#addressContainer .address-row").each(function(){
-
-            $(this).find(".address-item").each(function(){
-
-                var typeInput = $(this).find("input");
-                var addressInput = $(this).find("textarea");
-
-                typeInput.attr("name", "Addresses[" + index + "].AddressType");
-                addressInput.attr("name", "Addresses[" + index + "].AddressLine");
-
-                index++;
-            });
-
-        });
-
-        // ✅ NOTES REINDEX (FIXED)
-        let noteIndex = 0;
-
-        $("#notesContainer .note-row").each(function(){
-
-            $(this).find(".note-item").each(function(){
-
-                var cat = $(this).find("select");
-                var text = $(this).find("textarea");
-
-                cat.attr("name", "NotesA[" + noteIndex + "].CategoryId");
-                text.attr("name", "NotesA[" + noteIndex + "].NoteText");
-
-                noteIndex++;
-            });
-
-        });
-
-        if(!validateGST() || !validatePAN()){
-            return false;
-        }
-
-        return true;
-    });
-
-
-    // ================= GST + PAN =================
-    function validatePAN(){
-        var pan = $("#pan").val();
-        var regex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-
-        if(pan == "" || !regex.test(pan)){
-            $("#panError").text("Invalid PAN");
-            return false;
-        }
-
-        $("#panError").text("");
-        return true;
-    }
-
-    function validateGST(){
-        var gst = $("#gst").val();
-        var regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/;
-
-        if(gst == "" || !regex.test(gst)){
-            $("#gstError").text("Invalid GST");
-            return false;
-        }
-
-        $("#gstError").text("");
-        return true;
-    }
-
-
-    // ================= AUTO UPPERCASE =================
-    $("#gst, #pan").on("input", function(){
-        this.value = this.value.toUpperCase();
-    });
-
-</script>
-<script>
-
-    // DEALER IMAGE
-    $("#dealerImageInput").change(function(e){
 
         let reader = new FileReader();
 
-        reader.onload = function(){
-            $("#dealerPreview").attr("src", reader.result).show();
-            $("#dealerRemove").show();
-        }
+        reader.onload = function(e){
 
-        reader.readAsDataURL(e.target.files[0]);
-    });
+            $("#imageGrid").append(`
+                <div class="col-md-3 mb-2">
 
-    $("#dealerRemove").click(function(){
+                    <div class="position-relative">
 
-        // IMPORTANT → input clear
-        $("#dealerImageInput").val("");
+                        <img src="${e.target.result}" class="img-fluid rounded">
 
-        // preview hide
-        $("#dealerPreview").attr("src","").hide();
+                        <!-- REMOVE -->
+                        <i class="bi bi-x-circle text-danger"
+                           style="position:absolute; top:5px; right:5px; cursor:pointer;"
+                           onclick="$(this).parent().parent().remove()">
+                        </i>
 
-        // delete icon hide
-        $(this).hide();
-    });
-
-
-    // COMPANY IMAGE
-    $("#companyImageInput").change(function(e){
-
-        let reader = new FileReader();
-
-        reader.onload = function(){
-            $("#companyPreview").attr("src", reader.result).show();
-            $("#companyRemove").show();
-        }
-
-        reader.readAsDataURL(e.target.files[0]);
-    });
-
-    $("#companyRemove").click(function(){
-
-        $("#companyImageInput").val("");
-        $("#companyPreview").attr("src","").hide();
-        $(this).hide();
-    });
-</script>
-<script>
-    function redirectToCommunication() {
-        window.location.href = '@Url.Action("Person", "MasterData")';
-    }
-</script>
-<script>
-
-
-    // toggle
-    function toggleCommDropdown(){
-        $("#commDropdown").toggle();
-    }
-
-    // search
-    function filterComm(){
-
-        let input = $("#commSearch").val().toLowerCase();
-
-        $("#commOptions .option").each(function(){
-
-            let text = $(this).text().toLowerCase();
-
-            $(this).toggle(text.includes(input));
-        });
-    }
-
-
-    // selection logic (COUNT SAME AS NOTES)
-    function updateCommSelection(){
-
-        let count = 0;
-
-        $("#commHiddenContainer").empty();
-
-        $("#commOptions input:checked").each(function(){
-
-            let id = $(this).val();
-
-            count++;
-
-            $("#commHiddenContainer").append(
-                `<input type="hidden" name="Dealer.CommunicationIds" value="${id}" />`
-            );
-        });
-
-        if(count > 0){
-            $("#commDropdown").prev(".dropdown-display").text(count + " Person Selected");
-        }
-        else{
-            $("#commDropdown").prev(".dropdown-display").text("Select Person");
-        }
-    }
-
-
-    // close outside
-    $(document).click(function(e){
-
-        if(!$(e.target).closest("#commDropdown, .dropdown-display").length){
-            $("#commDropdown").hide();
-        }
-
-    });
-        // ================= NOTES (SAME AS ADDRESS) =================
-
-    var noteIndex = 0;
-    var noteCurrentRow = null;
-    var noteItemInRow = 0;
-
-    // default 1 note
-    $(document).ready(function(){
-        addNote();
-    });
-
-    function addNote(){
-
-        // new row
-        if(noteItemInRow === 0){
-            noteCurrentRow = $('<div class="row g-3 mb-2 note-row"></div>');
-            $("#notesContainer").append(noteCurrentRow);
-        }
-
-        var html = `
-        <div class="col-md-6 note-item">
-
-            <div class="address-card">
-
-                <!-- remove -->
-                <i class="bi bi-x-circle text-danger address-remove"
-                   onclick="removeNote(this)"></i>
-
-                <div class="row">
-
-                    <div class="col-md-4">
-                        <label>Category</label>
-                        <select name="NotesA[${noteIndex}].CategoryId" class="form-select">
-                            <option value="">Select</option>
-                            ${getCategoryOptions()}
-                        </select>
-                    </div>
-
-                    <div class="col-md-8">
-                        <label>Note</label>
-                        <textarea
-                            name="NotesA[${noteIndex}].NoteText"
-                            class="form-control"
-                            rows="2"></textarea>
                     </div>
 
                 </div>
+            `);
+        };
 
-            </div>
+        reader.readAsDataURL(files[i]);
+    }
 
+    // ✅ CLEAR AFTER SAVE
+    $("#multiImageInput").val("");
+
+    $("#imageModal").modal('hide');
+}
+
+// PERSON
+var personList=[];
+function openPersonModal(){ $("#personModal").modal('show'); }
+
+function addComm(){
+$("#commContainer").append(`
+
+<div class="box">
+
+    <i class="bi bi-x-circle text-danger remove"
+       onclick="$(this).parent().remove()"></i>
+
+    <div class="row g-2">
+
+        <!-- TYPE -->
+        <div class="col-md-4">
+            <label class="fw-bold">Type</label>
+            <select class="form-control">
+                <option value="">Select</option>
+                <option>Mobile</option>
+                <option>Email</option>
+                <option>Landline</option>
+            </select>
         </div>
-        `;
 
-        noteCurrentRow.append(html);
+        <!-- LABEL -->
+        <div class="col-md-4">
+            <label class="fw-bold">Communication Label</label>
+            <input type="text" class="form-control"
+                   placeholder="EX: Personal / Official / WhatsApp" >
+        </div>
 
-        noteIndex++;
-        noteItemInRow++;
+        <!-- VALUE -->
+        <div class="col-md-4">
+            <label class="fw-bold">Value</label>
+            <input type="text" class="form-control"
+                   placeholder="Enter value"/>
+        </div>
 
-        if(noteItemInRow === 2){
-            noteItemInRow = 0;
-        }
+    </div>
+
+</div>
+
+`);
+}
+
+function addPersonAddress(){
+$("#personAddressContainer").append(`
+
+<div class="box">
+
+    <i class="bi bi-x-circle text-danger remove"
+       onclick="$(this).parent().remove()"></i>
+
+    <div class="row g-2">
+
+        <!-- TYPE -->
+        <div class="col-md-4">
+            <label class="fw-bold">Type</label>
+            <input type="text" class="form-control"
+                   />
+        </div>
+
+        <!-- ADDRESS -->
+        <div class="col-md-8">
+            <label class="fw-bold">Address</label>
+            <input type="text" class="form-control"
+                   placeholder="Enter address"/>
+        </div>
+
+    </div>
+
+</div>
+
+`);
+}
+
+function savePerson(){
+
+    let isValid = true;
+
+    // remove old errors
+    $(".error-msg").remove();
+
+    function setError(el, msg){
+        el.after(`<div class="error-msg">${msg}</div>`);
+        isValid = false;
     }
 
+    let title = $("#pTitle");
+    let first = $("#pFirst");
+    let middle = $("#pMiddle");
+    let last = $("#pLast");
+    let gender = $("#pGender");
+    let pan = $("#pPAN");
+    let type = $("#pType");  
 
-    // ================= REMOVE NOTE =================
-    function removeNote(el){
+    // REQUIRED VALIDATION
+    if(title.val() === "") setError(title, "Title is required");
+    if(first.val().trim() === "") setError(first, "First name is required");
+    if(middle.val().trim() === "") setError(middle, "Middle name is required");
+    if(last.val().trim() === "") setError(last, "Last name is required");
+    if(gender.val() === "") setError(gender, "Gender is required");
+    if(type.val().trim() === "") setError(type, "Designation is required");
+    // PAN VALIDATION
+    let panVal = pan.val().toUpperCase();
+    let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
-        var card = $(el).closest(".note-item");
-        var row = card.closest(".note-row");
-
-        card.remove();
-
-        // 🔥 SHIFT FIX → auto re-arrange
-        reArrangeNotes();
-
-        if(row.children().length === 0){
-            row.remove();
-        }
+    if(panVal === ""){
+        setError(pan, "PAN is required");
+    }
+    else if(!panRegex.test(panVal)){
+        setError(pan, "Invalid PAN format");
     }
 
+    if(!isValid) return;
 
-    // ================= REARRANGE (IMPORTANT) =================
-    function reArrangeNotes(){
+    // ================= ORIGINAL LOGIC =================
+    let p={
+        title:title.val(),
+        first:first.val(),
+        middle:$("#pMiddle").val(),
+        last:last.val(),
+        gender:gender.val(),
+        dob:$("#pDOB").val(),
+        anniversary:$("#pAnniversary").val(),
+        pan:panVal,
+        type:$("#pType").val(),
+        remark:$("#pRemark").val(),
+        communications:[],
+        addresses:[]
+    };
 
-        let all = [];
+   $("#commContainer .box").each(function(){
 
-        $("#notesContainer .note-item").each(function(){
-            all.push($(this));
-        });
+    let type = $(this).find("select").val();
+    let label = $(this).find("input").eq(0).val();
+    let value = $(this).find("input").eq(1).val();
 
-        $("#notesContainer").empty();
+    p.communications.push({
+        type: type,
+        label: label,
+        value: value
+    });
 
-        noteItemInRow = 0;
-        noteCurrentRow = null;
+});
 
-        all.forEach(function(item){
+    $("#personAddressContainer .box").each(function(){
 
-            if(noteItemInRow === 0){
-                noteCurrentRow = $('<div class="row g-3 mb-2 note-row"></div>');
-                $("#notesContainer").append(noteCurrentRow);
-            }
+    let type = $(this).find("input").eq(0).val();
+    let address = $(this).find("input").eq(1).val();
 
-            noteCurrentRow.append(item);
+    p.addresses.push({
+        type: type,
+        address: address
+    });
 
-            noteItemInRow++;
+});
 
-            if(noteItemInRow === 2){
-                noteItemInRow = 0;
-            }
-        });
-    }
+    personList.push(p);
+    renderPersonGrid();
 
+    // clear form
+    $("#personModal input, #personModal textarea").val("");
+    $("#personModal select").val("");
+    $("#commContainer").empty();
+    $("#personAddressContainer").empty();
 
-    // ================= CATEGORY OPTIONS =================
-    function getCategoryOptions(){
+    $("#personModal").modal('hide');
+}
+function renderPersonGrid(){
+$("#personGrid").empty();
 
-        var options = '';
+personList.forEach((p,i)=>{
 
-        @foreach (var c in ViewBag.CategoryList)
-        {
-                <text>
-                    options += `<option value="@c.ID">@c.CategoryName</option>`;
-                </text>
-        }
+let comm="",addr="";
+p.communications.forEach(c=>{
+    comm+=`<div>• ${c.type} (${c.label}): ${c.value}</div>`;
+});
+p.addresses.forEach(a=>{addr+=`<div>• ${a.type}: ${a.address}</div>`});
 
-        return options;
-    }
-        // NOTES REINDEX
- 
+$("#personGrid").append(`
+<div class="card mb-2 border-info">
+<div class="card-body">
+<b>${p.first} ${p.last}</b><br>
+${comm}<hr>${addr}
+<button class="btn btn-sm btn-danger float-end" onclick="removePerson(${i})">Remove</button>
+</div>
+</div>
+`);
+});
+}
+
+function removePerson(i){
+personList.splice(i,1);
+renderPersonGrid();
+}
+
 </script>
