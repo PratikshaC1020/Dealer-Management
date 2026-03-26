@@ -244,18 +244,23 @@ Add Dealer
         </div>
 
         <!-- ROW 3 -->
-        <div class="col-md-6">
-            <label class="fw-bold">Designation</label>
-            <input id="pType" class="form-control" placeholder="Designation"/>
-        </div>
+       <div class="col-md-4">
+    <label class="fw-bold">Designation</label>
+    <input id="pType" class="form-control" placeholder="Designation"/>
+</div>
 
-        <div class="col-md-6">
+<div class="col-md-4">
+    <label class="fw-bold">Person Image</label>
+    <input type="file" id="pImageInput" class="form-control" multiple/>
+</div>
+
+<div class="col-md-4">
     <label class="fw-bold">Remark</label>
     <input id="pRemark" class="form-control" placeholder="Remark"/>
 </div>
 
     </div>
-
+    <div id="personImagePreview" class="row mt-2"></div>
     <!-- ================= COMMUNICATION ================= -->
     <h6 class="text-info mt-3 d-flex justify-content-between">
         Communication
@@ -476,6 +481,15 @@ $("#personAddressContainer").append(`
 `);
 }
 
+
+function removeErrorOnInput(){
+
+    $("#personModal input, #personModal select").on("input change", function(){
+        $(this).next(".error-msg").remove();
+    });
+
+}
+
 function savePerson(){
 
     let isValid = true;
@@ -515,6 +529,10 @@ function savePerson(){
     }
 
     if(!isValid) return;
+    if(personImages.length === 0){
+    alert("Please add person image");
+    return;
+}
 
     // ================= ORIGINAL LOGIC =================
     let p={
@@ -528,6 +546,7 @@ function savePerson(){
         pan:panVal,
         type:$("#pType").val(),
         remark:$("#pRemark").val(),
+         images: personImages.filter(x => x != null),
         communications:[],
         addresses:[]
     };
@@ -566,7 +585,8 @@ function savePerson(){
     $("#personModal select").val("");
     $("#commContainer").empty();
     $("#personAddressContainer").empty();
-
+    
+$("#personImagePreview").empty();
     $("#personModal").modal('hide');
 }
 function renderPersonGrid(){
@@ -597,4 +617,45 @@ personList.splice(i,1);
 renderPersonGrid();
 }
 
+var personImages = [];
+
+$("#pImageInput").on("change", function(){
+
+    let files = this.files;
+
+    for(let i=0;i<files.length;i++){
+
+        let reader = new FileReader();
+
+        reader.onload = function(e){
+
+            let index = personImages.length;
+            personImages.push(files[i]);
+
+            $("#personImagePreview").append(`
+                <div class="col-md-3 mb-2" id="pimg_${index}">
+                    <div class="position-relative">
+                        <img src="${e.target.result}" class="img-fluid rounded">
+                        <i class="bi bi-x-circle text-danger"
+                           style="position:absolute; top:5px; right:5px; cursor:pointer;"
+                           onclick="removePersonImage(${index})">
+                        </i>
+                    </div>
+                </div>
+            `);
+        };
+
+        reader.readAsDataURL(files[i]);
+    }
+
+    $("#pImageInput").val(""); // reset input
+});
+function removePersonImage(i){
+    $("#pimg_"+i).remove();
+    personImages[i] = null;
+}
+
+$(document).ready(function(){
+    removeErrorOnInput();
+});
 </script>
