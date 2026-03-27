@@ -112,6 +112,15 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                                 </a>
 
                             @* <button class="btn btn-primary btn-sm"
+                                <a href="@Url.Action("EditDealer", "Dealer", new { id = item.DealerId })"
+                                   class="btn btn-info btn-sm">
+                                    Edit
+                                </a>
+                            <a href="javascript:void(0);" onclick="DeleteDealer(@item.DealerId)" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </a>
+
+                            <button class="btn btn-primary btn-sm"
                                     onclick="ViewAddress(@item.DealerId)">
                                 <i class="bi bi-geo-alt"></i>
                             </button>

@@ -112,25 +112,33 @@ public class DealerController : Controller
 
     public IActionResult EditDealer(int id)
     {
-        DealerViewModel model = repo.GetDealerFullById(id);
+        DealerEditVM model = repo.GetDealerFullById(id);
 
-        ViewBag.DepartmentList = repo.GetDepartments();
         ViewBag.CategoryList = repo.GetCategories();
         ViewBag.PaymentModeList = repo.GetPaymentModes();
         ViewBag.WeeklyOffList = repo.GetWeeklyOffDays();
-
-        model.States = repo.GetStates();
 
         return View(model);
     }
 
     [HttpPost]
-    public IActionResult UpdateDealer(DealerViewModel model)
+    public IActionResult EditDealer(DealerEditVM model)
     {
+        if (model == null || model.Dealer == null)
+            return View(model);
+
         repo.UpdateDealerFull(model);
 
-        return RedirectToAction("Index");
+        return RedirectToAction("Index"); // किंवा list page
     }
+
+    //[HttpPost]
+    //public IActionResult UpdateDealer(DealerViewModel model)
+    //{
+    //    repo.UpdateDealerFull(model);
+
+    //    return RedirectToAction("Index");
+    //}
 
     [HttpGet]
     public JsonResult GetCities(int stateId)

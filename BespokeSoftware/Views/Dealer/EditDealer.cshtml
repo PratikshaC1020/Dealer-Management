@@ -1,462 +1,545 @@
-﻿@model BespokeSoftware.Models.Dealer.DealerViewModel
+﻿@model BespokeSoftware.Models.DealerEditVM
+@using System.Text.Json
 
-<div class="card border border-info">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-        <div class="card-header">
-            <h5 class="bg-info text-center fw-bold p-2 text-black">Update Dealer Information</h5>
-        </div>
+<div class="card border-warning">
+    <div class="card-header text-center fw-bold bg-warning text-dark">
+        Edit Dealer
+    </div>
 
-        <div class="card-body">
+    <div class="card-body">
+        <form method="post">
 
-            <form asp-action="UpdateDealer" asp-controller="Dealer" method="post" id="dealerForm">
+            <input type="hidden" name="Dealer.DealerId" value="@Model.Dealer.DealerId" />
 
-                <input type="hidden" asp-for="Dealer.DealerId" />
+            <!-- ================= DEALER INFO ================= -->
+            <div class="section-box mb-3">
+                <h5 class="section-title">Dealer Information</h5>
 
                 <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="fw-bold">Dealer Code</label>
-                        <input asp-for="Dealer.DealerCode" class="form-control" readonly />
+                    <div class="col-md-3">
+                        <label>Name</label>
+                        <input name="Dealer.DealerName" value="@Model.Dealer.DealerName" class="form-control" />
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Dealer Name</label>
-                        <input asp-for="Dealer.DealerName" class="form-control" required />
+                    <div class="col-md-3">
+                        <label>Owner</label>
+                        <input name="Dealer.OwnerName" value="@Model.Dealer.OwnerName" class="form-control" />
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Owner Name</label>
-                        <input asp-for="Dealer.OwnerName" class="form-control" required />
+                    <div class="col-md-3">
+                        <label>GST</label>
+                        <input name="Dealer.GSTNo" value="@Model.Dealer.GSTNo" class="form-control" />
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">GST</label>
-                        <input asp-for="Dealer.GSTNo" class="form-control" />
+                    <div class="col-md-3">
+                        <label>PAN</label>
+                        <input name="Dealer.PANNo" value="@Model.Dealer.PANNo" class="form-control" />
                     </div>
+                </div>
+            </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">PAN</label>
-                        <input asp-for="Dealer.PANNo" class="form-control" />
-                    </div>
+            <!-- ================= ADDRESS ================= -->
+            <div class="section-box mb-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="section-title">Dealer Address</h5>
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
+                </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Department</label>
-                        <select asp-for="Dealer.DepartmentId" class="form-select">
+                <div id="dealerAddressContainer">
+                    @for (int i = 0; i < Model.DealerAddresses.Count; i++)
+                    {
+                        <div class="box">
+                            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-                            <option value="">Select</option>
+                            <input name="DealerAddresses[@i].AddressType" value="@Model.DealerAddresses[i].AddressType" class="form-control mb-1" />
+                            <input name="DealerAddresses[@i].AddressLine" value="@Model.DealerAddresses[i].AddressLine" class="form-control" />
+                        </div>
+                    }
+                </div>
+            </div>
 
-                            @foreach (var d in ViewBag.DepartmentList)
-                            {
-                                <option value="@d.DepID">@d.DepartmentName</option>
-                            }
+            <!-- ================= NOTES ================= -->
+            <div class="section-box mb-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="section-title">Notes</h5>
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+                </div>
 
-                        </select>
-                    </div>
+                <div id="notesContainer">
+                    @for (int i = 0; i < Model.DealerNotes.Count; i++)
+                    {
+                        <div class="box">
+                            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Category</label>
-                        <select asp-for="Dealer.CategoryId" class="form-select">
+                            <select name="DealerNotes[@i].CategoryId" class="form-control mb-1">
+                                <option value="">Select</option>
+                                @foreach (var c in ViewBag.CategoryList)
+                                {
+                                    <option value="@c.ID" selected="@(c.ID == Model.DealerNotes[i].CategoryId)">
+                                        @c.CategoryName
+                                    </option>
+                                }
+                            </select>
 
-                            <option value="">Select</option>
+    <textarea name="DealerNotes[@i].NoteText" class="form-control">@Model.DealerNotes[i].NoteText</textarea>
+                        </div>
+                    }
+                </div>
+            </div>
 
-                            @foreach (var c in ViewBag.CategoryList)
-                            {
-                                <option value="@c.ID">@c.CategoryName</option>
-                            }
+            <!-- ================= IMAGES ================= -->
+            <div class="section-box mb-3">
 
-                        </select>
-                    </div>
+                <div class="d-flex justify-content-between">
+                    <h5 class="section-title">Images</h5>
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
+                </div>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Payment Mode</label>
-                        <select asp-for="Dealer.DefaultPaymentModeId" class="form-select">
+                <div class="row" id="imageGrid">
 
-                            <option value="">Select</option>
+                    @foreach (var img in Model.DealerImages ?? new List<string>())
+                    {
+                        <div class="col-md-3 mb-2">
+                            <div class="position-relative">
 
-                            @foreach (var p in ViewBag.PaymentModeList)
-                            {
-                                <option value="@p.ID">@p.PaymentModeName</option>
-                            }
+                                <img src="data:image/png;base64,@img" class="img-fluid rounded" />
 
-                        </select>
-                    </div>
+                                <i class="bi bi-x-circle text-danger"
+                                   style="position:absolute;top:5px;right:5px;cursor:pointer;"
+                                   onclick="$(this).parent().parent().remove()">
+                                </i>
 
-                    <div class="col-md-4">
-                        <label class="fw-bold">Weekly Off</label>
-                        <select asp-for="Dealer.WeeklyOffDayId" class="form-select">
-
-                            <option value="">Select</option>
-
-                            @foreach (var w in ViewBag.WeeklyOffList)
-                            {
-                                <option value="@w.ID">@w.Day</option>
-                            }
-
-                        </select>
-                    </div>
+                            </div>
+                        </div>
+                    }
 
                 </div>
 
-                <hr>
-
-                <h5 class="fw-bold">Address</h5>
-
-                <table class="table table-bordered" id="addressTable">
-
-                    <thead class="table-light">
-
-                        <tr>
-                            <th>Type</th>
-                            <th>Country</th>
-                            <th>State</th>
-                            <th>City</th>
-                            <th>Address</th>
-                            <th>Pincode</th>
-                            <th></th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="addressBody">
-
-                        @for (int i = 0; i < Model.Addresses.Count; i++)
-                        {
-                            <tr>
-
-                                <td style="width:140px;">
-
-                                    <input type="hidden" asp-for="Addresses[i].ID" />
-
-                                    <select asp-for="Addresses[i].AddressType"
-                                            class="form-select form-select-sm">
-
-                                        <option value="">Select</option>
-                                        <option value="Store">Store</option>
-                                        <option value="Godown">Godown</option>
-                                        <option value="Billing">Billing</option>
-
-                                    </select>
-
-                                </td>
-
-                                <td style="width:120px;">
-                                    <input type="text" value="India"
-                                           class="form-control form-control-sm"
-                                           readonly>
-                                </td>
-
-                                <td style="width:180px;">
-
-                                    <select asp-for="Addresses[i].StateID"
-                                            class="form-select form-select-sm stateDropdown">
-
-                                        <option value="">Select State</option>
-
-                                        @foreach (var s in Model.States)
-                                        {
-                                            <option value="@s.StateID">@s.StateName</option>
-                                        }
-
-                                    </select>
-
-                                </td>
-
-                                <td style="width:220px;">
-
-                                    <select asp-for="Addresses[i].CityID"
-                                            class="form-select form-select-sm cityDropdown">
-
-                                        <option value="@Model.Addresses[i].CityID">
-                                            @Model.Addresses[i].CityName
-                                        </option>
-
-                                    </select>
-
-                                </td>
-
-                                <td style="width:300px;">
-    <textarea asp-for="Addresses[i].AddressLine"
-              class="form-control form-control-sm"
-              rows="2"></textarea>
-                                </td>
-
-                                <td style="width:110px;">
-                                    <input asp-for="Addresses[i].Pincode"
-                                           class="form-control form-control-sm" />
-                                </td>
-
-                                <td style="width:60px;" class="text-center">
-
-                                    <button type="button"
-                                            class="btn btn-danger btn-sm removeRow">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-
-                                </td>
-
-                            </tr>
-                        }
-
-                    </tbody>
-                </table>
-
-                <button type="button" class="btn btn-success" onclick="AddAddressRow()">
-                    Add Address
-                </button>
-
-                <hr>
-
-                <h5 class="fw-bold">Communication</h5>
-
-                <table class="table table-bordered">
-
-                    <thead class="table-light">
-
-                        <tr>
-                            <th>Type</th>
-                            <th>Value</th>
-                            <th></th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="communicationBody">
-
-                        @for (int i = 0; i < Model.Communications.Count; i++)
-                        {
-
-                            <tr>
-
-                                <td>
-
-                                    <input type="hidden" asp-for="Communications[i].CommunicationID" />
-
-                                    <select asp-for="Communications[i].Type" class="form-select commType">
-
-                                        <option value="Mobile">Mobile</option>
-                                        <option value="Email">Email</option>
-                                        <option value="Landline">Landline</option>
-
-                                    </select>
-
-                                </td>
-
-                                <td>
-
-                                    <input asp-for="Communications[i].Value" class="form-control commValue" />
-
-                                </td>
-
-                                <td style="width:60px;" class="text-center">
-
-                                    <button type="button"
-                                            class="btn btn-danger btn-sm removeCommRow">
-
-                                        <i class="bi bi-x-lg"></i>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-                        }
-
-                    </tbody>
-
-                </table>
-
-                <button type="button" class="btn btn-success" onclick="AddCommunicationRow()">
-                    Add Communication
-                </button>
-
-                <br><br>
-
-            <div class="text-center mt-3">
-
-                <button type="submit" class="btn btn-info fw-bold px-4">
-                    Update
-                </button>
-
-                <a href="/Dealer/Index" class="btn btn-secondary fw-bold px-4">
-                    Cancel
-                </a>
+                <!-- 🔥 hidden binding -->
+                <div id="hiddenImages"></div>
 
             </div>
 
-            </form>
+            <!-- ================= PERSON ================= -->
+            <div class="section-box mb-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="section-title">Person Details</h5>
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="openPersonModal()"></i>
+                </div>
+
+                <div id="personGrid"></div>
+                <div id="hiddenPersons"></div>
+
+            </div>
+
+            <div class="text-center">
+                <button class="btn btn-warning px-4 fw-bold">Update Dealer</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- ================= PERSON MODAL FULL ================= -->
+<div class="modal fade" id="personModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning text-dark">
+                <h5>Add Person</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row g-2">
+
+                    <div class="col-md-3">
+                        <label>Title</label>
+                        <select id="pTitle" class="form-control">
+                            <option value="">Select</option>
+                            <option>Mr</option>
+                            <option>Mrs</option>
+                            <option>Miss</option>
+                            <option>Ms</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3"><label>First</label><input id="pFirst" class="form-control" /></div>
+                    <div class="col-md-3"><label>Middle</label><input id="pMiddle" class="form-control" /></div>
+                    <div class="col-md-3"><label>Last</label><input id="pLast" class="form-control" /></div>
+
+                    <div class="col-md-3">
+                        <label>Gender</label>
+                        <select id="pGender" class="form-control">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3"><label>DOB</label><input type="date" id="pDOB" class="form-control" /></div>
+                    <div class="col-md-3"><label>Anniversary</label><input type="date" id="pAnniversary" class="form-control" /></div>
+                    <div class="col-md-3"><label>PAN</label><input id="pPAN" class="form-control" /></div>
+
+                    <div class="col-md-4"><label>Designation</label><input id="pType" class="form-control" /></div>
+                    <div class="col-md-4"><label>Remark</label><input id="pRemark" class="form-control" /></div>
+
+                </div>
+
+                <div class="col-md-4">
+                   @*  <label>Person Images</label> *@
+                    <h6 class="mt-3 d-flex justify-content-between">Person Images </h6>
+                    <input type="file" id="pImageInput" multiple class="form-control" />
+                   @*  <div class="d-flex gap-2">
+                        <input type="file" id="pImageInput" multiple class="form-control" />
+                    </div> *@
+                </div>
+
+                <div class="col-md-12 mt-2" id="personImagePreview"></div>
+
+                <h6 class="mt-3 d-flex justify-content-between">Communication <i class="bi bi-plus-circle-fill add-icon" onclick="addComm()"></i></h6>
+                <div id="commContainer"></div>
+
+                <h6 class="mt-3 d-flex justify-content-between">Address <i class="bi bi-plus-circle-fill add-icon" onclick="addPersonAddress()"></i></h6>
+                <div id="personAddressContainer"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-warning" onclick="savePerson()">Save</button>
+            </div>
 
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="imageModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning text-dark">
+                <h5>Add Images</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="file" id="multiImageInput" multiple class="form-control" />
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-warning" onclick="saveImages()">Add</button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
 
-        var addressIndex = @Model.Addresses.Count;
+      var personList = @Html.Raw(JsonSerializer.Serialize(Model.Persons ?? new List<BespokeSoftware.Models.PersonVM>()));
+    var personImages = [];
 
-    function AddAddressRow(){
-
-    var states = `@foreach (var s in Model.States)
-    {
-        <text><option value="@s.StateID">@s.StateName</option></text>
+    function openPersonModal(){
+        $("#personModal").modal('show');
     }
-`;
+        $("#pImageInput").change(function(){
 
-    var row = `
+        let files = this.files;
 
-    <tr>
+        for(let i=0;i<files.length;i++){
 
-    <td style="width:140px;">
+            let reader = new FileReader();
 
-    <select name="Addresses[${addressIndex}].AddressType"
-    class="form-select form-select-sm">
+            reader.onload = function(e){
 
-    <option value="">Select</option>
-    <option value="Store">Store</option>
-    <option value="Godown">Godown</option>
-    <option value="Billing">Billing</option>
+                let base64 = e.target.result.split(',')[1];
 
-    </select>
+                personImages.push(base64);
 
-    </td>
+                $("#personImagePreview").append(`
+                    <div style="display:inline-block;position:relative;margin:5px;">
+                        <img src="${e.target.result}" width="80"/>
+                        <i class="bi bi-x-circle text-danger"
+                           style="position:absolute;top:0;right:0;cursor:pointer;"
+                           onclick="removePersonImage(${personImages.length-1})">
+                        </i>
+                    </div>
+                `);
+            };
 
-    <td style="width:120px;">
-    <input type="text"
-    value="India"
-    class="form-control form-control-sm"
-    readonly>
-    </td>
+            reader.readAsDataURL(files[i]);
+        }
+    });
+        function removePersonImage(index){
+        personImages.splice(index,1);
+        $("#personImagePreview").children().eq(index).remove();
+    }
+    function savePerson(){
 
-    <td style="width:180px;">
+        if(!$("#pFirst").val() || !$("#pLast").val()){
+            alert("Name required");
+            return;
+        }
 
-    <select name="Addresses[${addressIndex}].StateID"
-    class="form-select form-select-sm stateDropdown">
+        let p={
+            title:$("#pTitle").val(),
+            firstName:$("#pFirst").val(),
+            middleName:$("#pMiddle").val(),
+            lastName:$("#pLast").val(),
+            gender:$("#pGender").val(),
+            dob:$("#pDOB").val(),
+            anniversaryDate:$("#pAnniversary").val(),
+            panNo:$("#pPAN").val(),
+            personType:$("#pType").val(),
+            remark:$("#pRemark").val(),
+            communications:[],
+            addresses:[],
+            images:personImages
+        };
 
-    <option value="">Select State</option>
+        $("#commContainer .box").each(function(){
+            p.communications.push({
+                type:$(this).find("select").val(),
+                label:$(this).find("input").eq(0).val(),
+                value:$(this).find("input").eq(1).val()
+            });
+        });
 
-    ${states}
+        $("#personAddressContainer .box").each(function(){
+            p.addresses.push({
+                addressType:$(this).find("input").eq(0).val(),
+                addressLine:$(this).find("input").eq(1).val()
+            });
+        });
 
-    </select>
+        personList.push(p);
+        renderPersonGrid();
 
-    </td>
+        $("#personModal input, #personModal textarea").val("");
+        $("#personModal select").val("");
+        $("#commContainer").empty();
+        $("#personAddressContainer").empty();
+        personImages = [];
 
-    <td style="width:220px;">
-
-    <select name="Addresses[${addressIndex}].CityID"
-    class="form-select form-select-sm cityDropdown">
-
-    <option value="">Select City</option>
-
-    </select>
-
-    </td>
-
-    <td style="width:300px;">
-
-    <textarea name="Addresses[${addressIndex}].AddressLine"
-    class="form-control form-control-sm"
-    rows="2"></textarea>
-
-    </td>
-
-    <td style="width:110px;">
-
-    <input type="text"
-    name="Addresses[${addressIndex}].Pincode"
-    class="form-control form-control-sm">
-
-    </td>
-
-    <td style="width:60px;" class="text-center">
-
-    <button type="button"
-    class="btn btn-danger btn-sm removeRow">
-
-    <i class="bi bi-x-lg"></i>
-
-    </button>
-
-    </td>
-
-    </tr>
-    `;
-
-    $("#addressBody").append(row);
-
-    addressIndex++;
-
+        $("#personModal").modal('hide');
     }
 
-    $(document).on("click",".removeRow",function(){
-    $(this).closest("tr").remove();
-    });
+    function renderPersonGrid(){
 
+        $("#personGrid").empty();
+        $("#hiddenPersons").empty();
 
-    var commIndex=@Model.Communications.Count;
+        personList.forEach((p,i)=>{
 
-    function AddCommunicationRow(){
+            let comm="",addr="";
 
-    var row=`
+            p.communications?.forEach(c=>{
+                comm+=`<div>• ${c.type}: ${c.value}</div>`;
+            });
 
-    <tr>
+            p.addresses?.forEach(a=>{
+                addr+=`<div>• ${a.addressType}: ${a.addressLine}</div>`;
+            });
 
-    <td>
+            $("#personGrid").append(`
+            <div class="card mb-2 border-warning">
+            <div class="card-body">
+            <b>${p.firstName} ${p.lastName}</b>
+            ${comm}<hr/>${addr}
+            <button class="btn btn-sm btn-danger" onclick="removePerson(${i})">Remove</button>
+            </div>
+            </div>
+            `);
 
-    <select name="Communications[${commIndex}].Type" class="form-select commType">
+            let html = "";
 
-    <option value="">Select</option>
-    <option value="Mobile">Mobile</option>
-    <option value="Email">Email</option>
-    <option value="Landline">Landline</option>
+            // BASIC
+            html += `
+            <input type="hidden" name="Persons[${i}].Title" value="${p.title || ''}"/>
+            <input type="hidden" name="Persons[${i}].FirstName" value="${p.firstName || ''}"/>
+            <input type="hidden" name="Persons[${i}].MiddleName" value="${p.middleName || ''}"/>
+            <input type="hidden" name="Persons[${i}].LastName" value="${p.lastName || ''}"/>
+            <input type="hidden" name="Persons[${i}].Gender" value="${p.gender || ''}"/>
+            <input type="hidden" name="Persons[${i}].DOB" value="${p.dob || ''}"/>
+            <input type="hidden" name="Persons[${i}].AnniversaryDate" value="${p.anniversaryDate || ''}"/>
+            <input type="hidden" name="Persons[${i}].PANNo" value="${p.panNo || ''}"/>
+            <input type="hidden" name="Persons[${i}].PersonType" value="${p.personType || ''}"/>
+            <input type="hidden" name="Persons[${i}].Remark" value="${p.remark || ''}"/>
+            `;
 
-    </select>
+            // COMMUNICATION
+            p.communications?.forEach((c,j)=>{
+                html += `
+                <input type="hidden" name="Persons[${i}].Communications[${j}].Type" value="${c.type || ''}"/>
+                <input type="hidden" name="Persons[${i}].Communications[${j}].Label" value="${c.label || ''}"/>
+                <input type="hidden" name="Persons[${i}].Communications[${j}].Value" value="${c.value || ''}"/>
+                `;
+            });
 
-    </td>
+            // ADDRESS
+            p.addresses?.forEach((a,j)=>{
+                html += `
+                <input type="hidden" name="Persons[${i}].Addresses[${j}].AddressType" value="${a.addressType || ''}"/>
+                <input type="hidden" name="Persons[${i}].Addresses[${j}].AddressLine" value="${a.addressLine || ''}"/>
+                `;
+            });
 
-    <td>
+            // IMAGES
+            p.images?.forEach((img,j)=>{
+                html += `
+                <input type="hidden" name="Persons[${i}].Images[${j}]" value="${img}"/>
+                `;
+            });
 
-    <input type="text" name="Communications[${commIndex}].Value" class="form-control commValue">
-
-    </td>
-
-    <td>
-
-    <button type="button" class="btn btn-danger removeCommRow">X</button>
-
-    </td>
-
-    </tr>
-    `;
-
-    $("#communicationBody").append(row);
-
-    commIndex++;
-
+            $("#hiddenPersons").append(html);
+        });
     }
 
-    $(document).on("click",".removeCommRow",function(){
-    $(this).closest("tr").remove();
+    function removePerson(i){
+        personList.splice(i,1);
+        renderPersonGrid();
+    }
+
+    function addComm(){
+        $("#commContainer").append(`
+        <div class="box">
+        <select class="form-control mb-1">
+        <option>Mobile</option><option>Email</option>
+        </select>
+        <input class="form-control mb-1" placeholder="Label"/>
+        <input class="form-control" placeholder="Value"/>
+        </div>`);
+    }
+
+    function addPersonAddress(){
+        $("#personAddressContainer").append(`
+        <div class="box">
+        <input class="form-control mb-1" placeholder="Type"/>
+        <input class="form-control" placeholder="Address"/>
+        </div>`);
+    }
+
+    $(document).ready(function(){
+        renderPersonGrid();
+    });
+</script>
+
+<script>
+        // IMAGE LIST
+    var imageList = @Html.Raw(JsonSerializer.Serialize(Model.DealerImages ?? new List<string>()));
+
+    // OPEN MODAL
+    function openImageModal(){
+        $("#multiImageInput").val("");
+        $("#imageModal").modal('show');
+    }
+
+    // SAVE IMAGE
+    function saveImages(){
+
+        let files = $("#multiImageInput")[0].files;
+
+        if(files.length === 0){
+            alert("Select image");
+            return;
+        }
+
+        for(let i=0;i<files.length;i++){
+
+            let reader = new FileReader();
+
+            reader.onload = function(e){
+
+                imageList.push(e.target.result.split(',')[1]); // base64 only
+
+                renderImages();
+            };
+
+            reader.readAsDataURL(files[i]);
+        }
+
+        $("#imageModal").modal('hide');
+    }
+
+    // RENDER IMAGE
+    function renderImages(){
+
+        $("#imageGrid").empty();
+        $("#hiddenImages").empty();
+
+        imageList.forEach((img,i)=>{
+
+            $("#imageGrid").append(`
+            <div class="col-md-3 mb-2">
+                <div class="position-relative">
+                    <img src="data:image/png;base64,${img}" class="img-fluid rounded"/>
+                    <i class="bi bi-x-circle text-danger"
+                       style="position:absolute;top:5px;right:5px;cursor:pointer;"
+                       onclick="removeImage(${i})">
+                    </i>
+                </div>
+            </div>
+            `);
+
+            // 🔥 hidden input for POST
+            $("#hiddenImages").append(`
+                <input type="hidden" name="DealerImages[${i}]" value="${img}" />
+            `);
+        });
+    }
+
+    // REMOVE IMAGE
+    function removeImage(i){
+        imageList.splice(i,1);
+        renderImages();
+    }
+
+    // PAGE LOAD
+    $(document).ready(function(){
+        renderImages();
     });
 
-        $(document).on("change",".stateDropdown",function(){
+        var dealerAddressIndex = @Model.DealerAddresses.Count;
 
-    var stateId=$(this).val();
-    var cityDrop=$(this).closest("tr").find(".cityDropdown");
+    function addDealerAddress(){
 
-    $.get('/Dealer/GetCities',{stateId:stateId},function(data){
+        $("#dealerAddressContainer").append(`
+        <div class="box">
+            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-    cityDrop.empty();
-    cityDrop.append('<option value="">Select City</option>');
+            <input name="DealerAddresses[${dealerAddressIndex}].AddressType" class="form-control mb-1"/>
+            <input name="DealerAddresses[${dealerAddressIndex}].AddressLine" class="form-control"/>
+        </div>
+        `);
 
-    $.each(data,function(i,item){
+        dealerAddressIndex++;
+    }
 
-    cityDrop.append('<option value="'+item.cityID+'">'+item.cityName+'</option>');
+        var noteIndex = @Model.DealerNotes.Count;
 
-    });
+    function addNote(){
 
-    });
+        $("#notesContainer").append(`
+        <div class="box">
+            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-    });
+            <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
+                <option value="">Select</option>
+                @foreach (var c in ViewBag.CategoryList)
+                {
+                        <text><option value="@c.ID">@c.CategoryName</option></text>
+                }
+            </select>
 
+            <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
+        </div>
+        `);
+
+        noteIndex++;
+    }
 </script>
