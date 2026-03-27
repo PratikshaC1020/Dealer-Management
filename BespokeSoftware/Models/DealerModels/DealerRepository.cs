@@ -393,7 +393,7 @@ namespace BespokeSoftware.Repository
                 SqlDataReader dr = cmd.ExecuteReader();
                 if (dr.Read())
                 {
-                    model.Dealer = new DealerVM
+                    model.Dealer = new Models.DealerVM
                     {
                         DealerId = (int)dr["DealerId"],
                         DealerCode = dr["DealerCode"]?.ToString(),
@@ -415,7 +415,7 @@ namespace BespokeSoftware.Repository
                 dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    model.DealerAddresses.Add(new DealerAddressVM
+                    model.DealerAddresses.Add(new Models.DealerAddressVM
                     {
                         AddressId = (int)dr["AddressId"],
                         AddressType = dr["AddressType"]?.ToString(),
@@ -456,11 +456,11 @@ namespace BespokeSoftware.Repository
                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
 
                 dr = cmd.ExecuteReader();
-                List<PersonVM> persons = new List<PersonVM>();
+                List<Models.PersonVM> persons = new List<Models.PersonVM>();
 
                 while (dr.Read())
                 {
-                    persons.Add(new PersonVM
+                    persons.Add(new Models.PersonVM
                     {
                         PersonID = (int)dr["PersonID"],
                         Title = dr["Title"]?.ToString(),
@@ -487,7 +487,7 @@ namespace BespokeSoftware.Repository
                     SqlDataReader drAddr = cmdAddr.ExecuteReader();
                     while (drAddr.Read())
                     {
-                        p.Addresses.Add(new PersonAddressVM
+                        p.Addresses.Add(new Models.PersonAddressVM
                         {
                             Id = (int)drAddr["ID"],
                             AddressType = drAddr["AddressType"]?.ToString(),
@@ -503,7 +503,7 @@ namespace BespokeSoftware.Repository
                     SqlDataReader drComm = cmdComm.ExecuteReader();
                     while (drComm.Read())
                     {
-                        p.Communications.Add(new PersonCommunicationVM
+                        p.Communications.Add(new Models.PersonCommunicationVM
                         {
                             Id = (int)drComm["ID"],
                             Type = drComm["CommunicationType"]?.ToString(),
@@ -585,7 +585,7 @@ DELETE FROM T_Person WHERE DealerId=@Id
                         // ================= INSERT NEW =================
 
                         // DEALER ADDRESS
-                        foreach (var a in model.DealerAddresses ?? new List<DealerAddressVM>())
+                        foreach (var a in model.DealerAddresses ?? new List<Models.DealerAddressVM>())
                         {
                             ExecuteInsert(@"
 INSERT INTO T_DealerAddress (DealerId, AddressType, AddressLine, CreatedDate)
@@ -623,7 +623,7 @@ VALUES ('Dealer', @DealerId, @Img, GETDATE())",
                         }
 
                         // PERSON
-                        foreach (var p in model.Persons ?? new List<PersonVM>())
+                        foreach (var p in model.Persons ?? new List<Models.PersonVM>())
                         {
                             SqlCommand pCmd = new SqlCommand(@"
 INSERT INTO T_Person
@@ -647,7 +647,7 @@ VALUES (@Title,@F,@M,@L,@G,@DOB,@Ann,@PAN,@Type,@Remark,@DealerId,GETDATE())",
                             int personId = Convert.ToInt32(pCmd.ExecuteScalar());
 
                             // PERSON ADDRESS
-                            foreach (var pa in p.Addresses ?? new List<PersonAddressVM>())
+                            foreach (var pa in p.Addresses ?? new List<Models.PersonAddressVM>())
                             {
                                 ExecuteInsert(@"
 INSERT INTO T_PersonAddress (PersonID, AddressType, AddressLine)
@@ -660,7 +660,7 @@ VALUES (@Pid,@Type,@Line)",
                             }
 
                             // PERSON COMMUNICATION
-                            foreach (var c in p.Communications ?? new List<PersonCommunicationVM>())
+                            foreach (var c in p.Communications ?? new List<Models.PersonCommunicationVM>())
                             {
                                 ExecuteInsert(@"
 INSERT INTO T_PersonCommunication (PersonID,CommunicationType,CommunicationLabel,Value)
@@ -1041,7 +1041,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 
                 if (rdr.Read())
                 {
-                    model.Dealer = new DealerVM
+                    model.Dealer = new Models.DealerModels.DealerVM
                     {
                         DealerId = Convert.ToInt32(rdr["DealerId"]),
                         DealerName = rdr["DealerName"]?.ToString(),
@@ -1058,7 +1058,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     while (rdr.Read())
                     {
-                        model.Addresses.Add(new DealerAddressVM
+                        model.Addresses.Add(new Models.DealerModels.DealerAddressVM
                         {
                             AddressType = rdr["AddressType"]?.ToString(),
                             AddressLine = rdr["AddressLine"]?.ToString()
@@ -1085,7 +1085,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     while (rdr.Read())
                     {
-                        model.Persons.Add(new PersonVM
+                        model.Persons.Add(new Models.DealerModels.PersonVM
                         {
                             PersonID = Convert.ToInt32(rdr["PersonID"]),
                             FirstName = rdr["FirstName"]?.ToString(),
@@ -1099,7 +1099,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     while (rdr.Read())
                     {
-                        model.PersonAddresses.Add(new PersonAddressVM
+                        model.PersonAddresses.Add(new Models.DealerModels.PersonAddressVM
                         {
                             PersonID = Convert.ToInt32(rdr["PersonID"]),
                             AddressLine = rdr["AddressLine"]?.ToString()
@@ -1112,7 +1112,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     while (rdr.Read())
                     {
-                        model.Communications.Add(new PersonCommunicationVM
+                        model.Communications.Add(new Models.DealerModels.PersonCommunicationVM
                         {
                             PersonID = Convert.ToInt32(rdr["PersonID"]),
                             Value = rdr["Value"]?.ToString()
