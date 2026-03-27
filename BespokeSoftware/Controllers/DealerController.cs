@@ -51,6 +51,33 @@ public class DealerController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> SaveDealerFull([FromBody] Dealer.DealerViewModel model)
+    {
+        try
+        {
+            // DEBUG
+            if (model == null)
+            {
+                return Json(new { success = false, message = "Model is null" });
+            }
+
+            if (model.Dealer == null)
+            {
+                return Json(new { success = false, message = "Dealer data missing" });
+            }
+            model.Dealer.DealerCode = repo.GetDealerCode();
+            //  CALL REPOSITORY
+            var result = await repo.SaveDealerFull(model);
+
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
     //[HttpPost]
     //public IActionResult InsertDealer(DealerViewModel model)
     //{
@@ -109,6 +136,8 @@ public class DealerController : Controller
         ViewBag.CommunicationIds = repo.GetPersonData();
         return View("_AddEditDealer", model);
     }
+
+   
 
     public IActionResult EditDealer(int id)
     {

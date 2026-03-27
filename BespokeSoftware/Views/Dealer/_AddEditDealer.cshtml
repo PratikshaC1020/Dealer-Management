@@ -1,500 +1,575 @@
 ﻿@model BespokeSoftware.Models.Dealer.DealerViewModel
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-.section-title{color:#0dcaf0;font-weight:bold;}
-.section-box{
-    border:1px solid #0dcaf0;
-    border-radius:8px;
-    padding:12px;
-    background:#f8fcff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-.inner-scroll{max-height:300px;overflow-y:auto;}
-.box{
-    border:1px solid #dee2e6;
-    padding:8px;
-    border-radius:6px;
-    background:#fff;
-    position:relative;
-    margin-bottom:8px;
-}
-.remove{position:absolute;top:5px;right:8px;cursor:pointer;}
+    .small-scroll {
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .section-title {
+        color: #0dcaf0;
+        font-weight: bold;
+    }
 
-.add-icon{
-    color:#0dcaf0;
-    font-size:20px;
-    cursor:pointer;
-    transition:0.2s;
-}
-.add-icon:hover{transform:scale(1.2);}
-.error-msg{
-    color:#dc3545;
-    font-size:13px;
-    margin-top:2px;
-}
+    .section-box {
+        border: 1px solid #0dcaf0;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8fcff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .inner-scroll {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .box {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+        border-radius: 6px;
+        background: #fff;
+        position: relative;
+        margin-bottom: 8px;
+    }
+
+    .remove {
+        position: absolute;
+        top: 5px;
+        right: 8px;
+        cursor: pointer;
+    }
+
+    .add-icon {
+        color: #0dcaf0;
+        font-size: 20px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .add-icon:hover {
+            transform: scale(1.2);
+        }
+
+    .error-msg {
+        color: #dc3545;
+        font-size: 13px;
+        margin-top: 2px;
+    }
 
 </style>
 
 <div class="card border-info">
 
-<div class="card-header text-center fw-bold bg-info text-white">
-Add Dealer
-</div>
-
-<div class="card-body">
-
-<form id="dealerForm" method="post">
-
-<!-- ================= DEALER INFO ================= -->
-<div class="section-box mb-3">
-
-<h5 class="section-title">Dealer Information</h5>
-
-<div class="row g-3">
-
-<div class="col-md-3">
-<label>Dealer Name</label>
-<input name="Dealer.DealerName" class="form-control"/>
-</div>
-
-<div class="col-md-3">
-<label>Owner Name</label>
-<input name="Dealer.OwnerName" class="form-control"/>
-</div>
-
-<div class="col-md-3">
-<label>GST</label>
-<input name="Dealer.GSTNo" class="form-control"/>
-</div>
-
-<div class="col-md-3">
-<label>PAN</label>
-<input name="Dealer.PANNo" class="form-control"/>
-</div>
-
-<div class="col-md-3">
-<label>Payment Mode</label>
-<select name="Dealer.DefaultPaymentModeId" class="form-select">
-<option>Select</option>
-@foreach(var p in ViewBag.PaymentModeList){
-<option value="@p.ID">@p.PaymentModeName</option>
-}
-</select>
-</div>
-
-<div class="col-md-3">
-<label>Weekly Off</label>
-<select name="Dealer.WeeklyOffDayId" class="form-select">
-<option>Select</option>
-@foreach(var w in ViewBag.WeeklyOffList){
-<option value="@w.ID">@w.Day</option>
-}
-</select>
-</div>
-
-</div>
-</div>
-
-<!-- ================= ADDRESS + NOTES ================= -->
-<div class="row mb-3">
-
-    <!-- ADDRESS (SMALL) -->
-    <div class="col-md-4">
-        <div class="section-box">
-            <div class="d-flex justify-content-between">
-                <h5 class="section-title">Dealer Address</h5>
-                <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
-            </div>
-            <div id="dealerAddressContainer" class="inner-scroll"></div>
-        </div>
+    <div class="card-header text-center fw-bold bg-info text-white">
+        Add Dealer
     </div>
 
-    <!-- NOTES (BIG) -->
-    <div class="col-md-8">
-        <div class="section-box">
-            <div class="d-flex justify-content-between">
-                <h5 class="section-title">Notes</h5>
-                <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+    <div class="card-body">
+
+        <form id="dealerForm" method="post">
+
+            <!-- ================= DEALER INFO ================= -->
+            <div class="section-box mb-3">
+
+                <h5 class="section-title">Dealer Information</h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label>Dealer Name</label>
+                        <input name="Dealer.DealerName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Owner Name</label>
+                        <input name="Dealer.OwnerName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>GST</label>
+                        <input name="Dealer.GSTNo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>PAN</label>
+                        <input name="Dealer.PANNo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Payment Mode</label>
+                        <select name="Dealer.DefaultPaymentModeId" class="form-select">
+                            <option value="">Select</option>
+                            @foreach (var p in ViewBag.PaymentModeList)
+                            {
+                                <option value="@p.ID">@p.PaymentModeName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Weekly Off</label>
+                        <select name="Dealer.WeeklyOffDayId" class="form-select">
+                            <option value="">Select</option>
+                            @foreach (var w in ViewBag.WeeklyOffList)
+                            {
+                                <option value="@w.ID">@w.Day</option>
+                            }
+                        </select>
+                    </div>
+
+                </div>
             </div>
-            <div id="notesContainer" class="inner-scroll notes-big"></div>
-        </div>
+
+            <!-- ================= ROW 1: ADDRESS + IMAGES ================= -->
+            <div class="row mb-3">
+
+                <!-- ADDRESS -->
+                <div class="col-md-6">
+                    <div class="section-box">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="section-title">Dealer Address</h5>
+                            <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
+                        </div>
+                        <div id="dealerAddressContainer" class="inner-scroll"></div>
+                    </div>
+                </div>
+
+                <!-- IMAGES -->
+                <div class="col-md-6">
+                    <div class="section-box">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="section-title">Images</h5>
+                            <i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
+                        </div>
+                        <div id="imageGrid" class="row inner-scroll"></div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- ================= ROW 2: NOTES FULL ================= -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="section-box">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="section-title">Notes</h5>
+                            <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+                        </div>
+                        <div id="notesContainer" class="inner-scroll"></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ================= ROW 3: PERSON FULL ================= -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="section-box">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="section-title">Person Details</h5>
+                            <i class="bi bi-plus-circle-fill add-icon" onclick="openPersonModal()"></i>
+                        </div>
+                        <div id="personGrid" class="inner-scroll"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
+                    Save Dealer
+                </button>
+            </div>
+
+        </form>
+
     </div>
-
-</div>
-
-<!-- ================= IMAGES + PERSON ================= -->
-<div class="row mb-3">
-
-<div class="col-md-4">
-<div class="section-box">
-<div class="d-flex justify-content-between">
-<h5 class="section-title">Images</h5>
-<i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
-</div>
-<div id="imageGrid" class="row inner-scroll"></div>
-</div>
-</div>
-
-<div class="col-md-8">
-<div class="section-box">
-<div class="d-flex justify-content-between">
-<h5 class="section-title">Person Details</h5>
-<i class="bi bi-plus-circle-fill add-icon" onclick="openPersonModal()"></i>
-</div>
-<div id="personGrid" class="inner-scroll"></div>
-</div>
-</div>
-
-</div>
-
-<div class="text-center">
-<button class="btn btn-info px-4 fw-bold">Save Dealer</button>
-</div>
-
-</form>
-
-</div>
 </div>
 
 <!-- ================= IMAGE MODAL ================= -->
 <div class="modal fade" id="imageModal">
-<div class="modal-dialog">
-<div class="modal-content">
-<div class="modal-header bg-info text-white">
-<h5>Add Images</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<input type="file" id="multiImageInput" multiple class="form-control"/>
-</div>
-<div class="modal-footer">
-<button class="btn btn-info" onclick="saveImages()">Add</button>
-</div>
-</div>
-</div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5>Add Images</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="multiImageInput" multiple class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="saveImages()">Add</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ================= PERSON MODAL ================= -->
 <div class="modal fade" id="personModal">
-<div class="modal-dialog modal-xl">
-<div class="modal-content">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
 
-<div class="modal-header bg-info text-white">
-<h5>Add Person</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
-</div>
+            <div class="modal-header bg-info text-white">
+                <h5>Add Person</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-<div class="modal-body">
+            <div class="modal-body">
 
-    <div class="row g-2">
+                <div class="row g-2">
 
-        <!-- ROW 1 -->
-        <div class="col-md-3">
-    <label class="fw-bold">Title</label>
-    <select id="pTitle" class="form-control">
-        <option value="">Select</option>
-        <option value="Mr">Mr</option>
-        <option value="Mrs">Mrs</option>
-        <option value="Miss">Miss</option>
-        <option value="Ms">Ms</option>
-        
-    </select>
-</div>
+                    <!-- ROW 1 -->
+                    <div class="col-md-3">
+                        <label class="fw-bold">Title</label>
+                        <select id="pTitle" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Mr">Mr</option>
+                            <option value="Mrs">Mrs</option>
+                            <option value="Miss">Miss</option>
+                            <option value="Ms">Ms</option>
 
-        <div class="col-md-3">
-            <label class="fw-bold">First Name</label>
-            <input id="pFirst" class="form-control" placeholder="First Name"/>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">First Name</label>
+                        <input id="pFirst" class="form-control" placeholder="First Name" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">Middle Name</label>
+                        <input id="pMiddle" class="form-control" placeholder="Middle Name" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">Last Name</label>
+                        <input id="pLast" class="form-control" placeholder="Last Name" />
+                    </div>
+
+                    <!-- ROW 2 -->
+                    <div class="col-md-3">
+                        <label class="fw-bold">Gender</label>
+                        <select id="pGender" class="form-control">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">Date Of Birth</label>
+                        <input type="date" id="pDOB" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">Anniversary Date</label>
+                        <input type="date" id="pAnniversary" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="fw-bold">PAN</label>
+                        <input id="pPAN" class="form-control" placeholder="PAN" />
+                    </div>
+
+                    <!-- ROW 3 -->
+                    <div class="col-md-4">
+                        <label class="fw-bold">Designation</label>
+                        <input id="pType" class="form-control" placeholder="Designation" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Person Image</label>
+                        <input type="file" id="pImageInput" class="form-control" multiple />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="fw-bold">Remark</label>
+                        <input id="pRemark" class="form-control" placeholder="Remark" />
+                    </div>
+
+                </div>
+                <div id="personImagePreview" class="row mt-2"></div>
+                <!-- ================= COMMUNICATION ================= -->
+                <h6 class="text-info mt-3 d-flex justify-content-between">
+                    Communication
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="addComm()"></i>
+                </h6>
+
+                <div id="commContainer" class="small-scroll"></div>
+                <!-- ================= ADDRESS ================= -->
+                <h6 class="text-info mt-3 d-flex justify-content-between">
+                    Address
+                    <i class="bi bi-plus-circle-fill add-icon" onclick="addPersonAddress()"></i>
+                </h6>
+
+                <div id="personAddressContainer" class="small-scroll"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="savePerson()">Add Person</button>
+            </div>
+
         </div>
-
-        <div class="col-md-3">
-            <label class="fw-bold">Middle Name</label>
-            <input id="pMiddle" class="form-control" placeholder="Middle Name"/>
-        </div>
-
-        <div class="col-md-3">
-            <label class="fw-bold">Last Name</label>
-            <input id="pLast" class="form-control" placeholder="Last Name"/>
-        </div>
-
-        <!-- ROW 2 -->
-        <div class="col-md-3">
-            <label class="fw-bold">Gender</label>
-            <select id="pGender" class="form-control">
-                <option value="">Select</option>
-                <option>Male</option>
-                <option>Female</option>
-            </select>
-        </div>
-
-        <div class="col-md-3">
-            <label class="fw-bold">Date Of Birth</label>
-            <input type="date" id="pDOB" class="form-control"/>
-        </div>
-
-        <div class="col-md-3">
-            <label class="fw-bold">Anniversary Date</label>
-            <input type="date" id="pAnniversary" class="form-control"/>
-        </div>
-
-        <div class="col-md-3">
-            <label class="fw-bold">PAN</label>
-            <input id="pPAN" class="form-control" placeholder="PAN"/>
-        </div>
-
-        <!-- ROW 3 -->
-       <div class="col-md-4">
-    <label class="fw-bold">Designation</label>
-    <input id="pType" class="form-control" placeholder="Designation"/>
-</div>
-
-<div class="col-md-4">
-    <label class="fw-bold">Person Image</label>
-    <input type="file" id="pImageInput" class="form-control" multiple/>
-</div>
-
-<div class="col-md-4">
-    <label class="fw-bold">Remark</label>
-    <input id="pRemark" class="form-control" placeholder="Remark"/>
-</div>
-
     </div>
-    <div id="personImagePreview" class="row mt-2"></div>
-    <!-- ================= COMMUNICATION ================= -->
-    <h6 class="text-info mt-3 d-flex justify-content-between">
-        Communication
-        <i class="bi bi-plus-circle-fill add-icon" onclick="addComm()"></i>
-    </h6>
-
-    <div id="commContainer"></div>
-
-    <!-- ================= ADDRESS ================= -->
-    <h6 class="text-info mt-3 d-flex justify-content-between">
-        Address
-        <i class="bi bi-plus-circle-fill add-icon" onclick="addPersonAddress()"></i>
-    </h6>
-
-    <div id="personAddressContainer"></div>
-
-</div>
-
-<div class="modal-footer">
-<button class="btn btn-info" onclick="savePerson()">Save</button>
-</div>
-
-</div>
-</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    var dealerImages = [];
 
-// ADDRESS
-var dIndex=0;
-function addDealerAddress(){
-$("#dealerAddressContainer").append(`
-
-<div class="box">
-
-    <i class="bi bi-x-circle text-danger remove"
-       onclick="$(this).parent().remove()"></i>
-
-    <!-- TYPE -->
-    <input name="DealerAddresses[${dIndex}].AddressType"
-           class="form-control mb-1"
-           placeholder="Type"/>
-
-    <!-- ADDRESS -->
-    <input name="DealerAddresses[${dIndex}].AddressLine"
-           class="form-control"
-           placeholder="Enter address"/>
-
-</div>
-
-`);
-dIndex++;
-}
-
-// NOTES
-var noteIndex=0;
-function addNote(){
-$("#notesContainer").append(`
-<div class="box">
-<i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
-<select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
-<option value="">Select Notes Category</option>${getCategoryOptions()}
-</select>
-<textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
-</div>`);
-noteIndex++;
-}
-
-function getCategoryOptions(){
-var options='';
-@foreach(var c in ViewBag.CategoryList){
-<text>options+=`<option value="@c.ID">@c.CategoryName</option>`;</text>
-}
-return options;
-}
-
-// IMAGE
-
-// OPEN MODAL
-function openImageModal(){
-
-    // ✅ CLEAR OLD FILES
-    $("#multiImageInput").val("");
-
-    $("#imageModal").modal('show');
-}
-
-
-// SAVE IMAGES
-function saveImages(){
-
-    let input = $("#multiImageInput")[0];
-    let files = input.files;
-
-    // ✅ VALIDATION
-    if(files.length === 0){
-        alert("Please select at least one image");
-        return;
+                   function toBase64(file) {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                let result = reader.result;
+                if(result){
+                    resolve(result.split(',')[1]);
+                } else {
+                    resolve(null);
+                }
+            };
+            reader.onerror = error => reject(error);
+        });
     }
 
-    for(let i=0; i<files.length; i++){
+    // ADDRESS
+    var dIndex=0;
+    function addDealerAddress(){
 
-        // ✅ IMAGE TYPE VALIDATION
-        if(!files[i].type.startsWith("image/")){
-            alert("Only image files allowed");
+            if($("#dealerAddressContainer .box").length >= 10){
+            alert("Max 10 Dealer Addresses allowed");
+            return;
+        }
+    $("#dealerAddressContainer").append(`
+
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
+        <!-- TYPE -->
+        <input name="DealerAddresses[${dIndex}].AddressType"
+               class="form-control mb-1"
+               placeholder="Type"/>
+
+        <!-- ADDRESS -->
+        <input name="DealerAddresses[${dIndex}].AddressLine"
+               class="form-control"
+               placeholder="Enter address"/>
+
+    </div>
+
+    `);
+    dIndex++;
+    }
+
+    // NOTES
+    var noteIndex=0;
+    function addNote(){
+             if($("#notesContainer .box").length >= 10){
+            alert("Max 10 Notes allowed");
+            return;
+        }
+    $("#notesContainer").append(`
+    <div class="box">
+    <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+    <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
+    <option value="">Select Notes Category</option>${getCategoryOptions()}
+    </select>
+    <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
+    </div>`);
+    noteIndex++;
+    }
+
+    function getCategoryOptions(){
+    var options='';
+    @foreach (var c in ViewBag.CategoryList)
+    {
+                        <text>options+=`<option value="@c.ID">@c.CategoryName</option>`;</text>
+    }
+    return options;
+    }
+
+    // IMAGE
+
+    // OPEN MODAL
+    function openImageModal(){
+
+        // ✅ CLEAR OLD FILES
+        $("#multiImageInput").val("");
+
+        $("#imageModal").modal('show');
+    }
+
+
+    // SAVE IMAGES
+    function saveImages(){
+
+             let input = $("#multiImageInput")[0];
+        let files = input.files;
+
+        if(dealerImages.length + files.length > 10){
+            alert("Max 10 Images allowed");
             return;
         }
 
-        let reader = new FileReader();
+        // ✅ VALIDATION
+        if(files.length === 0){
+            alert("Please select at least one image");
+            return;
+        }
 
-        reader.onload = function(e){
+        for(let i=0; i<files.length; i++){
 
-            $("#imageGrid").append(`
-                <div class="col-md-3 mb-2">
+            // ✅ IMAGE TYPE VALIDATION
+            if(!files[i].type.startsWith("image/")){
+                alert("Only image files allowed");
+                return;
+            }
 
-                    <div class="position-relative">
+            let reader = new FileReader();
 
-                        <img src="${e.target.result}" class="img-fluid rounded">
+               reader.onload = function(e){
 
-                        <!-- REMOVE -->
-                        <i class="bi bi-x-circle text-danger"
-                           style="position:absolute; top:5px; right:5px; cursor:pointer;"
-                           onclick="$(this).parent().parent().remove()">
-                        </i>
+        let base64 = e.target.result.split(',')[1];
 
-                    </div>
+        dealerImages.push(base64);   //  ADD THIS
+
+        $("#imageGrid").append(`
+            <div class="col-md-3 mb-2">
+                <div class="position-relative">
+    <img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+                    <i class="bi bi-x-circle text-danger"
+                       style="position:absolute; top:5px; right:5px; cursor:pointer;"
+                             onclick="removeDealerImage(${dealerImages.length - 1}, this)" </i>
 
                 </div>
-            `);
-        };
+            </div>
+        `);
+    };
 
-        reader.readAsDataURL(files[i]);
+            reader.readAsDataURL(files[i]);
+        }
+
+        // ✅ CLEAR AFTER SAVE
+        $("#multiImageInput").val("");
+
+        $("#imageModal").modal('hide');
     }
 
-    // ✅ CLEAR AFTER SAVE
-    $("#multiImageInput").val("");
+        function removeDealerImage(index, el){
+        dealerImages.splice(index, 1);
+        $(el).closest('.col-md-3').remove();
+    }
 
-    $("#imageModal").modal('hide');
-}
+    // PERSON
+    var personList=[];
+    function openPersonModal(){ $("#personModal").modal('show'); }
 
-// PERSON
-var personList=[];
-function openPersonModal(){ $("#personModal").modal('show'); }
+    function addComm(){
+             if($("#commContainer .box").length >= 10){
+            alert("Max 10 Communications allowed");
+            return;
+        }
+    $("#commContainer").append(`
 
-function addComm(){
-$("#commContainer").append(`
+    <div class="box">
 
-<div class="box">
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
 
-    <i class="bi bi-x-circle text-danger remove"
-       onclick="$(this).parent().remove()"></i>
+        <div class="row g-2">
 
-    <div class="row g-2">
+            <!-- TYPE -->
+            <div class="col-md-4">
+                <label class="fw-bold">Type</label>
+                <select class="form-control">
+                    <option value="">Select</option>
+                    <option>Mobile</option>
+                    <option>Email</option>
+                    <option>Landline</option>
+                </select>
+            </div>
 
-        <!-- TYPE -->
-        <div class="col-md-4">
-            <label class="fw-bold">Type</label>
-            <select class="form-control">
-                <option value="">Select</option>
-                <option>Mobile</option>
-                <option>Email</option>
-                <option>Landline</option>
-            </select>
-        </div>
+            <!-- LABEL -->
+            <div class="col-md-4">
+                <label class="fw-bold">Communication Label</label>
+                <input type="text" class="form-control"
+                       placeholder="EX: Personal / Official / WhatsApp" >
+            </div>
 
-        <!-- LABEL -->
-        <div class="col-md-4">
-            <label class="fw-bold">Communication Label</label>
-            <input type="text" class="form-control"
-                   placeholder="EX: Personal / Official / WhatsApp" >
-        </div>
+            <!-- VALUE -->
+            <div class="col-md-4">
+                <label class="fw-bold">Value</label>
+                <input type="text" class="form-control"
+                       placeholder="Enter value"/>
+            </div>
 
-        <!-- VALUE -->
-        <div class="col-md-4">
-            <label class="fw-bold">Value</label>
-            <input type="text" class="form-control"
-                   placeholder="Enter value"/>
-        </div>
-
-    </div>
-
-</div>
-
-`);
-}
-
-function addPersonAddress(){
-$("#personAddressContainer").append(`
-
-<div class="box">
-
-    <i class="bi bi-x-circle text-danger remove"
-       onclick="$(this).parent().remove()"></i>
-
-    <div class="row g-2">
-
-        <!-- TYPE -->
-        <div class="col-md-4">
-            <label class="fw-bold">Type</label>
-            <input type="text" class="form-control"
-                   />
-        </div>
-
-        <!-- ADDRESS -->
-        <div class="col-md-8">
-            <label class="fw-bold">Address</label>
-            <input type="text" class="form-control"
-                   placeholder="Enter address"/>
         </div>
 
     </div>
 
-</div>
+    `);
+    }
 
-`);
-}
+    function addPersonAddress(){
+             if($("#personAddressContainer .box").length >= 10){
+            alert("Max 10 Addresses allowed");
+            return;
+        }
+    $("#personAddressContainer").append(`
+
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
+        <div class="row g-2">
+
+            <!-- TYPE -->
+            <div class="col-md-4">
+                <label class="fw-bold">Type</label>
+                <input type="text" class="form-control"
+                       />
+            </div>
+
+            <!-- ADDRESS -->
+            <div class="col-md-8">
+                <label class="fw-bold">Address</label>
+                <input type="text" class="form-control"
+                       placeholder="Enter address"/>
+            </div>
+
+        </div>
+
+    </div>
+
+    `);
+    }
 
 
-function removeErrorOnInput(){
+    function removeErrorOnInput(){
 
-    $("#personModal input, #personModal select").on("input change", function(){
-        $(this).next(".error-msg").remove();
-    });
+        $("#personModal input, #personModal select").on("input change", function(){
+            $(this).next(".error-msg").remove();
+        });
 
-}
+    }
 
-function savePerson(){
+async function savePerson(){
+
+         if(personList.length >= 10){
+            alert("Max 10 Persons allowed");
+            return;
+        }
 
     let isValid = true;
 
-    // remove old errors
     $(".error-msg").remove();
 
     function setError(el, msg){
@@ -502,160 +577,504 @@ function savePerson(){
         isValid = false;
     }
 
+    // ===== FIELDS =====
     let title = $("#pTitle");
     let first = $("#pFirst");
     let middle = $("#pMiddle");
     let last = $("#pLast");
     let gender = $("#pGender");
     let pan = $("#pPAN");
-    let type = $("#pType");  
+    let type = $("#pType");
 
-    // REQUIRED VALIDATION
+    // ===== BASIC VALIDATION =====
     if(title.val() === "") setError(title, "Title is required");
     if(first.val().trim() === "") setError(first, "First name is required");
-    if(middle.val().trim() === "") setError(middle, "Middle name is required");
     if(last.val().trim() === "") setError(last, "Last name is required");
     if(gender.val() === "") setError(gender, "Gender is required");
     if(type.val().trim() === "") setError(type, "Designation is required");
-    // PAN VALIDATION
-    let panVal = pan.val().toUpperCase();
+
+    // ===== PAN VALIDATION =====
+    let panVal = pan.val()?.toUpperCase() || null;
     let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
-    if(panVal === ""){
-        setError(pan, "PAN is required");
-    }
-    else if(!panRegex.test(panVal)){
-        setError(pan, "Invalid PAN format");
+    if(panVal){
+        if(!panRegex.test(panVal)){
+            setError(pan, "Invalid PAN format (ABCDE1234F)");
+        }
     }
 
+    // ===== COMMUNICATION REQUIRED =====
+    if($("#commContainer .box").length === 0){
+        alert("Add at least 1 communication");
+        return;
+    }
+
+    // ===== ADDRESS REQUIRED =====
+    if($("#personAddressContainer .box").length === 0){
+        alert("Add at least 1 address");
+        return;
+    }
+
+    // ===== STOP IF BASIC FAIL =====
     if(!isValid) return;
-    if(personImages.length === 0){
-    alert("Please add person image");
-    return;
-}
 
-    // ================= ORIGINAL LOGIC =================
-    let p={
-        title:title.val(),
-        first:first.val(),
-        middle:$("#pMiddle").val(),
-        last:last.val(),
-        gender:gender.val(),
-        dob:$("#pDOB").val(),
-        anniversary:$("#pAnniversary").val(),
-        pan:panVal,
-        type:$("#pType").val(),
-        remark:$("#pRemark").val(),
-         images: personImages.filter(x => x != null),
-        communications:[],
-        addresses:[]
+    // ===== IMAGE =====
+    let validImages = (personImages || []).filter(x => x != null);
+    let base64Images = [];
+
+    for(let i=0;i<validImages.length;i++){
+        let b64 = await toBase64(validImages[i]);
+        if(b64) base64Images.push(b64);
+    }
+
+    // ===== OBJECT =====
+    let p = {
+        Title: title.val() || null,
+        First: first.val() || null,
+        Middle: middle.val() || null,
+        Last: last.val() || null,
+        Gender: gender.val() || null,
+        Dob: $("#pDOB").val() || null,
+        Anniversary: $("#pAnniversary").val() || null,
+        Pan: panVal,
+        Type: type.val() || null,
+        Remark: $("#pRemark").val() || null,
+
+        Images: base64Images.length > 0 ? base64Images : [],
+
+        Communications: [],
+        Addresses: []
     };
 
-   $("#commContainer .box").each(function(){ 
+    // ===== COMMUNICATION VALIDATION =====
+    let mobileRegex = /^[6-9]\d{9}$/;
+    let emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+    let landlineRegex = /^\d{10}$/;
 
-    let type = $(this).find("select").val();
-    let label = $(this).find("input").eq(0).val();
-    let value = $(this).find("input").eq(1).val();
+    let commValid = true;
 
-    p.communications.push({
-        type: type,
-        label: label,
-        value: value
+    $("#commContainer .box").each(function(){
+
+        let typeVal = $(this).find("select").val();
+        let labelVal = $(this).find("input").eq(0).val();
+        let valueVal = $(this).find("input").eq(1).val();
+
+        if(!typeVal || !valueVal){
+            alert("Communication Type & Value required");
+            commValid = false;
+            return false;
+        }
+
+        // ===== TYPE BASED VALIDATION =====
+        if(typeVal === "Mobile"){
+            if(!mobileRegex.test(valueVal)){
+                alert("Invalid Mobile Number");
+                commValid = false;
+                return false;
+            }
+        }
+
+        if(typeVal === "Email"){
+            if(!emailRegex.test(valueVal)){
+                alert("Invalid Email");
+                commValid = false;
+                return false;
+            }
+        }
+
+        if(typeVal === "Landline"){
+            if(!landlineRegex.test(valueVal)){
+                alert("Invalid Landline");
+                commValid = false;
+                return false;
+            }
+        }
+
+        p.Communications.push({
+            Type: typeVal,
+            Label: labelVal || null,
+            Value: valueVal
+        });
     });
 
-});
+    if(!commValid) return;
+
+    // ===== ADDRESS VALIDATION =====
+    let addrValid = true;
 
     $("#personAddressContainer .box").each(function(){
 
-    let type = $(this).find("input").eq(0).val();
-    let address = $(this).find("input").eq(1).val();
+        let typeVal = $(this).find("input").eq(0).val();
+        let addrVal = $(this).find("input").eq(1).val();
 
-    p.addresses.push({
-        type: type,
-        address: address
+        if(!typeVal || !addrVal){
+            alert("Address Type & Address required");
+            addrValid = false;
+            return false;
+        }
+
+        p.Addresses.push({
+            Type: typeVal,
+            Address: addrVal
+        });
     });
 
-});
+    if(!addrValid) return;
 
+    // ===== SAVE =====
     personList.push(p);
     renderPersonGrid();
 
-    // clear form
+    // ===== RESET =====
+    personImages = [];
+
     $("#personModal input, #personModal textarea").val("");
     $("#personModal select").val("");
     $("#commContainer").empty();
     $("#personAddressContainer").empty();
-    
-$("#personImagePreview").empty();
+    $("#personImagePreview").empty();
+
     $("#personModal").modal('hide');
+
+    // ===== SUCCESS =====
+    Swal.fire({
+        icon: 'success',
+        title: 'Person Added',
+        text: 'Person added successfully'
+    });
 }
-function renderPersonGrid(){
-$("#personGrid").empty();
+    function renderPersonGrid(){
 
-personList.forEach((p,i)=>{
+        $("#personGrid").empty();
 
-let comm="",addr="";
-p.communications.forEach(c=>{
-    comm+=`<div>• ${c.type} (${c.label}): ${c.value}</div>`;
-});
-p.addresses.forEach(a=>{addr+=`<div>• ${a.type}: ${a.address}</div>`});
+        if(personList.length === 0){
+            $("#personGrid").html("<div class='text-muted'>No person added</div>");
+            return;
+        }
 
-$("#personGrid").append(`
-<div class="card mb-2 border-info">
-<div class="card-body">
-<b>${p.first} ${p.last}</b><br>
-${comm}<hr>${addr}
-<button class="btn btn-sm btn-danger float-end" onclick="removePerson(${i})">Remove</button>
-</div>
-</div>
-`);
-});
-}
+        personList.forEach((p,i)=>{
 
-function removePerson(i){
-personList.splice(i,1);
-renderPersonGrid();
-}
+            let commHtml = "";
+            let addrHtml = "";
+            let imgHtml = "";
 
-var personImages = [];
+            // ================= IMAGES =================
+            if(p.Images && p.Images.length > 0){
+                p.Images.forEach(img=>{
+                    imgHtml += `
+                        <img src="data:image/png;base64,${img}"
+                             style="width:60px;height:60px;margin:3px;border-radius:6px;">
+                    `;
+                });
+            } else {
+                imgHtml = "<div class='text-muted'>No images</div>";
+            }
 
-$("#pImageInput").on("change", function(){
+            // ================= COMMUNICATION =================
+            if(p.Communications && p.Communications.length > 0){
+                p.Communications.forEach(c=>{
+                    commHtml += `
+                        <div>
+                            • <b>${c.Type}</b> (${c.Label}) : ${c.Value}
+                        </div>
+                    `;
+                });
+            } else {
+                commHtml = "<div class='text-muted'>No communication</div>";
+            }
 
-    let files = this.files;
+            // ================= ADDRESS =================
+            if(p.Addresses && p.Addresses.length > 0){
+                p.Addresses.forEach(a=>{
+                    addrHtml += `
+                        <div>
+                            • <b>${a.Type}</b> : ${a.Address}
+                        </div>
+                    `;
+                });
+            } else {
+                addrHtml = "<div class='text-muted'>No address</div>";
+            }
 
-    for(let i=0;i<files.length;i++){
+            // ================= FINAL CARD =================
+            $("#personGrid").append(`
+            <div class="card mb-3 border-info shadow-sm">
 
-        let reader = new FileReader();
+                <div class="card-body">
 
-        reader.onload = function(e){
+                    <!-- HEADER -->
+                    <div class="d-flex justify-content-between">
+                        <h5 class="text-info">
+                            ${p.Title} ${p.First} ${p.Middle} ${p.Last}
+                        </h5>
 
-            let index = personImages.length;
-            personImages.push(files[i]);
-
-            $("#personImagePreview").append(`
-                <div class="col-md-3 mb-2" id="pimg_${index}">
-                    <div class="position-relative">
-                        <img src="${e.target.result}" class="img-fluid rounded">
-                        <i class="bi bi-x-circle text-danger"
-                           style="position:absolute; top:5px; right:5px; cursor:pointer;"
-                           onclick="removePersonImage(${index})">
-                        </i>
+                        <button class="btn btn-sm btn-danger"
+                                onclick="removePerson(${i})">
+                            Remove
+                        </button>
                     </div>
-                </div>
-            `);
-        };
 
-        reader.readAsDataURL(files[i]);
+                    <!-- BASIC -->
+                    <div class="row mt-2">
+                        <div class="col-md-3"><b>Gender:</b> ${p.Gender}</div>
+                        <div class="col-md-3"><b>DOB:</b> ${p.Dob || "-"}</div>
+                        <div class="col-md-3"><b>Anniversary:</b> ${p.Anniversary || "-"}</div>
+                        <div class="col-md-3"><b>PAN:</b> ${p.Pan}</div>
+
+                        <div class="col-md-3 mt-2"><b>Designation:</b> ${p.Type}</div>
+                        <div class="col-md-9 mt-2"><b>Remark:</b> ${p.Remark || "-"}</div>
+                    </div>
+
+                    <!-- IMAGES -->
+                    <div class="mt-3">
+                        <b>Images:</b><br>
+                        ${imgHtml}
+                    </div>
+
+                    <!-- COMMUNICATION -->
+                    <div class="mt-3">
+                        <b>Communication:</b>
+                        ${commHtml}
+                    </div>
+
+                    <!-- ADDRESS -->
+                    <div class="mt-3">
+                        <b>Address:</b>
+                        ${addrHtml}
+                    </div>
+
+                </div>
+
+            </div>
+            `);
+        });
+    }
+    function removePerson(i){
+    personList.splice(i,1);
+    renderPersonGrid();
     }
 
-    $("#pImageInput").val(""); // reset input
-});
-function removePersonImage(i){
-    $("#pimg_"+i).remove();
-    personImages[i] = null;
-}
+    var personImages = [];
 
-$(document).ready(function(){
-    removeErrorOnInput();
-});
+    $("#pImageInput").on("change", function(){
+
+            let files = this.files;
+
+        if(personImages.filter(x => x != null).length + files.length > 10){
+            alert("Max 10 Images allowed");
+            return;
+        }
+
+        for(let i=0;i<files.length;i++){
+
+               let index = personImages.length;
+        personImages.push(files[i]);  // 🔥 FIRST PUSH
+
+            let reader = new FileReader();
+
+            reader.onload = function(e){
+
+                $("#personImagePreview").append(`
+                    <div class="col-md-3 mb-2" id="pimg_${index}">
+                        <div class="position-relative">
+                            <img src="${e.target.result}" class="img-fluid rounded">
+                            <i class="bi bi-x-circle text-danger"
+                               style="position:absolute; top:5px; right:5px; cursor:pointer;"
+                               onclick="removePersonImage(${index})">
+                            </i>
+                        </div>
+                    </div>
+                `);
+            };
+
+            reader.readAsDataURL(files[i]);
+        }
+
+        $("#pImageInput").val(""); // reset input
+    });
+    function removePersonImage(i){
+        $("#pimg_"+i).remove();
+        personImages[i] = null;
+    }
+
+    $(document).ready(function(){
+        removeErrorOnInput();
+    });
+
+
+    function saveDealer(){
+
+         clearErrors();
+        let isValid = true;
+
+        let dealerName = $("input[name='Dealer.DealerName']");
+        let ownerName = $("input[name='Dealer.OwnerName']");
+        let gst = $("input[name='Dealer.GSTNo']");
+        let pan = $("input[name='Dealer.PANNo']");
+
+        // ===== REQUIRED =====
+        if(dealerName.val().trim() === ""){
+            showFieldError(dealerName, "Dealer Name required");
+            isValid = false;
+        }
+
+        if(ownerName.val().trim() === ""){
+            showFieldError(ownerName, "Owner Name required");
+            isValid = false;
+        }
+
+        // ===== PAN REGEX =====
+        let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        if(pan.val()){
+            if(!panRegex.test(pan.val().toUpperCase())){
+                showFieldError(pan, "Invalid PAN (ABCDE1234F)");
+                isValid = false;
+            }
+        }
+
+        // ===== GST BASIC =====
+        if(gst.val() && gst.val().length < 10){
+            showFieldError(gst, "Invalid GST");
+            isValid = false;
+        }
+
+        // ===== ADDRESS =====
+        if($("#dealerAddressContainer .box").length === 0){
+            Swal.fire("Error","Add at least 1 Dealer Address","error");
+            return;
+        }
+
+        // ===== IMAGES =====
+        if(dealerImages.length === 0){
+            Swal.fire("Error","Add at least 1 Image","error");
+            return;
+        }
+
+        // ===== NOTES =====
+        if($("#notesContainer .box").length === 0){
+            Swal.fire("Error","Add at least 1 Note","error");
+            return;
+        }
+
+        // ===== PERSON =====
+        if(personList.length === 0){
+            Swal.fire("Error","Add at least 1 Person","error");
+            return;
+        }
+
+        if(!isValid) return;
+
+        // ===== MODEL =====
+        let model = {
+            Dealer: {
+                DealerName: dealerName || null,
+                OwnerName: ownerName || null,
+                GSTNo: gst || null,
+                PANNo: pan ? pan.toUpperCase() : null,
+                DefaultPaymentModeId: parseInt($("select[name='Dealer.DefaultPaymentModeId']").val()) || 0,
+                WeeklyOffDayId: parseInt($("select[name='Dealer.WeeklyOffDayId']").val()) || 0
+            },
+            DealerImages: dealerImages || [],
+            DealerAddresses: [],
+            DealerNotes: [],
+            Persons: personList || []
+        };
+
+        // ===== ADDRESS LOOP =====
+        let addrValid = true;
+
+        $("#dealerAddressContainer .box").each(function(){
+
+            let type = $(this).find("input").eq(0).val();
+            let addr = $(this).find("input").eq(1).val();
+
+            if(!type || !addr){
+                showError("Dealer Address Type & Address required");
+                addrValid = false;
+                return false;
+            }
+
+            model.DealerAddresses.push({
+                AddressType: type,
+                AddressLine: addr
+            });
+        });
+
+        if(!addrValid) return;
+
+        // ===== NOTES LOOP =====
+        let noteValid = true;
+
+        $("#notesContainer .box").each(function(){
+
+            let cat = $(this).find("select").val();
+            let text = $(this).find("textarea").val();
+
+            if(!cat || !text){
+                showError("Note Category & Text required");
+                noteValid = false;
+                return false;
+            }
+
+            model.DealerNotes.push({
+                CategoryId: parseInt(cat),
+                NoteText: text
+            });
+        });
+
+        if(!noteValid) return;
+
+        console.log("FINAL JSON:", JSON.stringify(model));
+
+        // ===== AJAX =====
+        $.ajax({
+            url: '/Dealer/SaveDealerFull',
+            type: 'POST',
+            contentType: 'application/json',
+
+            data: JSON.stringify(model, (key, value) => {
+                if (value === undefined) return null;
+                if (value instanceof File) return null;
+                return value;
+            }),
+
+            success: function(res){
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Saved!',
+                    text: 'Dealer saved successfully'
+                });
+
+                // ===== FULL RESET =====
+                $("#dealerForm")[0].reset();
+
+                $("#dealerAddressContainer").empty();
+                $("#notesContainer").empty();
+                $("#personGrid").empty();
+                $("#imageGrid").empty();
+
+                dealerImages = [];
+                personList = [];
+                personImages = [];
+
+                dIndex = 0;
+                noteIndex = 0;
+            },
+
+            error: function(err){
+                console.log(err);
+                Swal.fire("Error", "Something went wrong!", "error");
+            }
+        });
+    }
+
+        function showFieldError(el, msg){
+        el.next(".error-msg").remove();
+        el.after(`<div class="error-msg">${msg}</div>`);
+    }
+
+    function clearErrors(){
+        $(".error-msg").remove();
+    }
 </script>
