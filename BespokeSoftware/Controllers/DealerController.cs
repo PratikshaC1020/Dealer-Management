@@ -154,6 +154,11 @@ public class DealerController : Controller
         repo.DeleteDealer(id);
         return RedirectToAction("Index");
     }
+    public IActionResult ViewDealerDetails(int dealerId)
+    {
+        var data = repo.GetDealerFullDetails(dealerId);
+        return View("ViewDealerInfo", data);
+    }
 
     //public IActionResult GetDealerAddress(int dealerId)
     //{

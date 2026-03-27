@@ -1,0 +1,265 @@
+﻿@model BespokeSoftware.Models.DealerModels.DealerFullViewModel
+
+<style>
+    .section-title {
+        color: #0dcaf0;
+        font-weight: bold;
+    }
+
+    .section-box {
+        border: 1px solid #0dcaf0;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8fcff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    /* 🔥 SCROLL LOGIC */
+    .inner-scroll {
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    /* item box */
+    .box {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+        border-radius: 6px;
+        background: #fff;
+        margin-bottom: 8px;
+    }
+
+    img {
+        object-fit: cover;
+    }
+    .img-thumb{
+    width:100%;
+    height:100px;
+    object-fit:cover;
+    border-radius:6px;
+    cursor:pointer;
+    border:1px solid #ddd;
+    transition:0.2s;
+}
+
+.img-thumb:hover{
+    transform:scale(1.05);
+}
+.nav-tabs .nav-link {
+    color: #0dcaf0;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: #e6f7fb;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #0dcaf0 !important;  
+    color: white !important;
+    border-color: #0dcaf0 #0dcaf0 white;
+    border-radius: 6px 6px 0 0;
+}
+</style>
+
+<div class="card border-info">
+
+    <div class="card-header text-center fw-bold bg-info text-white">
+        View Dealer Information
+    </div>
+
+    <div class="card-body">
+
+        <!-- ================= DEALER INFO ================= -->
+        <div class="section-box mb-3">
+
+    <h5 class="section-title">Dealer Information</h5>
+
+    <div class="row g-3">
+
+        <div class="col-md-4">
+            <label>Dealer Name</label>
+            <input class="form-control" value="@Model.Dealer?.DealerName" readonly />
+        </div>
+
+        <div class="col-md-4">
+            <label>Owner Name</label>
+            <input class="form-control" value="@Model.Dealer?.OwnerName" readonly />
+        </div>
+
+        <div class="col-md-4">
+            <label>GST</label>
+            <input class="form-control" value="@Model.Dealer?.GSTNo" readonly />
+        </div>
+
+        <div class="col-md-4">
+            <label>PAN</label>
+            <input class="form-control" value="@Model.Dealer?.PANNo" readonly />
+        </div>
+
+        <div class="col-md-4">
+            <label>Payment Mode</label>
+            <input class="form-control" value="@Model.Dealer?.PaymentMode" readonly />
+        </div>
+
+        <div class="col-md-4">
+            <label>Weekly Off</label>
+            <input class="form-control" value="@Model.Dealer?.WeeklyOff" readonly />
+        </div>
+
+    </div>
+
+</div>
+
+       
+        <div class="row mb-3">
+
+            
+            <div class="col-md-4">
+
+                <!-- ADDRESS -->
+                <div class="section-box mb-3">
+                    <h5 class="section-title">Dealer Address</h5>
+
+                    <div class="inner-scroll">
+                        @foreach (var addr in Model.Addresses)
+                        {
+                            <div class="box">
+                                <input class="form-control mb-1" value="@addr.AddressType" readonly />
+                                <input class="form-control" value="@addr.AddressLine" readonly />
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- IMAGES -->
+                <div class="section-box">
+                    <h5 class="section-title">Images</h5>
+
+                    <div class="row inner-scroll">
+                        @foreach (var img in Model.Images)
+                        {
+                            <div class="col-md-4 mb-2">
+                                <img src="data:image/png;base64,@img.ImageBase64"
+                                     class="img-thumb"
+                                     onclick="openImagePreview(this.src)" />
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            
+            <div class="col-md-8">
+
+                <!-- NOTES -->
+               <div class="section-box mb-3">
+    <h5 class="section-title">Notes</h5>
+
+    @{
+        var categories = Model.Notes
+            .GroupBy(x => new { x.CategoryId, x.CategoryName })
+            .ToList();
+    }
+
+   
+    <ul class="nav nav-tabs mb-2">
+        @for (int i = 0; i < categories.Count; i++)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(i == 0 ? "active" : "")"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab_@categories[i].Key.CategoryId">
+                    @categories[i].Key.CategoryName
+                </button>
+            </li>
+        }
+    </ul>
+
+   
+    <div class="tab-content inner-scroll">
+
+        @for (int i = 0; i < categories.Count; i++)
+        {
+            var cat = categories[i];
+
+            <div class="tab-pane fade @(i == 0 ? "show active" : "")"
+                 id="tab_@cat.Key.CategoryId">
+
+                @foreach (var note in cat)
+                {
+                    <div class="box">
+                        <textarea class="form-control mb-2" readonly>@note.NoteText</textarea>
+                    </div>
+                }
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+                <!-- PERSON -->
+                <div class="section-box">
+                    <h5 class="section-title">Person Details</h5>
+
+                    <div class="inner-scroll">
+
+                        @foreach (var p in Model.Persons)
+                        {
+                            <div class="box">
+
+                                <b>@p.FirstName @p.LastName</b>
+
+                                <!-- Address -->
+                                @foreach (var pa in Model.PersonAddresses.Where(x => x.PersonID == p.PersonID))
+                                {
+                                    <div>📍 @pa.AddressLine</div>
+                                }
+
+                                <!-- Communication -->
+                                @foreach (var c in Model.Communications.Where(x => x.PersonID == p.PersonID))
+                                {
+                                    <div>📞 @c.Value</div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+ <div class="modal fade" id="imagePreviewModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5>Image Preview</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <img id="previewImg" class="img-fluid rounded"/>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+function openImagePreview(src){
+    document.getElementById("previewImg").src = src;
+    new bootstrap.Modal(document.getElementById('imagePreviewModal')).show();
+}
+</script>

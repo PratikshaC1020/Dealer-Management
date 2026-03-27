@@ -1,4 +1,5 @@
 ﻿using BespokeSoftware.Models;
+using BespokeSoftware.Models.DealerModels;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
@@ -1022,6 +1023,116 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             }
 
             return list;
+        }
+        public DealerFullViewModel GetDealerFullDetails(int dealerId)
+        {
+            DealerFullViewModel model = new DealerFullViewModel();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("SP_GetDealerFullDetails", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                con.Open();
+
+                SqlDataReader rdr = cmd.ExecuteReader();
+
+                
+                if (rdr.Read())
+                {
+                    model.Dealer = new DealerVM
+                    {
+                        DealerId = Convert.ToInt32(rdr["DealerId"]),
+                        DealerName = rdr["DealerName"]?.ToString(),
+                        OwnerName = rdr["OwnerName"]?.ToString(),
+                        GSTNo = rdr["GSTNo"]?.ToString(),
+                        PANNo = rdr["PANNo"]?.ToString(),
+                        PaymentMode = rdr["PaymentMode"]?.ToString(),
+                        WeeklyOff = rdr["WeeklyOff"]?.ToString()
+                    };
+                }
+
+               
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.Addresses.Add(new DealerAddressVM
+                        {
+                            AddressType = rdr["AddressType"]?.ToString(),
+                            AddressLine = rdr["AddressLine"]?.ToString()
+                        });
+                    }
+                }
+
+             
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.Notes.Add(new DealerNotesVM
+                        {
+                            NoteText = rdr["NoteText"]?.ToString(),
+                            CategoryId = Convert.ToInt32(rdr["CategoryId"]),
+                            CategoryName = rdr["CategoryName"]?.ToString() // ✅ FIX
+                        });
+                    }
+                }
+
+                
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.Persons.Add(new PersonVM
+                        {
+                            PersonID = Convert.ToInt32(rdr["PersonID"]),
+                            FirstName = rdr["FirstName"]?.ToString(),
+                            LastName = rdr["LastName"]?.ToString()
+                        });
+                    }
+                }
+
+               
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.PersonAddresses.Add(new PersonAddressVM
+                        {
+                            PersonID = Convert.ToInt32(rdr["PersonID"]),
+                            AddressLine = rdr["AddressLine"]?.ToString()
+                        });
+                    }
+                }
+
+               
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.Communications.Add(new PersonCommunicationVM
+                        {
+                            PersonID = Convert.ToInt32(rdr["PersonID"]),
+                            Value = rdr["Value"]?.ToString()
+                        });
+                    }
+                }
+
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.Images.Add(new ImageVM
+                        {
+                            ImageBase64 = rdr["ImageBase64"]?.ToString()
+                        });
+                    }
+                }
+            }
+
+            return model;
         }
     }
 }

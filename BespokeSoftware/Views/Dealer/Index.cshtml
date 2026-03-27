@@ -100,6 +100,18 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                             @* <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
                                 <i class="bi bi-pencil-square"></i>
                             </a> *@
+
+                                <a href="javascript:void(0);"
+                                       onclick="DeleteDealer(@item.DealerId)"
+                                       class="btn btn-danger btn-sm"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
+                                       title="Delete Dealer">
+    
+                                    <i class="bi bi-trash"></i>
+                                </a>
+
+                            @* <button class="btn btn-primary btn-sm"
                                 <a href="@Url.Action("EditDealer", "Dealer", new { id = item.DealerId })"
                                    class="btn btn-info btn-sm">
                                     Edit
@@ -121,7 +133,14 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                             <button class="btn btn-warning btn-sm"
                                     onclick="ViewNotes(@item.DealerId)">
                                 <i class="bi bi-stickies"></i>
-                            </button>
+                            </button> *@
+                                <button class="btn btn-info btn-sm"
+                                        onclick="viewDealer(@item.DealerId)"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        title="View Dealer Information">
+                                    <i class="bi bi-eye"></i>
+                                </button>
 
                         </td>
                     </tr>
@@ -219,6 +238,12 @@ Layout = "~/Views/Shared/_Layout.cshtml";
             $("#notesBody").html(data);
             new bootstrap.Modal(document.getElementById('notesModal')).show();
         });
+    }
+
+
+
+    function viewDealer(id) {
+    window.location.href = '/Dealer/ViewDealerDetails?dealerId=' + id;
     }
 
     // DELETE
