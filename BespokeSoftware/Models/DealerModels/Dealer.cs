@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static BespokeSoftware.Models.Dealer;
 
 namespace BespokeSoftware.Models
 {
@@ -137,6 +138,56 @@ namespace BespokeSoftware.Models
             public List<City> Cities { get; set; }
             public List<State> States { get; set; }
             public List<NoteVM> NotesA { get; set; }
+
+            public List<DealerAddressAdd> DealerAddresses { get; set; }
+            public List<DealerNoteAdd> DealerNotes { get; set; }
+            public List<PersonVMAdd> Persons { get; set; }
+            public List<string> DealerImages { get; set; }
+
+            public class PersonVMAdd
+            {
+                public string Title { get; set; }
+                public string First { get; set; }
+                public string Middle { get; set; }
+                public string Last { get; set; }
+                public string Gender { get; set; }
+                public DateTime? Dob { get; set; }
+                public DateTime? Anniversary { get; set; }
+                public string Pan { get; set; }
+                public string Type { get; set; }
+                public string Remark { get; set; }
+
+                public List<string> Images { get; set; }   // base64
+
+                public List<CommunicationVMAdd> Communications { get; set; }
+                public List<AddressVMAdd> Addresses { get; set; }
+            }
+
+            public class CommunicationVMAdd
+            {
+                public string Type { get; set; }
+                public string Label { get; set; }
+                public string Value { get; set; }
+            }
+
+            public class AddressVMAdd
+            {
+                public string Type { get; set; }
+                public string Address { get; set; }
+            }
+
+            public class DealerAddressAdd
+            {
+                public string AddressType { get; set; }
+                public string AddressLine { get; set; }
+            }
+
+            public class DealerNoteAdd
+            {
+                public int CategoryId { get; set; }
+                public string NoteText { get; set; }
+            }
+
         }
         public class Address
         {
@@ -169,6 +220,7 @@ namespace BespokeSoftware.Models
 
             public bool IsActive { get; set; }
         }
+
 
     }
 }

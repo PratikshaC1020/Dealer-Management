@@ -1,6 +1,7 @@
 ﻿using BespokeSoftware.Models;
 using BespokeSoftware.Models.DealerModels;
 using Microsoft.Data.SqlClient;
+using System.Buffers.Text;
 using System.Data;
 using System.Data.Common;
 using static BespokeSoftware.Models.Dealer;
@@ -1024,6 +1025,191 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
             return list;
         }
+
+  public async Task<bool> SaveDealerFull(DealerViewModel model)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                await con.OpenAsync();
+                SqlTransaction tran = con.BeginTransaction();
+
+                try
+                {
+                    int dealerId = 0;
+
+                    // ================= DEALER (ONLY ONCE) =================
+                    using (SqlCommand cmd = new SqlCommand("sp_InsertDealerWithImage", con, tran))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        var firstImg = model.DealerImages?.FirstOrDefault();
+
+                        cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode);
+                        cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName);
+                        cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
+                        cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
+                        cmd.Parameters.AddWithValue("@CreatedBy", 1);
+
+                        cmd.Parameters.AddWithValue("@ImageBase64", firstImg ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FileName", "Dealer.png");
+
+                        dealerId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                    }
+
+                    // ================= EXTRA DEALER IMAGES =================
+                    if (model.DealerImages != null && model.DealerImages.Count > 1)
+                    {
+                        foreach (var img in model.DealerImages.Skip(1))
+                        {
+                            using (SqlCommand cmd = new SqlCommand(
+                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Dealer',@DealerId,@Img,GETDATE(),'Dealer.png')",
+                                con, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                                cmd.Parameters.AddWithValue("@Img", img);
+
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+
+                    // ================= DEALER ADDRESS =================
+                    foreach (var addr in model.DealerAddresses)
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertDealerAddress", con, tran))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            cmd.Parameters.AddWithValue("@AddressType", addr.AddressType ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@AddressLine", addr.AddressLine ?? (object)DBNull.Value);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    // ================= DEALER NOTES =================
+                    foreach (var note in model.DealerNotes)
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertDealerNote", con, tran))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            cmd.Parameters.AddWithValue("@CategoryId", note.CategoryId);
+                            cmd.Parameters.AddWithValue("@NoteText", note.NoteText ?? (object)DBNull.Value);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    // ================= PERSON =================
+                    foreach (var p in model.Persons)
+                    {
+                        int personId = 0;
+
+                        var firstComm = p.Communications?.FirstOrDefault();
+                        var firstAddr = p.Addresses?.FirstOrDefault();
+                        var firstImg = p.Images?.FirstOrDefault();
+
+                        // ===== FIRST INSERT USING SP =====
+                        using (SqlCommand cmd = new SqlCommand("sp_InsertPersonFull", con, tran))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+
+                            cmd.Parameters.AddWithValue("@Title", p.Title ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@FirstName", p.First);
+                            cmd.Parameters.AddWithValue("@MiddleName", p.Middle ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@LastName", p.Last ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Gender", p.Gender ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@DOB", p.Dob ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@AnniversaryDate", p.Anniversary ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PANNo", p.Pan ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PersonType", p.Type ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Remark", p.Remark ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                            cmd.Parameters.AddWithValue("@CommunicationType", firstComm?.Type ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Value", firstComm?.Value ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@CommunicationLabel", firstComm?.Label ?? (object)DBNull.Value);
+
+                            cmd.Parameters.AddWithValue("@AddressType", firstAddr?.Type ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@AddressLine", firstAddr?.Address ?? (object)DBNull.Value);
+
+                            cmd.Parameters.AddWithValue("@ImageBase64", firstImg ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@FileName", "person.png");
+
+                            personId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                        }
+
+                        // ================= EXTRA COMMUNICATION =================
+                        if (p.Communications != null && p.Communications.Count > 1)
+                        {
+                            foreach (var comm in p.Communications.Skip(1))
+                            {
+                                using (SqlCommand cmd = new SqlCommand(
+                                    "INSERT INTO T_PersonCommunication(PersonID, CommunicationType, Value, CommunicationLabel) VALUES(@PersonId,@Type,@Value,@Label)",
+                                    con, tran))
+                                {
+                                    cmd.Parameters.AddWithValue("@PersonId", personId);
+                                    cmd.Parameters.AddWithValue("@Type", comm.Type);
+                                    cmd.Parameters.AddWithValue("@Value", comm.Value);
+                                    cmd.Parameters.AddWithValue("@Label", comm.Label ?? (object)DBNull.Value);
+
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+                        }
+
+                        // ================= EXTRA ADDRESS =================
+                        if (p.Addresses != null && p.Addresses.Count > 1)
+                        {
+                            foreach (var addr in p.Addresses.Skip(1))
+                            {
+                                using (SqlCommand cmd = new SqlCommand(
+                                    "INSERT INTO T_PersonAddress(PersonID, AddressType, AddressLine) VALUES(@PersonId,@Type,@Address)",
+                                    con, tran))
+                                {
+                                    cmd.Parameters.AddWithValue("@PersonId", personId);
+                                    cmd.Parameters.AddWithValue("@Type", addr.Type);
+                                    cmd.Parameters.AddWithValue("@Address", addr.Address);
+
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+                        }
+
+                        // ================= EXTRA IMAGES =================
+                        if (p.Images != null && p.Images.Count > 1)
+                        {
+                            foreach (var img in p.Images.Skip(1))
+                            {
+                                using (SqlCommand cmd = new SqlCommand(
+                                    "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@Img,GETDATE(),'person.png')",
+                                    con, tran))
+                                {
+                                    cmd.Parameters.AddWithValue("@PersonId", personId);
+                                    cmd.Parameters.AddWithValue("@Img", img);
+
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+                        }
+                    }
+
+                    tran.Commit();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    tran.Rollback();
+                    throw;
+                }
+            }
+
         public DealerFullViewModel GetDealerFullDetails(int dealerId)
         {
             DealerFullViewModel model = new DealerFullViewModel();
