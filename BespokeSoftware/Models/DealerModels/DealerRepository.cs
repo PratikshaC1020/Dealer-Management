@@ -1026,7 +1026,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             return list;
         }
 
-  public async Task<bool> SaveDealerFull(DealerViewModel model)
+        public async Task<bool> SaveDealerFull(DealerViewModel model)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
@@ -1209,6 +1209,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     throw;
                 }
             }
+        }
 
         public DealerFullViewModel GetDealerFullDetails(int dealerId)
         {
