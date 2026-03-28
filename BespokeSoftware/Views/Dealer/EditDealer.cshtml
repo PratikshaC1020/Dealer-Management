@@ -730,21 +730,21 @@
 
         imageList.forEach((img,i)=>{
 
-            $("#imageGrid").append(`
-            <div class="col-md-3 mb-2">
-                <div class="position-relative">
-                        <img src="data:image/png;base64,${img}"
-                        class="img-fluid rounded"
-                        style="cursor:pointer"
-                        onclick="showImage('data:image/png;base64,${img}')"/>
-                    <i class="bi bi-x-circle text-danger"
-                       style="position:absolute;top:5px;right:5px;cursor:pointer;"
-                       onclick="removeImage(${i})">
-                    </i>
-                </div>
-            </div>
-            `);
+    $("#imageGrid").append(`
+    <div class="col-md-2 mb-2">
+        <div class="position-relative">
+            <img src="data:image/png;base64,${img}"
+                 class="rounded border"
+                 style="width:120px;height:120px;object-fit:cover;cursor:pointer"
+                 onclick="showImage('data:image/png;base64,${img}')"/>
 
+            <i class="bi bi-x-circle text-danger"
+               style="position:absolute;top:5px;right:5px;cursor:pointer;"
+               onclick="removeImage(${i})">
+            </i>
+        </div>
+    </div>
+    `);
             // 🔥 hidden input for POST
             $("#hiddenImages").append(`
                 <input type="hidden" name="DealerImages[${i}]" value="${img}" />
@@ -813,13 +813,14 @@
             </div>
 
             <div class="modal-body text-center">
-                <img id="previewImage" class="img-fluid rounded" />
+                <img id="previewImage"
+                     class="img-fluid rounded"
+                     style="max-height:400px; object-fit:contain;" />
             </div>
 
         </div>
     </div>
 </div>
-
 <script>
         function showImage(img){
         $("#previewImage").attr("src", img);
