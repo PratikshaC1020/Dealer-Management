@@ -213,26 +213,74 @@
                         {
                             <div class="box">
 
-                                <b>@p.FirstName @p.LastName</b>
+                                <h6 class="fw-bold text-info mb-2">
+                                    @p.Title @p.FirstName @p.MiddleName @p.LastName
+                                </h6>
+
+                                <div class="row">
+
+                                    <div class="col-md-4">
+                                        <label class="fw-bold">Gender :</label> @p.Gender
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="fw-bold">DOB :</label> @p.DOB?.ToString("dd-MM-yyyy")
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="fw-bold">Anniversary :</label> @p.AnniversaryDate?.ToString("dd-MM-yyyy")
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="fw-bold">PAN :</label> @p.PANNo
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="fw-bold">Person Type :</label> @p.PersonType
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="fw-bold">Remark :</label> @p.Remark
+                                    </div>
+
+                                </div>
 
                                 <!-- Address -->
+                                <hr />
+                                <div class="fw-bold">Addresses</div>
                                 @foreach (var pa in Model.PersonAddresses.Where(x => x.PersonID == p.PersonID))
                                 {
                                     <div>📍 @pa.AddressLine</div>
                                 }
 
                                 <!-- Communication -->
+                                <div class="fw-bold mt-2">Communications</div>
                                 @foreach (var c in Model.Communications.Where(x => x.PersonID == p.PersonID))
                                 {
                                     <div>📞 @c.Value</div>
                                 }
+
+                                <!-- Images -->
+                                <hr />
+                                <div class="fw-bold">Images</div>
+
+                                <div class="row">
+                                    @foreach (var img in Model.Images
+                                                                    .Where(x => x.IdentityID == p.PersonID && x.Type == "Person"))
+                                    {
+                                        <div class="col-md-3 mb-2">
+                                            <img src="data:image/png;base64,@img.ImageBase64"
+                                                 class="img-thumb"
+                                                 onclick="openImagePreview(this.src)" />
+                                        </div>
+                                    }
+                                </div>
 
                             </div>
                         }
 
                     </div>
                 </div>
-
             </div>
 
         </div>
