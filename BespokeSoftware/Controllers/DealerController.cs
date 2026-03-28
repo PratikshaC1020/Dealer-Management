@@ -2,6 +2,8 @@
 using BespokeSoftware.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Reflection;
 using static BespokeSoftware.Models.Dealer;
 
@@ -129,7 +131,7 @@ public class DealerController : Controller
 
         repo.UpdateDealerFull(model);
 
-        return RedirectToAction("Index"); // किंवा list page
+        return RedirectToAction("Index"); 
     }
 
     //[HttpPost]
@@ -149,11 +151,11 @@ public class DealerController : Controller
     }
 
 
-    public IActionResult DeleteDealer(int id)
-    {
-        repo.DeleteDealer(id);
-        return RedirectToAction("Index");
-    }
+    //public IActionResult DeleteDealer(int id)
+    //{
+    //    repo.DeleteDealer(id);
+    //    return RedirectToAction("Index");
+    //}
     public IActionResult ViewDealerDetails(int dealerId)
     {
         var data = repo.GetDealerFullDetails(dealerId);
@@ -172,4 +174,25 @@ public class DealerController : Controller
 
     //    return PartialView("_DealerCommunication", commList);
     //}
+
+    [HttpPost]
+    public IActionResult Delete(int dealerId)
+    {
+        if (dealerId <= 0)
+        {
+            return Json(new { success = false, message = "Invalid Dealer Id" });
+        }
+
+        try
+        {
+            repo.DeleteDealer(dealerId);  
+
+            return Json(new { success = true, message = "Dealer deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
 }
+

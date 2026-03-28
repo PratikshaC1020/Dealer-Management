@@ -713,29 +713,42 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             cmd.ExecuteNonQuery();
         }
 
+        //public void DeleteDealer(int dealerId)
+        //{
+        //    using SqlConnection con = new SqlConnection(_connectionString);
+
+        //    con.Open();
+
+        //    try
+        //    {
+        //        string query = @"
+        //        UPDATE T_Dealer
+        //        SET IsActive = 0,
+        //            UpdatedDate = GETDATE()
+        //        WHERE DealerId = @DealerID";
+
+        //        SqlCommand cmd = new SqlCommand(query, con);
+
+        //        cmd.Parameters.AddWithValue("@DealerID", dealerId);
+
+        //        cmd.ExecuteNonQuery();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
+
         public void DeleteDealer(int dealerId)
         {
-            using SqlConnection con = new SqlConnection(_connectionString);
-
-            con.Open();
-
-            try
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("SP_DeleteDealerFull", con))
             {
-                string query = @"
-                UPDATE T_Dealer
-                SET IsActive = 0,
-                    UpdatedDate = GETDATE()
-                WHERE DealerId = @DealerID";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@DealerId", SqlDbType.Int).Value = dealerId;
 
-                SqlCommand cmd = new SqlCommand(query, con);
-
-                cmd.Parameters.AddWithValue("@DealerID", dealerId);
-
+                con.Open();
                 cmd.ExecuteNonQuery();
-            }
-            catch
-            {
-                throw;
             }
         }
         public List<modelDepartment> GetDepartments()
@@ -1134,5 +1147,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
             return model;
         }
+
+
     }
 }
