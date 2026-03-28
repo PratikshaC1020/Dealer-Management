@@ -448,10 +448,10 @@
         $("#imageGrid").append(`
             <div class="col-md-3 mb-2">
                 <div class="position-relative">
-    <img src="${e.target.result}"
-    style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer"
-    onclick="showPreview('${e.target.result}')">
-    <i class="bi bi-x-circle text-danger"
+            <img src="${e.target.result}"
+            style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer"
+            onclick="showPreview('${e.target.result}')">
+            <i class="bi bi-x-circle text-danger"
                        style="position:absolute; top:5px; right:5px; cursor:pointer;"
                              onclick="removeDealerImage(${dealerImages.length - 1}, this)" </i>
 
@@ -820,7 +820,7 @@ async function savePerson(){
                     <!-- HEADER -->
                     <div class="d-flex justify-content-between">
                         <h5 class="text-info">
-                            ${p.Title} ${p.First} ${p.Middle} ${p.Last}
+                            ${p.Title} ${p.First} ${p.Last}
                         </h5>
 
                         <button class="btn btn-sm btn-danger"
