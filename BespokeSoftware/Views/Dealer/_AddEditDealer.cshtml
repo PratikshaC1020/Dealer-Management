@@ -228,7 +228,7 @@
                     <!-- ROW 1 -->
                     <div class="col-md-3">
                         <label class="fw-bold">Title</label>
-                        <select id="pTitle" class="form-control">
+                        <select id="pTitle" class="form-control form-select">
                             <option value="">Select</option>
                             <option value="Mr">Mr</option>
                             <option value="Mrs">Mrs</option>
@@ -256,7 +256,7 @@
                     <!-- ROW 2 -->
                     <div class="col-md-3">
                         <label class="fw-bold">Gender</label>
-                        <select id="pGender" class="form-control">
+                        <select id="pGender" class="form-control form-select">
                             <option value="">Select</option>
                             <option>Male</option>
                             <option>Female</option>
@@ -383,7 +383,7 @@
     $("#notesContainer").append(`
     <div class="box">
     <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
-    <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
+        <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control form-select mb-1">
     <option value="">Select Notes Category</option>${getCategoryOptions()}
     </select>
     <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
@@ -495,7 +495,7 @@
             <!-- TYPE -->
             <div class="col-md-4">
                 <label class="fw-bold">Type</label>
-                <select class="form-control">
+                <select class="form-control form-select">
                     <option value="">Select</option>
                     <option>Mobile</option>
                     <option>Email</option>
@@ -819,9 +819,11 @@ async function savePerson(){
 
                     <!-- HEADER -->
                     <div class="d-flex justify-content-between">
-                        <h5 class="text-info">
-                            ${p.Title} ${p.First} ${p.Middle} ${p.Last}
-                        </h5>
+                            <h5 class="text-info">
+                                ${[p.Title, p.First, p.Middle, p.Last]
+                                    .filter(x => x && x !== "null")
+                                    .join(" ")}
+                            </h5>
 
                         <button class="btn btn-sm btn-danger"
                                 onclick="removePerson(${i})">

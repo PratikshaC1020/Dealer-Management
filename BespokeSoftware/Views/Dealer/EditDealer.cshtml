@@ -139,7 +139,7 @@
                         <div class="box">
                             <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-                            <select name="DealerNotes[@i].CategoryId" class="form-control mb-1">
+                            <select name="DealerNotes[@i].CategoryId" class="form-control form-select mb-1">
                                 <option value="">Select</option>
                                 @foreach (var c in ViewBag.CategoryList)
                                 {
@@ -229,7 +229,7 @@
 
                     <div class="col-md-3">
                         <label>Title</label>
-                        <select id="pTitle" class="form-control">
+                        <select id="pTitle" class="form-control form-select">
                             <option value="">Select</option>
                             <option>Mr</option>
                             <option>Mrs</option>
@@ -244,7 +244,7 @@
 
                     <div class="col-md-3">
                         <label>Gender</label>
-                        <select id="pGender" class="form-control">
+                        <select id="pGender" class="form-control form-select">
                             <option value="">Select</option>
                             <option>Male</option>
                             <option>Female</option>
@@ -424,17 +424,14 @@
             let comm="",addr="",imgs="";
 
             // ================= COMMUNICATION =================
-               (p.Communications || p.communications || []).forEach(c=>{
-        $("#commContainer").append(`
-        <div class="box">
-        <select class="form-control mb-1">
-        <option ${(c.Type || c.type)=="Mobile"?"selected":""}>Mobile</option>
-        <option ${(c.Type || c.type)=="Email"?"selected":""}>Email</option>
-        </select>
-        <input class="form-control mb-1" value="${c.Label || c.label || ''}"/>
-        <input class="form-control" value="${c.Value || c.value || ''}"/>
+              // ✅ COMMUNICATION FIX
+    (p.Communications || p.communications || []).forEach(c=>{
+        comm += `
+        <div>
+        • <b>${c.Type || c.type}</b> :
+        ${c.Value || c.value} (${c.Label || c.label || ''})
         </div>
-        `);
+        `;
     });
 
             // ================= ADDRESS =================
@@ -633,7 +630,7 @@
 
         $("#commContainer").append(`
         <div class="box">
-        <select class="form-control mb-1">
+        <select class="form-control form-select mb-1">
          <option ${type=="Select"?"selected":""}>Select</option>
         <option ${type=="Mobile"?"selected":""}>Mobile</option>
         <option ${type=="Email"?"selected":""}>Email</option>
@@ -667,7 +664,7 @@
     function addComm(){
         $("#commContainer").append(`
         <div class="box">
-        <select class="form-control mb-1">
+        <select class="form-control form-select mb-1">
         <option>Mobile</option><option>Email</option>
         </select>
         <input class="form-control mb-1" placeholder="Label"/>
@@ -790,7 +787,7 @@
         <div class="box">
             <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-            <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
+            <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control form-select mb-1">
                 <option value="">Select</option>
                 @foreach (var c in ViewBag.CategoryList)
                 {
