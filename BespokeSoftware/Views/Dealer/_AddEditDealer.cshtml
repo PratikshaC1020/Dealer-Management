@@ -965,20 +965,20 @@ async function savePerson(){
         if(!isValid) return;
 
         // ===== MODEL =====
-        let model = {
-            Dealer: {
-                DealerName: dealerName || null,
-                OwnerName: ownerName || null,
-                GSTNo: gst || null,
-                PANNo: pan ? pan.toUpperCase() : null,
-                DefaultPaymentModeId: parseInt($("select[name='Dealer.DefaultPaymentModeId']").val()) || 0,
-                WeeklyOffDayId: parseInt($("select[name='Dealer.WeeklyOffDayId']").val()) || 0
-            },
-            DealerImages: dealerImages || [],
-            DealerAddresses: [],
-            DealerNotes: [],
-            Persons: personList || []
-        };
+           let model = {
+        Dealer: {
+            DealerName: dealerName.val() || null,
+            OwnerName: ownerName.val() || null,
+            GSTNo: gst.val() || null,
+            PANNo: pan.val() ? pan.val().toUpperCase() : null,
+            DefaultPaymentModeId: parseInt($("select[name='Dealer.DefaultPaymentModeId']").val()) || 0,
+            WeeklyOffDayId: parseInt($("select[name='Dealer.WeeklyOffDayId']").val()) || 0
+        },
+        DealerImages: dealerImages || [],
+        DealerAddresses: [],
+        DealerNotes: [],
+        Persons: personList || []
+    };
 
         // ===== ADDRESS LOOP =====
         let addrValid = true;
