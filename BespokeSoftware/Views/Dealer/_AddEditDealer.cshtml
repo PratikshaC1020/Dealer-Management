@@ -181,6 +181,11 @@
                 <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
                     Save Dealer
                 </button>
+                <button type="button"
+                        class="btn btn-secondary px-4 fw-bold"
+                        onclick="window.location.href='@Url.Action("Index", "Dealer")'">
+                    Cancel
+                </button>
             </div>
 
         </form>
@@ -443,8 +448,10 @@
         $("#imageGrid").append(`
             <div class="col-md-3 mb-2">
                 <div class="position-relative">
-    <img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
-                    <i class="bi bi-x-circle text-danger"
+    <img src="${e.target.result}"
+    style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer"
+    onclick="showPreview('${e.target.result}')">
+    <i class="bi bi-x-circle text-danger"
                        style="position:absolute; top:5px; right:5px; cursor:pointer;"
                              onclick="removeDealerImage(${dealerImages.length - 1}, this)" </i>
 
@@ -733,6 +740,8 @@ async function savePerson(){
     $("#commContainer").empty();
     $("#personAddressContainer").empty();
     $("#personImagePreview").empty();
+    $("#personImagePreview").empty();
+
 
     $("#personModal").modal('hide');
 
@@ -758,18 +767,24 @@ async function savePerson(){
             let addrHtml = "";
             let imgHtml = "";
 
-            // ================= IMAGES =================
-            if(p.Images && p.Images.length > 0){
-                p.Images.forEach(img=>{
-                    imgHtml += `
-                        <img src="data:image/png;base64,${img}"
-                             style="width:60px;height:60px;margin:3px;border-radius:6px;">
-                    `;
-                });
-            } else {
-                imgHtml = "<div class='text-muted'>No images</div>";
-            }
+               // ================= IMAGES =================
+    if(p.Images && p.Images.length > 0){
 
+        p.Images.forEach(img=>{
+            imgHtml += `
+                <img
+                    src="data:image/png;base64,${img}"
+                    width="50"
+                    class="me-1 rounded"
+                    style="cursor:pointer"
+                    onclick="showPreview('data:image/png;base64,${img}')"
+                />
+            `;
+        });
+
+    } else {
+        imgHtml = "<div class='text-muted'>No images</div>";
+    }
             // ================= COMMUNICATION =================
             if(p.Communications && p.Communications.length > 0){
                 p.Communications.forEach(c=>{
@@ -877,8 +892,11 @@ async function savePerson(){
                 $("#personImagePreview").append(`
                     <div class="col-md-3 mb-2" id="pimg_${index}">
                         <div class="position-relative">
-                            <img src="${e.target.result}" class="img-fluid rounded">
-                            <i class="bi bi-x-circle text-danger"
+    <img src="${e.target.result}"
+    class="img-fluid rounded"
+    style="cursor:pointer"
+    onclick="showPreview('${e.target.result}')">
+    <i class="bi bi-x-circle text-danger"
                                style="position:absolute; top:5px; right:5px; cursor:pointer;"
                                onclick="removePersonImage(${index})">
                             </i>
@@ -1077,4 +1095,34 @@ async function savePerson(){
     function clearErrors(){
         $(".error-msg").remove();
     }
+        function showPreview(img){
+        $("#previewImg").attr("src", img);
+        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+
+        function showError(msg){
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: msg
+        });
+    }
 </script>
+
+<div class="modal fade" id="imagePreviewModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5>Image Preview</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <img id="previewImg" class="img-fluid rounded" />
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -3,8 +3,43 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-<div class="card border-warning">
-    <div class="card-header text-center fw-bold bg-warning text-dark">
+<style >
+    .section-box {
+        border: 1px solid #0dcaf0;
+        border-radius: 8px;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #0dcaf0;
+    }
+
+    .add-icon {
+        font-size: 20px;
+        cursor: pointer;
+        color: #0dcaf0;
+    }
+
+    .box {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .remove {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="card border-info">
+    <div class="card-header text-center fw-bold bg-info text-white">
         Edit Dealer
     </div>
 
@@ -36,6 +71,37 @@
                     <div class="col-md-3">
                         <label>PAN</label>
                         <input name="Dealer.PANNo" value="@Model.Dealer.PANNo" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label>Payment Mode</label>
+                        <select name="Dealer.DefaultPaymentModeId" class="form-select">
+                            <option value="">Select</option>
+
+                            @foreach (var p in ViewBag.PaymentModeList)
+                            {
+                                <option value="@p.ID"
+                                        selected="@(p.ID == Model.Dealer.DefaultPaymentModeId)">
+                                    @p.PaymentModeName
+                                </option>
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Weekly Off</label>
+                        <select name="Dealer.WeeklyOffDayId" class="form-select">
+                            <option value="">Select</option>
+
+                            @foreach (var w in ViewBag.WeeklyOffList)
+                            {
+                                <option value="@w.ID"
+                                        selected="@(w.ID == Model.Dealer.WeeklyOffDayId)">
+                                    @w.Day
+                                </option>
+                            }
+
+                        </select>
                     </div>
                 </div>
             </div>
@@ -135,7 +201,12 @@
             </div>
 
             <div class="text-center">
-                <button class="btn btn-warning px-4 fw-bold">Update Dealer</button>
+                <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
+                <button type="button"
+                        class="btn btn-secondary px-4 fw-bold"
+                        onclick="window.location.href='@Url.Action("Index", "Dealer")'">
+                    Cancel
+                </button>
             </div>
 
         </form>
@@ -147,7 +218,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
 
-            <div class="modal-header bg-warning text-dark">
+            <div class="modal-header bg-info text-white">
                 <h5>Add Person</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -209,7 +280,9 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-warning" onclick="savePerson()">Save</button>
+                <button type="button" class="btn btn-info" onclick="savePerson()">
+                    Save
+                </button>
             </div>
 
         </div>
@@ -220,7 +293,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <div class="modal-header bg-warning text-dark">
+            <div class="modal-header bg-info text-dark">
                 <h5>Add Images</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -230,7 +303,7 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-warning" onclick="saveImages()">Add</button>
+                <button class="btn btn-info" onclick="saveImages()">Add</button>
             </div>
 
         </div>
@@ -241,8 +314,12 @@
 
 <script>
 
-      var personList = @Html.Raw(JsonSerializer.Serialize(Model.Persons ?? new List<BespokeSoftware.Models.PersonVM>()));
-    var personImages = [];
+       var personList = @Html.Raw(JsonSerializer.Serialize(
+                Model.Persons ?? new List<BespokeSoftware.Models.PersonVM>(),
+                new JsonSerializerOptions { PropertyNamingPolicy = null }
+        ));
+
+      var personImages = [];
 
     function openPersonModal(){
         $("#personModal").modal('show');
@@ -317,13 +394,21 @@
             });
         });
 
+        if(editIndex >= 0){
+        personList[editIndex] = p;
+        editIndex = -1;
+    }
+    else{
         personList.push(p);
+    }
         renderPersonGrid();
 
         $("#personModal input, #personModal textarea").val("");
         $("#personModal select").val("");
         $("#commContainer").empty();
         $("#personAddressContainer").empty();
+                $("#personImagePreview").empty();
+
         personImages = [];
 
         $("#personModal").modal('hide');
@@ -336,63 +421,171 @@
 
         personList.forEach((p,i)=>{
 
-            let comm="",addr="";
+            let comm="",addr="",imgs="";
 
-            p.communications?.forEach(c=>{
-                comm+=`<div>• ${c.type}: ${c.value}</div>`;
+            // ================= COMMUNICATION =================
+               (p.Communications || p.communications || []).forEach(c=>{
+        $("#commContainer").append(`
+        <div class="box">
+        <select class="form-control mb-1">
+        <option ${(c.Type || c.type)=="Mobile"?"selected":""}>Mobile</option>
+        <option ${(c.Type || c.type)=="Email"?"selected":""}>Email</option>
+        </select>
+        <input class="form-control mb-1" value="${c.Label || c.label || ''}"/>
+        <input class="form-control" value="${c.Value || c.value || ''}"/>
+        </div>
+        `);
+    });
+
+            // ================= ADDRESS =================
+            (p.Addresses || p.addresses || []).forEach(a=>{
+                addr+=`
+                <div>
+                • <b>${a.AddressType || a.addressType}</b> :
+                ${a.AddressLine || a.addressLine}
+                </div>
+                `;
             });
 
-            p.addresses?.forEach(a=>{
-                addr+=`<div>• ${a.addressType}: ${a.addressLine}</div>`;
+            // ================= IMAGES =================
+            (p.Images || p.images || []).forEach(img=>{
+                imgs+=`
+                 <img src="data:image/png;base64,${img}"
+    width="70"
+    class="me-2 mb-1 border rounded"
+    style="cursor:pointer"
+    onclick="showImage('data:image/png;base64,${img}')"/>
+                `;
             });
 
+            // ================= UI CARD =================
             $("#personGrid").append(`
-            <div class="card mb-2 border-warning">
+            <div class="card mb-3 border-info">
             <div class="card-body">
-            <b>${p.firstName} ${p.lastName}</b>
-            ${comm}<hr/>${addr}
-            <button class="btn btn-sm btn-danger" onclick="removePerson(${i})">Remove</button>
+
+            <h5 class="text-info fw-bold">
+            ${p.FirstName || p.firstName || ''}
+            ${p.MiddleName || p.middleName || ''}
+            ${p.LastName || p.lastName || ''}
+            </h5>
+
+            <div class="row">
+
+            <div class="col-md-4">
+            <b>Gender :</b> ${p.Gender || p.gender || ''}
+            </div>
+
+            <div class="col-md-4">
+            <b>DOB :</b> ${p.DOB || p.dob || ''}
+            </div>
+
+            <div class="col-md-4">
+            <b>Anniversary :</b> ${p.AnniversaryDate || p.anniversaryDate || ''}
+            </div>
+
+            <div class="col-md-4">
+            <b>PAN :</b> ${p.PANNo || p.panNo || ''}
+            </div>
+
+            <div class="col-md-4">
+            <b>Designation :</b> ${p.PersonType || p.personType || ''}
+            </div>
+
+            <div class="col-md-4">
+            <b>Remark :</b> ${p.Remark || p.remark || ''}
+            </div>
+
+            </div>
+
+            <hr/>
+
+            <div>
+            <b class="text-info">Images</b><br/>
+            ${imgs}
+            </div>
+
+            <hr/>
+
+            <div>
+            <b class="text-info">Communication</b>
+            ${comm}
+            </div>
+
+            <hr/>
+
+            <div>
+            <b class="text-info">Address</b>
+            ${addr}
+            </div>
+
+      <button type="button"
+    class="btn btn-sm btn-primary mt-2 me-2"
+    onclick="editPerson(${i})">
+    Edit
+    </button>
+
+    <button type="button"
+    class="btn btn-sm btn-danger mt-2"
+    onclick="removePerson(${i})">
+    Remove
+    </button>
+
             </div>
             </div>
             `);
 
             let html = "";
 
-            // BASIC
+            // ================= BASIC =================
             html += `
-            <input type="hidden" name="Persons[${i}].Title" value="${p.title || ''}"/>
-            <input type="hidden" name="Persons[${i}].FirstName" value="${p.firstName || ''}"/>
-            <input type="hidden" name="Persons[${i}].MiddleName" value="${p.middleName || ''}"/>
-            <input type="hidden" name="Persons[${i}].LastName" value="${p.lastName || ''}"/>
-            <input type="hidden" name="Persons[${i}].Gender" value="${p.gender || ''}"/>
-            <input type="hidden" name="Persons[${i}].DOB" value="${p.dob || ''}"/>
-            <input type="hidden" name="Persons[${i}].AnniversaryDate" value="${p.anniversaryDate || ''}"/>
-            <input type="hidden" name="Persons[${i}].PANNo" value="${p.panNo || ''}"/>
-            <input type="hidden" name="Persons[${i}].PersonType" value="${p.personType || ''}"/>
-            <input type="hidden" name="Persons[${i}].Remark" value="${p.remark || ''}"/>
+            <input type="hidden" name="Persons[${i}].Title" value="${p.Title || p.title || ''}"/>
+            <input type="hidden" name="Persons[${i}].FirstName" value="${p.FirstName || p.firstName || ''}"/>
+            <input type="hidden" name="Persons[${i}].MiddleName" value="${p.MiddleName || p.middleName || ''}"/>
+            <input type="hidden" name="Persons[${i}].LastName" value="${p.LastName || p.lastName || ''}"/>
+            <input type="hidden" name="Persons[${i}].Gender" value="${p.Gender || p.gender || ''}"/>
+            <input type="hidden" name="Persons[${i}].DOB" value="${p.DOB || p.dob || ''}"/>
+            <input type="hidden" name="Persons[${i}].AnniversaryDate" value="${p.AnniversaryDate || p.anniversaryDate || ''}"/>
+            <input type="hidden" name="Persons[${i}].PANNo" value="${p.PANNo || p.panNo || ''}"/>
+            <input type="hidden" name="Persons[${i}].PersonType" value="${p.PersonType || p.personType || ''}"/>
+            <input type="hidden" name="Persons[${i}].Remark" value="${p.Remark || p.remark || ''}"/>
             `;
 
-            // COMMUNICATION
-            p.communications?.forEach((c,j)=>{
+            // ================= IMAGES =================
+            (p.Images || p.images || []).forEach((img,j)=>{
                 html += `
-                <input type="hidden" name="Persons[${i}].Communications[${j}].Type" value="${c.type || ''}"/>
-                <input type="hidden" name="Persons[${i}].Communications[${j}].Label" value="${c.label || ''}"/>
-                <input type="hidden" name="Persons[${i}].Communications[${j}].Value" value="${c.value || ''}"/>
+                <input type="hidden"
+                name="Persons[${i}].Images[${j}]"
+                value="${img}"/>
                 `;
             });
 
-            // ADDRESS
-            p.addresses?.forEach((a,j)=>{
+            // ================= COMMUNICATION =================
+            (p.Communications || p.communications || []).forEach((c,j)=>{
                 html += `
-                <input type="hidden" name="Persons[${i}].Addresses[${j}].AddressType" value="${a.addressType || ''}"/>
-                <input type="hidden" name="Persons[${i}].Addresses[${j}].AddressLine" value="${a.addressLine || ''}"/>
+                <input type="hidden"
+                name="Persons[${i}].Communications[${j}].Type"
+                value="${c.Type || c.type || ''}"/>
+
+                <input type="hidden"
+                name="Persons[${i}].Communications[${j}].Label"
+                value="${c.Label || c.label || ''}"/>
+
+                <input type="hidden"
+                name="Persons[${i}].Communications[${j}].Value"
+                value="${c.Value || c.value || ''}"/>
                 `;
             });
 
-            // IMAGES
-            p.images?.forEach((img,j)=>{
+            // ================= ADDRESS =================
+            (p.Addresses || p.addresses || []).forEach((a,j)=>{
                 html += `
-                <input type="hidden" name="Persons[${i}].Images[${j}]" value="${img}"/>
+                <input type="hidden"
+                name="Persons[${i}].Addresses[${j}].AddressType"
+                value="${a.AddressType || a.addressType || ''}"/>
+
+                <input type="hidden"
+                name="Persons[${i}].Addresses[${j}].AddressLine"
+                value="${a.AddressLine || a.addressLine || ''}"/>
                 `;
             });
 
@@ -400,6 +593,72 @@
         });
     }
 
+        var editIndex = -1;
+
+    function editPerson(i){
+
+        editIndex = i;
+
+        let p = personList[i];
+
+        $("#pTitle").val(p.Title || p.title);
+        $("#pFirst").val(p.FirstName || p.firstName);
+        $("#pMiddle").val(p.MiddleName || p.middleName);
+        $("#pLast").val(p.LastName || p.lastName);
+        $("#pGender").val(p.Gender || p.gender);
+        $("#pDOB").val(p.DOB || p.dob);
+        $("#pAnniversary").val(p.AnniversaryDate || p.anniversaryDate);
+        $("#pPAN").val(p.PANNo || p.panNo);
+        $("#pType").val(p.PersonType || p.personType);
+        $("#pRemark").val(p.Remark || p.remark);
+
+        $("#personImagePreview").empty();
+        personImages = p.Images || p.images || [];
+
+        personImages.forEach((img,i)=>{
+            $("#personImagePreview").append(`
+            <div style="display:inline-block;position:relative;margin:5px;">
+            <img src="data:image/png;base64,${img}" width="80"/>
+            </div>
+            `);
+        });
+
+        $("#commContainer").empty();
+
+           (p.Communications || p.communications || []).forEach(c=>{
+
+        let type = c.Type || c.type || '';
+        let label = c.Label || c.label || '';
+        let value = c.Value || c.value || '';
+
+        $("#commContainer").append(`
+        <div class="box">
+        <select class="form-control mb-1">
+         <option ${type=="Select"?"selected":""}>Select</option>
+        <option ${type=="Mobile"?"selected":""}>Mobile</option>
+        <option ${type=="Email"?"selected":""}>Email</option>
+        <option ${type=="LandLine"?"selected":""}>Landline</option>
+        </select>
+        <input class="form-control mb-1" value="${label}"/>
+        <input class="form-control" value="${value}"/>
+        </div>
+        `);
+    });
+
+        $("#personAddressContainer").empty();
+
+        (p.Addresses || p.addresses || []).forEach(a=>{
+            $("#personAddressContainer").append(`
+            <div class="box">
+            <input class="form-control mb-1" value="${a.AddressType || a.addressType || ''}"/>
+            <input class="form-control" value="${a.AddressLine || a.addressLine || ''}"/>
+            </div>
+            `);
+        });
+
+        $("#personModal").modal("show");
+    }
+    
     function removePerson(i){
         personList.splice(i,1);
         renderPersonGrid();
@@ -477,7 +736,10 @@
             $("#imageGrid").append(`
             <div class="col-md-3 mb-2">
                 <div class="position-relative">
-                    <img src="data:image/png;base64,${img}" class="img-fluid rounded"/>
+                        <img src="data:image/png;base64,${img}"
+                        class="img-fluid rounded"
+                        style="cursor:pointer"
+                        onclick="showImage('data:image/png;base64,${img}')"/>
                     <i class="bi bi-x-circle text-danger"
                        style="position:absolute;top:5px;right:5px;cursor:pointer;"
                        onclick="removeImage(${i})">
@@ -543,3 +805,28 @@
         noteIndex++;
     }
 </script>
+
+<div class="modal fade" id="previewImageModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info">
+                <h5>Image Preview</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <img id="previewImage" class="img-fluid rounded" />
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+        function showImage(img){
+        $("#previewImage").attr("src", img);
+        $("#previewImageModal").modal("show");
+    }
+</script>
+

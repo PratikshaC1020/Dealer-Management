@@ -441,7 +441,7 @@ namespace BespokeSoftware.Repository
                 }
                 dr.Close();
 
-                // ================= IMAGES =================
+                // ================= DEALER IMAGES =================
                 cmd = new SqlCommand("SELECT * FROM T_Image WHERE IdentityID=@DealerId AND Type='Dealer'", con);
                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
 
@@ -513,6 +513,17 @@ namespace BespokeSoftware.Repository
                         });
                     }
                     drComm.Close();
+
+                    // 🔥 PERSON IMAGES (IMPORTANT FIX)
+                    SqlCommand cmdImg = new SqlCommand("SELECT * FROM T_Image WHERE IdentityID=@Pid AND Type='Person'", con);
+                    cmdImg.Parameters.AddWithValue("@Pid", p.PersonID);
+
+                    SqlDataReader drImg = cmdImg.ExecuteReader();
+                    while (drImg.Read())
+                    {
+                        p.Images.Add(drImg["ImageBase64"]?.ToString());
+                    }
+                    drImg.Close();
                 }
 
                 model.Persons = persons;
@@ -520,6 +531,7 @@ namespace BespokeSoftware.Repository
 
             return model;
         }
+
         public void UpdateDealerFull(DealerEditVM model)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -697,6 +709,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 }
             }
         }
+
         private void Execute(string query, int id, SqlConnection con, SqlTransaction tran)
         {
             SqlCommand cmd = new SqlCommand(query, con, tran);
