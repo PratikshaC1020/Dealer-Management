@@ -727,29 +727,42 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             cmd.ExecuteNonQuery();
         }
 
+        //public void DeleteDealer(int dealerId)
+        //{
+        //    using SqlConnection con = new SqlConnection(_connectionString);
+
+        //    con.Open();
+
+        //    try
+        //    {
+        //        string query = @"
+        //        UPDATE T_Dealer
+        //        SET IsActive = 0,
+        //            UpdatedDate = GETDATE()
+        //        WHERE DealerId = @DealerID";
+
+        //        SqlCommand cmd = new SqlCommand(query, con);
+
+        //        cmd.Parameters.AddWithValue("@DealerID", dealerId);
+
+        //        cmd.ExecuteNonQuery();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
+
         public void DeleteDealer(int dealerId)
         {
-            using SqlConnection con = new SqlConnection(_connectionString);
-
-            con.Open();
-
-            try
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("SP_DeleteDealerFull", con))
             {
-                string query = @"
-                UPDATE T_Dealer
-                SET IsActive = 0,
-                    UpdatedDate = GETDATE()
-                WHERE DealerId = @DealerID";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@DealerId", SqlDbType.Int).Value = dealerId;
 
-                SqlCommand cmd = new SqlCommand(query, con);
-
-                cmd.Parameters.AddWithValue("@DealerID", dealerId);
-
+                con.Open();
                 cmd.ExecuteNonQuery();
-            }
-            catch
-            {
-                throw;
             }
         }
         public List<modelDepartment> GetDepartments()
@@ -1280,7 +1293,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     }
                 }
 
-                
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
@@ -1288,13 +1301,24 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         model.Persons.Add(new Models.DealerModels.PersonVM
                         {
                             PersonID = Convert.ToInt32(rdr["PersonID"]),
+                            Title = rdr["Title"]?.ToString(),
                             FirstName = rdr["FirstName"]?.ToString(),
-                            LastName = rdr["LastName"]?.ToString()
+                            MiddleName = rdr["MiddleName"]?.ToString(),
+                            LastName = rdr["LastName"]?.ToString(),
+                            Gender = rdr["Gender"]?.ToString(),
+                            DOB = rdr["DOB"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rdr["DOB"]),
+                            AnniversaryDate = rdr["AnniversaryDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rdr["AnniversaryDate"]),
+                            AadhaarNo = rdr["AadhaarNo"]?.ToString(),
+                            PANNo = rdr["PANNo"]?.ToString(),
+                            PersonType = rdr["PersonType"]?.ToString(),
+                            Remark = rdr["Remark"]?.ToString(),
+                            DealerCode = rdr["DealerCode"]?.ToString(),
+                            DealerId = Convert.ToInt32(rdr["DealerId"])
                         });
                     }
                 }
 
-               
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
@@ -1326,6 +1350,8 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     {
                         model.Images.Add(new ImageVM
                         {
+                            IdentityID = Convert.ToInt32(rdr["IdentityID"]),
+                            Type = rdr["Type"]?.ToString(),
                             ImageBase64 = rdr["ImageBase64"]?.ToString()
                         });
                     }
@@ -1334,5 +1360,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
             return model;
         }
+
+
     }
 }
