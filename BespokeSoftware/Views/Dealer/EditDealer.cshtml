@@ -424,17 +424,13 @@
             let comm="",addr="",imgs="";
 
             // ================= COMMUNICATION =================
-               (p.Communications || p.communications || []).forEach(c=>{
-        $("#commContainer").append(`
-        <div class="box">
-        <select class="form-control mb-1">
-        <option ${(c.Type || c.type)=="Mobile"?"selected":""}>Mobile</option>
-        <option ${(c.Type || c.type)=="Email"?"selected":""}>Email</option>
-        </select>
-        <input class="form-control mb-1" value="${c.Label || c.label || ''}"/>
-        <input class="form-control" value="${c.Value || c.value || ''}"/>
+                  (p.Communications || p.communications || []).forEach(c=>{
+        comm += `
+        <div>
+        • <b>${c.Type || c.type}</b> :
+        ${c.Value || c.value} (${c.Label || c.label || ''})
         </div>
-        `);
+        `;
     });
 
             // ================= ADDRESS =================
