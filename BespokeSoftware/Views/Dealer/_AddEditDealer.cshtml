@@ -4,6 +4,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
+    #ownerPreview img,
+    #companyPreview img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+    }
     .small-scroll {
         max-height: 150px;
         overflow-y: auto;
@@ -59,6 +65,20 @@
         margin-top: 2px;
     }
 
+    #imageGrid img {
+        width: 60px;
+        height: 60px;
+    
+    }
+
+    .position-relative i {
+        display: none;
+    }
+
+    .position-relative:hover i {
+        display: block;
+    }
+
 </style>
 
 <div class="card border-info">
@@ -84,8 +104,42 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label>Owner Name</label>
-                        <input name="Dealer.OwnerName" class="form-control" />
+
+                        <label>Owner</label>
+
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    class="btn btn-info w-100"
+                                    onclick="openOwnerPopup()">
+
+                                + Add Owner
+
+                            </button>
+
+                        </div>
+
+@*                         <div id="ownerPreview" class="mt-2"></div>
+ *@
+                    </div>
+                    <div class="col-md-3">
+
+                        <label class="fw-bold">Main Office</label>
+
+                        <div class="d-flex gap-2">
+
+                            <button type="button"
+                                    class="btn btn-info w-100"
+                                    onclick="openMainOfficePopup()">
+
+                                + Add
+
+                            </button>
+
+                        </div>
+
+                        <div id="companyPreview" class="mt-2"></div>
+
                     </div>
 
                     <div class="col-md-3">
@@ -120,37 +174,33 @@
                         </select>
                     </div>
 
+                    <!-- ================= ROW 1: ADDRESS + IMAGES ================= -->
+                    <!-- ADDRESS -->
+                    <div class="col-md-12">
+                        <div class="section-box">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="section-title">Dealer Address</h5>
+                                <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
+                            </div>
+                            <div id="dealerAddressContainer" class="row inner-scroll"></div>
+                        </div>
+                    </div>
+
+                    <!-- IMAGES -->
+                    <div class="col-md-12">
+                        <div class="section-box">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="section-title">Images</h5>
+                                <i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
+                            </div>
+                            <div id="imageGrid" class="row inner-scroll"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- ================= ROW 1: ADDRESS + IMAGES ================= -->
-            <div class="row mb-3">
-
-                <!-- ADDRESS -->
-                <div class="col-md-6">
-                    <div class="section-box">
-                        <div class="d-flex justify-content-between">
-                            <h5 class="section-title">Dealer Address</h5>
-                            <i class="bi bi-plus-circle-fill add-icon" onclick="addDealerAddress()"></i>
-                        </div>
-                        <div id="dealerAddressContainer" class="inner-scroll"></div>
-                    </div>
-                </div>
-
-                <!-- IMAGES -->
-                <div class="col-md-6">
-                    <div class="section-box">
-                        <div class="d-flex justify-content-between">
-                            <h5 class="section-title">Images</h5>
-                            <i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
-                        </div>
-                        <div id="imageGrid" class="row inner-scroll"></div>
-                    </div>
-                </div>
-
-            </div>
-
-
+       
             <!-- ================= ROW 2: NOTES FULL ================= -->
             <div class="row mb-3">
                 <div class="col-md-12">
@@ -320,796 +370,519 @@
     </div>
 </div>
 
+<div class="modal fade" id="categoryModal">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5>Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="text"
+                       id="newCategory"
+                       class="form-control"
+                       placeholder="Enter Category" />
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-primary"
+                        onclick="saveCategory()">
+                    Save
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    var dealerImages = [];
 
-                   function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            let reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                let result = reader.result;
-                if(result){
-                    resolve(result.split(',')[1]);
-                } else {
-                    resolve(null);
-                }
-            };
-            reader.onerror = error => reject(error);
-        });
+    var dealerImages = [];
+    var ownerIndex = null;
+
+        function saveCategory(){
+
+    let category = $("#newCategory").val();
+
+    if(category==""){
+    alert("Enter category");
+    return;
     }
 
-    // ADDRESS
+    $.post('/Dealer/AddCategory',
+    {
+    Category:category
+    },
+    function(){
+
+    $("#categoryModal").modal('hide');
+
+    $("#newCategory").val('');
+
+    alert("Category added successfully");
+
+    });
+
+    }
+
+     function openOwnerPopup(){
+
+        $("#personModal").modal('show');
+
+        $("#personModal").data("isOwner", true);
+
+        $("#pType").val("Owner");   // auto designation
+
+        $("#pType").prop("readonly", true);
+
+    }
+
+        $('#personModal').on('hidden.bs.modal', function () {
+
+        $("#pType").prop("readonly", false);
+
+    });
+
+           function openMainOfficePopup(){
+
+    $("#imageModal").data("type","MainOffice");
+    $("#multiImageInput").val("");
+    $("#imageModal").modal('show');
+
+    }
+
+        function removeMainOffice(){
+
+    $("#companyPreview").empty();
+
+    dealerImages = dealerImages.filter(x=>x.type !== "MainOffice");
+
+    }
+
+
+    // ================= ADDRESS =================
+
     var dIndex=0;
+
     function addDealerAddress(){
 
-            if($("#dealerAddressContainer .box").length >= 10){
+        if($("#dealerAddressContainer .box").length >= 10){
             alert("Max 10 Dealer Addresses allowed");
             return;
         }
+
     $("#dealerAddressContainer").append(`
+
+    <div class="col-md-4">
 
     <div class="box">
 
-        <i class="bi bi-x-circle text-danger remove"
-           onclick="$(this).parent().remove()"></i>
+    <i class="bi bi-x-circle text-danger remove"
+    onclick="$(this).closest('.col-md-4').remove()"></i>
 
-        <!-- TYPE -->
-        <input name="DealerAddresses[${dIndex}].AddressType"
-               class="form-control mb-1"
-               placeholder="Type"/>
+    <input name="DealerAddresses[${dIndex}].AddressType"
+    class="form-control mb-1"
+    placeholder="Type"/>
 
-        <!-- ADDRESS -->
-        <input name="DealerAddresses[${dIndex}].AddressLine"
-               class="form-control"
-               placeholder="Enter address"/>
+    <input name="DealerAddresses[${dIndex}].AddressLine"
+    class="form-control"
+    placeholder="Enter address"/>
+
+    </div>
 
     </div>
 
     `);
+
     dIndex++;
     }
 
-    // NOTES
-    var noteIndex=0;
+    // ================= NOTES =================
+
+
+    var noteIndex = 0;
+
     function addNote(){
-             if($("#notesContainer .box").length >= 10){
-            alert("Max 10 Notes allowed");
-            return;
-        }
+
+    if($("#notesContainer .box").length >= 30){
+    alert("Max 30 Notes allowed");
+    return;
+    }
+
     $("#notesContainer").append(`
+
     <div class="box">
-    <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
-    <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
-    <option value="">Select Notes Category</option>${getCategoryOptions()}
+
+    <i class="bi bi-x-circle text-danger remove"
+    onclick="$(this).parent().remove()"></i>
+
+    <div class="row">
+
+    <div class="col-md-4">
+
+    <label>Category</label>
+
+    <div class="d-flex">
+
+    <select name="DealerNotes[${noteIndex}].CategoryId"
+    class="form-control">
+
+    <option value="">Select Notes Category</option>
+    ${getCategoryOptions()}
+
     </select>
-    <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
-    </div>`);
+
+    <i class="bi bi-plus-circle text-primary ms-2 mt-2"
+    onclick="openCategoryModal()"
+    style="cursor:pointer"></i>
+
+    <i class="bi bi-arrow-clockwise text-success ms-2 mt-2"
+    onclick="refreshCategory(this)"
+    style="cursor:pointer"></i>
+
+    </div>
+
+    </div>
+
+    <div class="col-md-4">
+    <label>Note For</label>
+
+    <input type="text"
+    name="DealerNotes[${noteIndex}].NoteFor"
+    class="form-control"/>
+
+    </div>
+
+    <div class="col-md-4">
+    <label>Date</label>
+
+    <input type="date"
+    name="DealerNotes[${noteIndex}].NoteDate"
+    class="form-control"/>
+
+    </div>
+
+    </div>
+
+    <div class="row mt-2">
+
+    <div class="col-md-12">
+
+    <label>Note</label>
+
+    <textarea
+    name="DealerNotes[${noteIndex}].NoteText"
+    class="form-control"></textarea>
+
+    </div>
+
+    </div>
+
+    </div>
+
+    `);
+
     noteIndex++;
+
+    }
+
+        function openCategoryModal(){
+        $("#categoryModal").modal('show');
     }
 
     function getCategoryOptions(){
+
     var options='';
+
     @foreach (var c in ViewBag.CategoryList)
     {
-                        <text>options+=`<option value="@c.ID">@c.CategoryName</option>`;</text>
+        <text>
+        options+=`<option value="@c.ID">@c.CategoryName</option>`;
+        </text>
     }
+
     return options;
+
     }
 
-    // IMAGE
+        function refreshCategory(ele){
 
-    // OPEN MODAL
+    $.get('/Dealer/GetCategories', function(data){
+
+    let dropdown = $(ele).closest('.box').find('select');
+
+    dropdown.empty();
+
+    dropdown.append('<option value="">Select Notes Category</option>');
+
+    data.forEach(function(c){
+
+    dropdown.append(`<option value="${c.id}">${c.categoryName}</option>`);
+
+    });
+
+    });
+
+    }
+
+
+    // ================= IMAGE =================
+
     function openImageModal(){
 
-        // ✅ CLEAR OLD FILES
-        $("#multiImageInput").val("");
+    $("#multiImageInput").val("");
+    $("#imageModal").modal('show');
 
-        $("#imageModal").modal('show');
     }
 
 
     // SAVE IMAGES
+
     function saveImages(){
 
-             let input = $("#multiImageInput")[0];
-        let files = input.files;
+    let input = $("#multiImageInput")[0];
+    let files = input.files;
 
-        if(dealerImages.length + files.length > 10){
-            alert("Max 10 Images allowed");
-            return;
-        }
+    let type = $("#imageModal").data("type") || "Normal";
 
-        // ✅ VALIDATION
-        if(files.length === 0){
-            alert("Please select at least one image");
-            return;
-        }
+    for(let i=0; i<files.length; i++){
 
-        for(let i=0; i<files.length; i++){
+    let file = files[i];
 
-            // ✅ IMAGE TYPE VALIDATION
-            if(!files[i].type.startsWith("image/")){
-                alert("Only image files allowed");
-                return;
-            }
-
-            let reader = new FileReader();
-
-               reader.onload = function(e){
-
-        let base64 = e.target.result.split(',')[1];
-
-        dealerImages.push(base64);   //  ADD THIS
-
-        $("#imageGrid").append(`
-            <div class="col-md-3 mb-2">
-                <div class="position-relative">
-            <img src="${e.target.result}"
-            style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer"
-            onclick="showPreview('${e.target.result}')">
-            <i class="bi bi-x-circle text-danger"
-                       style="position:absolute; top:5px; right:5px; cursor:pointer;"
-                             onclick="removeDealerImage(${dealerImages.length - 1}, this)" </i>
-
-                </div>
-            </div>
-        `);
-    };
-
-            reader.readAsDataURL(files[i]);
-        }
-
-        // ✅ CLEAR AFTER SAVE
-        $("#multiImageInput").val("");
-
-        $("#imageModal").modal('hide');
-    }
-
-        function removeDealerImage(index, el){
-        dealerImages.splice(index, 1);
-        $(el).closest('.col-md-3').remove();
-    }
-
-    // PERSON
-    var personList=[];
-    function openPersonModal(){ $("#personModal").modal('show'); }
-
-    function addComm(){
-             if($("#commContainer .box").length >= 10){
-            alert("Max 10 Communications allowed");
-            return;
-        }
-    $("#commContainer").append(`
-
-    <div class="box">
-
-        <i class="bi bi-x-circle text-danger remove"
-           onclick="$(this).parent().remove()"></i>
-
-        <div class="row g-2">
-
-            <!-- TYPE -->
-            <div class="col-md-4">
-                <label class="fw-bold">Type</label>
-                <select class="form-control">
-                    <option value="">Select</option>
-                    <option>Mobile</option>
-                    <option>Email</option>
-                    <option>Landline</option>
-                </select>
-            </div>
-
-            <!-- LABEL -->
-            <div class="col-md-4">
-                <label class="fw-bold">Communication Label</label>
-                <input type="text" class="form-control"
-                       placeholder="EX: Personal / Official / WhatsApp" >
-            </div>
-
-            <!-- VALUE -->
-            <div class="col-md-4">
-                <label class="fw-bold">Value</label>
-                <input type="text" class="form-control"
-                       placeholder="Enter value"/>
-            </div>
-
-        </div>
-
-    </div>
-
-    `);
-    }
-
-    function addPersonAddress(){
-             if($("#personAddressContainer .box").length >= 10){
-            alert("Max 10 Addresses allowed");
-            return;
-        }
-    $("#personAddressContainer").append(`
-
-    <div class="box">
-
-        <i class="bi bi-x-circle text-danger remove"
-           onclick="$(this).parent().remove()"></i>
-
-        <div class="row g-2">
-
-            <!-- TYPE -->
-            <div class="col-md-4">
-                <label class="fw-bold">Type</label>
-                <input type="text" class="form-control"
-                       />
-            </div>
-
-            <!-- ADDRESS -->
-            <div class="col-md-8">
-                <label class="fw-bold">Address</label>
-                <input type="text" class="form-control"
-                       placeholder="Enter address"/>
-            </div>
-
-        </div>
-
-    </div>
-
-    `);
-    }
-
-
-    function removeErrorOnInput(){
-
-        $("#personModal input, #personModal select").on("input change", function(){
-            $(this).next(".error-msg").remove();
-        });
-
-    }
-
-async function savePerson(){
-
-         if(personList.length >= 10){
-            alert("Max 10 Persons allowed");
-            return;
-        }
-
-    let isValid = true;
-
-    $(".error-msg").remove();
-
-    function setError(el, msg){
-        el.after(`<div class="error-msg">${msg}</div>`);
-        isValid = false;
-    }
-
-    // ===== FIELDS =====
-    let title = $("#pTitle");
-    let first = $("#pFirst");
-    let middle = $("#pMiddle");
-    let last = $("#pLast");
-    let gender = $("#pGender");
-    let pan = $("#pPAN");
-    let type = $("#pType");
-
-    // ===== BASIC VALIDATION =====
-    if(title.val() === "") setError(title, "Title is required");
-    if(first.val().trim() === "") setError(first, "First name is required");
-    if(last.val().trim() === "") setError(last, "Last name is required");
-    if(gender.val() === "") setError(gender, "Gender is required");
-    if(type.val().trim() === "") setError(type, "Designation is required");
-
-    // ===== PAN VALIDATION =====
-    let panVal = pan.val()?.toUpperCase() || null;
-    let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-
-    if(panVal){
-        if(!panRegex.test(panVal)){
-            setError(pan, "Invalid PAN format (ABCDE1234F)");
-        }
-    }
-
-    // ===== COMMUNICATION REQUIRED =====
-    if($("#commContainer .box").length === 0){
-        alert("Add at least 1 communication");
-        return;
-    }
-
-    // ===== ADDRESS REQUIRED =====
-    if($("#personAddressContainer .box").length === 0){
-        alert("Add at least 1 address");
-        return;
-    }
-
-    // ===== STOP IF BASIC FAIL =====
-    if(!isValid) return;
-
-    // ===== IMAGE =====
-    let validImages = (personImages || []).filter(x => x != null);
-    let base64Images = [];
-
-    for(let i=0;i<validImages.length;i++){
-        let b64 = await toBase64(validImages[i]);
-        if(b64) base64Images.push(b64);
-    }
-
-    // ===== OBJECT =====
-    let p = {
-        Title: title.val() || null,
-        First: first.val() || null,
-        Middle: middle.val() || null,
-        Last: last.val() || null,
-        Gender: gender.val() || null,
-        Dob: $("#pDOB").val() || null,
-        Anniversary: $("#pAnniversary").val() || null,
-        Pan: panVal,
-        Type: type.val() || null,
-        Remark: $("#pRemark").val() || null,
-
-        Images: base64Images.length > 0 ? base64Images : [],
-
-        Communications: [],
-        Addresses: []
-    };
-
-    // ===== COMMUNICATION VALIDATION =====
-    let mobileRegex = /^[6-9]\d{9}$/;
-    let emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
-    let landlineRegex = /^\d{10}$/;
-
-    let commValid = true;
-
-    $("#commContainer .box").each(function(){
-
-        let typeVal = $(this).find("select").val();
-        let labelVal = $(this).find("input").eq(0).val();
-        let valueVal = $(this).find("input").eq(1).val();
-
-        if(!typeVal || !valueVal){
-            alert("Communication Type & Value required");
-            commValid = false;
-            return false;
-        }
-
-        // ===== TYPE BASED VALIDATION =====
-        if(typeVal === "Mobile"){
-            if(!mobileRegex.test(valueVal)){
-                alert("Invalid Mobile Number");
-                commValid = false;
-                return false;
-            }
-        }
-
-        if(typeVal === "Email"){
-            if(!emailRegex.test(valueVal)){
-                alert("Invalid Email");
-                commValid = false;
-                return false;
-            }
-        }
-
-        if(typeVal === "Landline"){
-            if(!landlineRegex.test(valueVal)){
-                alert("Invalid Landline");
-                commValid = false;
-                return false;
-            }
-        }
-
-        p.Communications.push({
-            Type: typeVal,
-            Label: labelVal || null,
-            Value: valueVal
-        });
+    dealerImages.push({
+    file:file,
+    type:type
     });
 
-    if(!commValid) return;
+    let localType = type;
 
-    // ===== ADDRESS VALIDATION =====
-    let addrValid = true;
+    let reader = new FileReader();
 
-    $("#personAddressContainer .box").each(function(){
+    reader.onload = function(e){
 
-        let typeVal = $(this).find("input").eq(0).val();
-        let addrVal = $(this).find("input").eq(1).val();
+    let badge = localType === "MainOffice"
+    ? `<span class="badge bg-primary position-absolute"
+    style="top:5px;left:5px">Main</span>`
+    : "";
 
-        if(!typeVal || !addrVal){
-            alert("Address Type & Address required");
-            addrValid = false;
-            return false;
-        }
+    $("#imageGrid").append(`
 
-        p.Addresses.push({
-            Type: typeVal,
-            Address: addrVal
-        });
-    });
+    <div class="col-md-1 mb-2">
+    <div class="position-relative">
 
-    if(!addrValid) return;
+    ${badge}
 
-    // ===== SAVE =====
-    personList.push(p);
-    renderPersonGrid();
+    <img src="${e.target.result}"
+    style="width:70px;height:70px;
+    object-fit:cover;border-radius:6px">
 
-    // ===== RESET =====
-    personImages = [];
-
-    $("#personModal input, #personModal textarea").val("");
-    $("#personModal select").val("");
-    $("#commContainer").empty();
-    $("#personAddressContainer").empty();
-    $("#personImagePreview").empty();
-    $("#personImagePreview").empty();
-
-
-    $("#personModal").modal('hide');
-
-    // ===== SUCCESS =====
-    Swal.fire({
-        icon: 'success',
-        title: 'Person Added',
-        text: 'Person added successfully'
-    });
-}
-    function renderPersonGrid(){
-
-        $("#personGrid").empty();
-
-        if(personList.length === 0){
-            $("#personGrid").html("<div class='text-muted'>No person added</div>");
-            return;
-        }
-
-        personList.forEach((p,i)=>{
-
-            let commHtml = "";
-            let addrHtml = "";
-            let imgHtml = "";
-
-               // ================= IMAGES =================
-    if(p.Images && p.Images.length > 0){
-
-        p.Images.forEach(img=>{
-            imgHtml += `
-                <img
-                    src="data:image/png;base64,${img}"
-                    width="50"
-                    class="me-1 rounded"
-                    style="cursor:pointer"
-                    onclick="showPreview('data:image/png;base64,${img}')"
-                />
-            `;
-        });
-
-    } else {
-        imgHtml = "<div class='text-muted'>No images</div>";
-    }
-            // ================= COMMUNICATION =================
-            if(p.Communications && p.Communications.length > 0){
-                p.Communications.forEach(c=>{
-                    commHtml += `
-                        <div>
-                            • <b>${c.Type}</b> (${c.Label}) : ${c.Value}
-                        </div>
-                    `;
-                });
-            } else {
-                commHtml = "<div class='text-muted'>No communication</div>";
-            }
-
-            // ================= ADDRESS =================
-            if(p.Addresses && p.Addresses.length > 0){
-                p.Addresses.forEach(a=>{
-                    addrHtml += `
-                        <div>
-                            • <b>${a.Type}</b> : ${a.Address}
-                        </div>
-                    `;
-                });
-            } else {
-                addrHtml = "<div class='text-muted'>No address</div>";
-            }
-
-            // ================= FINAL CARD =================
-            $("#personGrid").append(`
-            <div class="card mb-3 border-info shadow-sm">
-
-                <div class="card-body">
-
-                    <!-- HEADER -->
-                    <div class="d-flex justify-content-between">
-                        <h5 class="text-info">
-                            ${p.Title} ${p.First} ${p.Last}
-                        </h5>
-
-                        <button class="btn btn-sm btn-danger"
-                                onclick="removePerson(${i})">
-                            Remove
-                        </button>
-                    </div>
-
-                    <!-- BASIC -->
-                    <div class="row mt-2">
-                        <div class="col-md-3"><b>Gender:</b> ${p.Gender}</div>
-                        <div class="col-md-3"><b>DOB:</b> ${p.Dob || "-"}</div>
-                        <div class="col-md-3"><b>Anniversary:</b> ${p.Anniversary || "-"}</div>
-                        <div class="col-md-3"><b>PAN:</b> ${p.Pan}</div>
-
-                        <div class="col-md-3 mt-2"><b>Designation:</b> ${p.Type}</div>
-                        <div class="col-md-9 mt-2"><b>Remark:</b> ${p.Remark || "-"}</div>
-                    </div>
-
-                    <!-- IMAGES -->
-                    <div class="mt-3">
-                        <b>Images:</b><br>
-                        ${imgHtml}
-                    </div>
-
-                    <!-- COMMUNICATION -->
-                    <div class="mt-3">
-                        <b>Communication:</b>
-                        ${commHtml}
-                    </div>
-
-                    <!-- ADDRESS -->
-                    <div class="mt-3">
-                        <b>Address:</b>
-                        ${addrHtml}
-                    </div>
-
-                </div>
-
-            </div>
-            `);
-        });
-    }
-    function removePerson(i){
-    personList.splice(i,1);
-    renderPersonGrid();
-    }
-
-    var personImages = [];
-
-    $("#pImageInput").on("change", function(){
-
-            let files = this.files;
-
-        if(personImages.filter(x => x != null).length + files.length > 10){
-            alert("Max 10 Images allowed");
-            return;
-        }
-
-        for(let i=0;i<files.length;i++){
-
-               let index = personImages.length;
-        personImages.push(files[i]);  // 🔥 FIRST PUSH
-
-            let reader = new FileReader();
-
-            reader.onload = function(e){
-
-                $("#personImagePreview").append(`
-                    <div class="col-md-2 mb-2" id="pimg_${index}">
-                        <div class="position-relative">
-        <img src="${e.target.result}"
-    class="rounded border"
-    style="width:80px;height:80px;object-fit:cover;cursor:pointer"
-    onclick="showPreview('${e.target.result}')">
     <i class="bi bi-x-circle text-danger"
-                               style="position:absolute; top:5px; right:5px; cursor:pointer;"
-                               onclick="removePersonImage(${index})">
-                            </i>
-                        </div>
-                    </div>
-                `);
-            };
+    style="position:absolute; top:5px; right:5px;"
+    onclick="removeDealerImage(${dealerImages.length-1}, this)">
+    </i>
 
-            reader.readAsDataURL(files[i]);
-        }
+    </div>
+    </div>
 
-        $("#pImageInput").val(""); // reset input
-    });
-    function removePersonImage(i){
-        $("#pimg_"+i).remove();
-        personImages[i] = null;
+    `);
+
+    };
+
+    reader.readAsDataURL(file);
+
     }
 
-    $(document).ready(function(){
-        removeErrorOnInput();
-    });
+    // RESET TYPE IMPORTANT
+    $("#imageModal").removeData("type");
 
+    $("#multiImageInput").val("");
+    $("#imageModal").modal('hide');
+
+    }
+        function removeDealerImage(index, el){
+
+    dealerImages.splice(index, 1);
+
+    $(el).closest('.col-md-1').remove();
+
+    }
+
+
+
+    // ================= SAVE DEALER =================
 
     function saveDealer(){
 
-         clearErrors();
-        let isValid = true;
+    let formData = new FormData();
 
-        let dealerName = $("input[name='Dealer.DealerName']");
-        let ownerName = $("input[name='Dealer.OwnerName']");
-        let gst = $("input[name='Dealer.GSTNo']");
-        let pan = $("input[name='Dealer.PANNo']");
 
-        // ===== REQUIRED =====
-        if(dealerName.val().trim() === ""){
-            showFieldError(dealerName, "Dealer Name required");
-            isValid = false;
-        }
+    // ================= DEALER =================
 
-        if(ownerName.val().trim() === ""){
-            showFieldError(ownerName, "Owner Name required");
-            isValid = false;
-        }
+    formData.append("Dealer.DealerName", $("input[name='Dealer.DealerName']").val());
+    formData.append("Dealer.GSTNo", $("input[name='Dealer.GSTNo']").val());
+    formData.append("Dealer.PANNo", $("input[name='Dealer.PANNo']").val());
+    formData.append("Dealer.DefaultPaymentModeId", $("select[name='Dealer.DefaultPaymentModeId']").val());
+    formData.append("Dealer.WeeklyOffDayId", $("select[name='Dealer.WeeklyOffDayId']").val());
 
-        // ===== PAN REGEX =====
-        let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-        if(pan.val()){
-            if(!panRegex.test(pan.val().toUpperCase())){
-                showFieldError(pan, "Invalid PAN (ABCDE1234F)");
-                isValid = false;
-            }
-        }
 
-        // ===== GST BASIC =====
-        if(gst.val() && gst.val().length < 10){
-            showFieldError(gst, "Invalid GST");
-            isValid = false;
-        }
+    // ================= DEALER IMAGES =================
 
-        // ===== ADDRESS =====
-        if($("#dealerAddressContainer .box").length === 0){
-            Swal.fire("Error","Add at least 1 Dealer Address","error");
-            return;
-        }
+    dealerImages.forEach((img,i)=>{
 
-        // ===== IMAGES =====
-        if(dealerImages.length === 0){
-            Swal.fire("Error","Add at least 1 Image","error");
-            return;
-        }
+    formData.append("DealerImages", img.file);
+    formData.append(`DealerImageTypes[${i}]`, img.type);
 
-        // ===== NOTES =====
-        if($("#notesContainer .box").length === 0){
-            Swal.fire("Error","Add at least 1 Note","error");
-            return;
-        }
+    });
 
-        // ===== PERSON =====
-        if(personList.length === 0){
-            Swal.fire("Error","Add at least 1 Person","error");
-            return;
-        }
 
-        if(!isValid) return;
+    // ================= DEALER ADDRESS =================
 
-        // ===== MODEL =====
-           let model = {
-        Dealer: {
-            DealerName: dealerName.val() || null,
-            OwnerName: ownerName.val() || null,
-            GSTNo: gst.val() || null,
-            PANNo: pan.val() ? pan.val().toUpperCase() : null,
-            DefaultPaymentModeId: parseInt($("select[name='Dealer.DefaultPaymentModeId']").val()) || 0,
-            WeeklyOffDayId: parseInt($("select[name='Dealer.WeeklyOffDayId']").val()) || 0
-        },
-        DealerImages: dealerImages || [],
-        DealerAddresses: [],
-        DealerNotes: [],
-        Persons: personList || []
-    };
+    $("#dealerAddressContainer .box").each(function(i){
 
-        // ===== ADDRESS LOOP =====
-        let addrValid = true;
+    formData.append(`DealerAddresses[${i}].AddressType`,
+    $(this).find("input").eq(0).val());
 
-        $("#dealerAddressContainer .box").each(function(){
+    formData.append(`DealerAddresses[${i}].AddressLine`,
+    $(this).find("input").eq(1).val());
 
-            let type = $(this).find("input").eq(0).val();
-            let addr = $(this).find("input").eq(1).val();
+    });
 
-            if(!type || !addr){
-                showError("Dealer Address Type & Address required");
-                addrValid = false;
-                return false;
-            }
 
-            model.DealerAddresses.push({
-                AddressType: type,
-                AddressLine: addr
-            });
-        });
+    // ================= DEALER NOTES =================
 
-        if(!addrValid) return;
+    $("#notesContainer .box").each(function(i){
 
-        // ===== NOTES LOOP =====
-        let noteValid = true;
+    formData.append(`DealerNotes[${i}].CategoryId`,
+    $(this).find("select").val());
 
-        $("#notesContainer .box").each(function(){
+    formData.append(`DealerNotes[${i}].NoteText`,
+    $(this).find("textarea").val());
 
-            let cat = $(this).find("select").val();
-            let text = $(this).find("textarea").val();
+    });
 
-            if(!cat || !text){
-                showError("Note Category & Text required");
-                noteValid = false;
-                return false;
-            }
 
-            model.DealerNotes.push({
-                CategoryId: parseInt(cat),
-                NoteText: text
-            });
-        });
+    // ================= PERSON =================
 
-        if(!noteValid) return;
+    personList.forEach((p,index)=>{
 
-        console.log("FINAL JSON:", JSON.stringify(model));
+    formData.append(`Persons[${index}].Title`, p.Title);
+    formData.append(`Persons[${index}].First`, p.First);
+    formData.append(`Persons[${index}].Middle`, p.Middle);
+    formData.append(`Persons[${index}].Last`, p.Last);
+    formData.append(`Persons[${index}].Gender`, p.Gender);
+    formData.append(`Persons[${index}].Dob`, p.Dob);
+    formData.append(`Persons[${index}].Anniversary`, p.Anniversary);
+    formData.append(`Persons[${index}].Pan`, p.Pan);
+    formData.append(`Persons[${index}].Type`, p.Type);
+    formData.append(`Persons[${index}].Remark`, p.Remark);
 
-        // ===== AJAX =====
-        $.ajax({
-            url: '/Dealer/SaveDealerFull',
-            type: 'POST',
-            contentType: 'application/json',
 
-            data: JSON.stringify(model, (key, value) => {
-                if (value === undefined) return null;
-                if (value instanceof File) return null;
-                return value;
-            }),
+    // COMMUNICATION
 
-            success: function(res){
+    p.Communications?.forEach((c,i)=>{
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Saved!',
-                    text: 'Dealer saved successfully'
-                });
+    formData.append(`Persons[${index}].Communications[${i}].Type`, c.Type);
+    formData.append(`Persons[${index}].Communications[${i}].Label`, c.Label);
+    formData.append(`Persons[${index}].Communications[${i}].Value`, c.Value);
 
-                // ===== FULL RESET =====
-                $("#dealerForm")[0].reset();
+    });
 
-                $("#dealerAddressContainer").empty();
-                $("#notesContainer").empty();
-                $("#personGrid").empty();
-                $("#imageGrid").empty();
 
-                dealerImages = [];
-                personList = [];
-                personImages = [];
+    // ADDRESS
 
-                dIndex = 0;
-                noteIndex = 0;
-            },
+    p.Addresses?.forEach((a,i)=>{
 
-            error: function(err){
-                console.log(err);
-                Swal.fire("Error", "Something went wrong!", "error");
-            }
-        });
+    formData.append(`Persons[${index}].Addresses[${i}].Type`, a.Type);
+    formData.append(`Persons[${index}].Addresses[${i}].Address`, a.Address);
+
+    });
+
+
+       // PERSON IMAGES
+
+    p.Images?.forEach((img,i)=>{
+
+    formData.append(`Persons[${index}].Images`, img);
+
+    });
+
+    });
+
+
+    $.ajax({
+
+    url: "/Dealer/SaveDealerFull",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success:function(res){
+
+    Swal.fire("Success","Dealer Saved Successfully","success");
+
+    },
+
+    error:function(){
+
+    Swal.fire("Error","Something went wrong","error");
+
     }
 
-        function showFieldError(el, msg){
-        el.next(".error-msg").remove();
-        el.after(`<div class="error-msg">${msg}</div>`);
+    });
+
+    }
+
+    // ================= COMMON =================
+
+    function showFieldError(el,msg){
+    el.next(".error-msg").remove();
+    el.after(`<div class="error-msg">${msg}</div>`);
     }
 
     function clearErrors(){
-        $(".error-msg").remove();
-    }
-        function showPreview(img){
-        $("#previewImg").attr("src", img);
-        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
-        myModal.show();
+    $(".error-msg").remove();
     }
 
-        function showError(msg){
-        Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: msg
-        });
+
+    function showPreview(img){
+
+    $("#previewImg").attr("src", img);
+
+    var myModal =
+    new bootstrap.Modal(
+    document.getElementById('imagePreviewModal')
+    );
+
+    myModal.show();
+
     }
+
+
+    function showError(msg){
+
+    Swal.fire({
+
+    icon:"error",
+    title:"Error",
+    text:msg
+
+    });
+
+    }
+
 </script>
-
 
 <div class="modal fade" id="imagePreviewModal">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -1129,3 +902,465 @@ async function savePerson(){
         </div>
     </div>
 </div>
+
+<script>
+
+// PERSON
+var personList=[];
+var personImages = [];
+var ownerIndex = -1;
+
+function openPersonModal(){ 
+    $("#personModal").modal('show'); 
+}
+
+function addComm(){
+
+    if($("#commContainer .box").length >= 10){
+        alert("Max 10 Communications allowed");
+        return;
+    }
+
+    $("#commContainer").append(`
+
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
+        <div class="row g-2">
+
+            <div class="col-md-4">
+                <label class="fw-bold">Type</label>
+                <select class="form-control">
+                    <option value="">Select</option>
+                    <option>Mobile</option>
+                    <option>Email</option>
+                    <option>Landline</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="fw-bold">Communication Label</label>
+                <input type="text" class="form-control"
+                       placeholder="EX: Personal / Official / WhatsApp" >
+            </div>
+
+            <div class="col-md-4">
+                <label class="fw-bold">Value</label>
+                <input type="text" class="form-control"
+                       placeholder="Enter value"/>
+            </div>
+
+        </div>
+
+    </div>
+    `);
+}
+
+function addPersonAddress(){
+
+    if($("#personAddressContainer .box").length >= 10){
+        alert("Max 10 Addresses allowed");
+        return;
+    }
+
+    $("#personAddressContainer").append(`
+
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
+        <div class="row g-2">
+
+            <div class="col-md-4">
+                <label class="fw-bold">Type</label>
+                <input type="text" class="form-control"/>
+            </div>
+
+            <div class="col-md-8">
+                <label class="fw-bold">Address</label>
+                <input type="text" class="form-control"
+                       placeholder="Enter address"/>
+            </div>
+
+        </div>
+
+    </div>
+    `);
+}
+
+function removeErrorOnInput(){
+
+    $("#personModal input, #personModal select").on("input change", function(){
+        $(this).next(".error-msg").remove();
+    });
+
+}
+
+async function savePerson(){
+
+    if(personList.length >= 10){
+        alert("Max 10 Persons allowed");
+        return;
+    }
+
+    let isValid = true;
+
+    $(".error-msg").remove();
+
+    function setError(el, msg){
+        el.after(`<div class="error-msg">${msg}</div>`);
+        isValid = false;
+    }
+
+    let title = $("#pTitle");
+    let first = $("#pFirst");
+    let middle = $("#pMiddle");
+    let last = $("#pLast");
+    let gender = $("#pGender");
+    let pan = $("#pPAN");
+    let type = $("#pType");
+
+    if(title.val() === "") setError(title, "Title is required");
+    if(first.val().trim() === "") setError(first, "First name is required");
+    if(last.val().trim() === "") setError(last, "Last name is required");
+    if(gender.val() === "") setError(gender, "Gender is required");
+    if(type.val().trim() === "") setError(type, "Designation is required");
+
+    let panVal = pan.val()?.toUpperCase() || null;
+    let panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+    if(panVal){
+        if(!panRegex.test(panVal)){
+            setError(pan, "Invalid PAN format (ABCDE1234F)");
+        }
+    }
+
+    if($("#commContainer .box").length === 0){
+        alert("Add at least 1 communication");
+        return;
+    }
+
+    if($("#personAddressContainer .box").length === 0){
+        alert("Add at least 1 address");
+        return;
+    }
+
+    if(!isValid) return;
+
+    // ===== IMAGE (NO BASE64) =====
+    let validImages = (personImages || []).filter(x => x != null);
+
+    let p = {
+        Title: title.val() || null,
+        First: first.val() || null,
+        Middle: middle.val() || null,
+        Last: last.val() || null,
+        Gender: gender.val() || null,
+        Dob: $("#pDOB").val() || null,
+        Anniversary: $("#pAnniversary").val() || null,
+        Pan: panVal,
+        Type: type.val() || null,
+        Remark: $("#pRemark").val() || null,
+
+        Images: validImages,   // FILE STORE
+
+        Communications: [],
+        Addresses: []
+    };
+
+    let mobileRegex = /^[6-9]\d{9}$/;
+    let emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+    let landlineRegex = /^\d{10}$/;
+
+    let commValid = true;
+
+    $("#commContainer .box").each(function(){
+
+        let typeVal = $(this).find("select").val();
+        let labelVal = $(this).find("input").eq(0).val();
+        let valueVal = $(this).find("input").eq(1).val();
+
+        if(!typeVal || !valueVal){
+            alert("Communication Type & Value required");
+            commValid = false;
+            return false;
+        }
+
+        if(typeVal === "Mobile" && !mobileRegex.test(valueVal)){
+            alert("Invalid Mobile Number");
+            commValid = false;
+            return false;
+        }
+
+        if(typeVal === "Email" && !emailRegex.test(valueVal)){
+            alert("Invalid Email");
+            commValid = false;
+            return false;
+        }
+
+        if(typeVal === "Landline" && !landlineRegex.test(valueVal)){
+            alert("Invalid Landline");
+            commValid = false;
+            return false;
+        }
+
+        p.Communications.push({
+            Type: typeVal,
+            Label: labelVal || null,
+            Value: valueVal
+        });
+
+    });
+
+    if(!commValid) return;
+
+    $("#personAddressContainer .box").each(function(){
+
+        let typeVal = $(this).find("input").eq(0).val();
+        let addrVal = $(this).find("input").eq(1).val();
+
+        if(!typeVal || !addrVal){
+            alert("Address Type & Address required");
+            return false;
+        }
+
+        p.Addresses.push({
+            Type: typeVal,
+            Address: addrVal
+        });
+
+    });
+
+    // SAVE
+    personList.push(p);
+
+    // OWNER
+      let isOwner = $("#personModal").data("isOwner");
+
+    if(isOwner){
+        ownerIndex = personList.length - 1;
+        $("#personModal").data("isOwner", false);
+    }
+
+    renderPersonGrid();
+
+    personImages = [];
+
+    $("#personModal input, #personModal textarea").val("");
+    $("#personModal select").val("");
+    $("#commContainer").empty();
+    $("#personAddressContainer").empty();
+    $("#personImagePreview").empty();
+
+    $("#personModal").modal('hide');
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Person Added',
+        text: 'Person added successfully'
+    });
+
+}
+
+    function renderPersonGrid(){
+
+        $("#personGrid").empty();
+
+        personList.forEach((p, index)=>{
+
+            // IMAGE
+            let imgHtml = "";
+
+            if(p.Images && p.Images.length > 0){
+                let img = URL.createObjectURL(p.Images[0]);
+
+                imgHtml = `
+                    <img src="${img}"
+                    style="width:60px;height:60px;
+                    object-fit:cover;border-radius:6px;border:1px solid #ddd"/>
+                `;
+            }
+
+            // OWNER BADGE
+            let ownerBadge = "";
+
+            if(index === ownerIndex){
+                ownerBadge = `<span class="badge bg-primary ms-2">Owner</span>`;
+            }
+
+            // COMMUNICATION
+            let commHtml = "";
+
+            if(p.Communications && p.Communications.length > 0){
+
+                p.Communications.forEach(c=>{
+
+                    commHtml += `
+                        <div>
+                            <strong>${c.Type}</strong> :
+                            ${c.Value}
+                            ${c.Label ? `(${c.Label})` : ''}
+                        </div>
+                    `;
+                });
+
+            }
+
+            // ADDRESS
+            let addressHtml = "";
+
+            if(p.Addresses && p.Addresses.length > 0){
+
+                p.Addresses.forEach(a=>{
+
+                    addressHtml += `
+                        <div>
+                            <strong>${a.Type}</strong> :
+                            ${a.Address}
+                        </div>
+                    `;
+                });
+
+            }
+
+            // HTML APPEND
+            $("#personGrid").append(`
+
+            <div class="box">
+
+                <i class="bi bi-x-circle text-danger remove"
+                   onclick="removePerson(${index})"></i>
+
+                <div class="row">
+
+                    <!-- IMAGE -->
+                    <div class="col-md-2 text-center">
+                        ${imgHtml}
+                    </div>
+
+                    <!-- DETAILS -->
+                    <div class="col-md-10">
+
+                        <div class="fw-bold">
+                            ${p.Title || ''} ${p.First || ''} ${p.Middle || ''} ${p.Last || ''}
+                            ${ownerBadge}
+                        </div>
+
+                        <div class="text-muted">
+                            ${p.Type || ''}
+                        </div>
+
+                        <div class="mt-1">
+                            <strong>Gender :</strong> ${p.Gender || '-'}
+                        </div>
+
+                        <div>
+                            <strong>DOB :</strong> ${p.Dob || '-'}
+                        </div>
+
+                        <div>
+                            <strong>Anniversary :</strong> ${p.Anniversary || '-'}
+                        </div>
+
+                        <div>
+                            <strong>PAN :</strong> ${p.Pan || '-'}
+                        </div>
+
+                        <div>
+                            <strong>Remark :</strong> ${p.Remark || '-'}
+                        </div>
+
+                        <hr class="my-1"/>
+
+                        <div>
+                            <strong>Communication :</strong>
+                            ${commHtml || 'No Communication'}
+                        </div>
+
+                        <div class="mt-1">
+                            <strong>Address :</strong>
+                            ${addressHtml || 'No Address'}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            `);
+
+        });
+
+    }
+
+        function removePerson(index){
+
+        personList.splice(index,1);
+
+        if(ownerIndex === index){
+            ownerIndex = -1;
+            $("#ownerName").val("");
+            $("#ownerPreview").empty();
+        }
+
+        renderPersonGrid();
+    }
+
+        $("#pImageInput").on("change", function(){
+
+        let files = this.files;
+
+        if(!files.length) return;
+
+        for(let i=0;i<files.length;i++){
+
+            let file = files[i];
+
+            if(!file.type.startsWith("image/")){
+                alert("Only images allowed");
+                return;
+            }
+
+            personImages.push(file);
+
+            let reader = new FileReader();
+
+            reader.onload = function(e){
+
+                $("#personImagePreview").append(`
+
+                    <div class="col-md-2 mb-2 position-relative">
+
+                        <img src="${e.target.result}"
+                        style="width:70px;height:70px;
+                        object-fit:cover;border-radius:6px;border:1px solid #ddd"/>
+
+                        <i class="bi bi-x-circle text-danger"
+                        style="position:absolute; top:-5px; right:5px; cursor:pointer;"
+                        onclick="removePersonImage(${personImages.length-1}, this)">
+                        </i>
+
+                    </div>
+
+                `);
+
+            }
+
+            reader.readAsDataURL(file);
+        }
+
+    });
+
+        function removePersonImage(index, el){
+
+        personImages.splice(index,1);
+
+        $(el).parent().remove();
+
+    }
+
+</script>

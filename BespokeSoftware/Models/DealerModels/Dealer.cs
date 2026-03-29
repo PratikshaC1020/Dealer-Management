@@ -142,7 +142,9 @@ namespace BespokeSoftware.Models
             public List<DealerAddressAdd> DealerAddresses { get; set; }
             public List<DealerNoteAdd> DealerNotes { get; set; }
             public List<PersonVMAdd> Persons { get; set; }
-            public List<string> DealerImages { get; set; }
+            public List<IFormFile> DealerImages { get; set; }
+            public List<IFormFile> Images { get; set; }
+            public List<string> DealerImageTypes { get; set; }
 
             public class PersonVMAdd
             {
@@ -157,8 +159,7 @@ namespace BespokeSoftware.Models
                 public string Type { get; set; }
                 public string Remark { get; set; }
 
-                public List<string> Images { get; set; }   // base64
-
+                public List<IFormFile> Images { get; set; }
                 public List<CommunicationVMAdd> Communications { get; set; }
                 public List<AddressVMAdd> Addresses { get; set; }
             }
@@ -186,6 +187,8 @@ namespace BespokeSoftware.Models
             {
                 public int CategoryId { get; set; }
                 public string NoteText { get; set; }
+                public string NoteFor { get; set; }
+                public DateTime? NoteDate { get; set; }
             }
 
         }

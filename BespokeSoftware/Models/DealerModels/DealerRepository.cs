@@ -1063,45 +1063,81 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     int dealerId = 0;
 
+                    string ownerName = null;
+
+                    var owner = model.Persons?
+                        .FirstOrDefault(x => x.Type == "Owner");
+
+                    if (owner != null)
+                    {
+                        ownerName = $"{owner.First} {owner.Last}".Trim();
+                    }
+
+
                     // ================= DEALER (ONLY ONCE) =================
                     using (SqlCommand cmd = new SqlCommand("sp_InsertDealerWithImage", con, tran))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
+                        byte[] imgBytes = null;
+
                         var firstImg = model.DealerImages?.FirstOrDefault();
+
+                        if (firstImg != null)
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                await firstImg.CopyToAsync(ms);
+                                imgBytes = ms.ToArray();
+                            }
+                        }
 
                         cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode);
                         cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName);
-                        cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@OwnerName", ownerName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
                         cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
                         cmd.Parameters.AddWithValue("@CreatedBy", 1);
 
-                        cmd.Parameters.AddWithValue("@ImageBase64", firstImg ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ImageBase64", imgBytes ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@FileName", "Dealer.png");
 
                         dealerId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     }
 
                     // ================= EXTRA DEALER IMAGES =================
-                    if (model.DealerImages != null && model.DealerImages.Count > 1)
+                    if (model.DealerImages != null && model.DealerImages.Count > 0)
                     {
-                        foreach (var img in model.DealerImages.Skip(1))
+                        for (int i = 0; i < model.DealerImages.Count; i++)
                         {
+                            var img = model.DealerImages[i];
+
+                            byte[] imgBytes = null;
+
+                            using (var ms = new MemoryStream())
+                            {
+                                await img.CopyToAsync(ms);
+                                imgBytes = ms.ToArray();
+                            }
+
+                            string type = model.DealerImageTypes?[i] == "MainOffice"
+                                ? "MainOffice"
+                                : "Dealer";
+
                             using (SqlCommand cmd = new SqlCommand(
-                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Dealer',@DealerId,@Img,GETDATE(),'Dealer.png')",
+                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@Img,GETDATE(),'Dealer.png')",
                                 con, tran))
                             {
                                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                                cmd.Parameters.AddWithValue("@Img", img);
+                                cmd.Parameters.AddWithValue("@Img", imgBytes);
+                                cmd.Parameters.AddWithValue("@Type", type);
 
                                 await cmd.ExecuteNonQueryAsync();
                             }
                         }
                     }
-
                     // ================= DEALER ADDRESS =================
                     foreach (var addr in model.DealerAddresses)
                     {
@@ -1127,6 +1163,8 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                             cmd.Parameters.AddWithValue("@DealerId", dealerId);
                             cmd.Parameters.AddWithValue("@CategoryId", note.CategoryId);
                             cmd.Parameters.AddWithValue("@NoteText", note.NoteText ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@NoteFor", note.NoteFor ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@NoteDate", note.NoteDate ?? (object)DBNull.Value);
 
                             await cmd.ExecuteNonQueryAsync();
                         }
@@ -1140,6 +1178,18 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         var firstComm = p.Communications?.FirstOrDefault();
                         var firstAddr = p.Addresses?.FirstOrDefault();
                         var firstImg = p.Images?.FirstOrDefault();
+
+                        byte[] personImg = null;
+
+                        if (firstImg != null)
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                await firstImg.CopyToAsync(ms);
+                                personImg = ms.ToArray();
+                            }
+                        }
+
 
                         // ===== FIRST INSERT USING SP =====
                         using (SqlCommand cmd = new SqlCommand("sp_InsertPersonFull", con, tran))
@@ -1165,7 +1215,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                             cmd.Parameters.AddWithValue("@AddressType", firstAddr?.Type ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@AddressLine", firstAddr?.Address ?? (object)DBNull.Value);
 
-                            cmd.Parameters.AddWithValue("@ImageBase64", firstImg ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ImageBase64", personImg ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@FileName", "person.png");
 
                             personId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
@@ -1213,12 +1263,20 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         {
                             foreach (var img in p.Images.Skip(1))
                             {
+                                byte[] imgBytes = null;
+
+                                using (var ms = new MemoryStream())
+                                {
+                                    await img.CopyToAsync(ms);
+                                    imgBytes = ms.ToArray();
+                                }
+
                                 using (SqlCommand cmd = new SqlCommand(
                                     "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@Img,GETDATE(),'person.png')",
                                     con, tran))
                                 {
                                     cmd.Parameters.AddWithValue("@PersonId", personId);
-                                    cmd.Parameters.AddWithValue("@Img", img);
+                                    cmd.Parameters.AddWithValue("@Img", imgBytes);
 
                                     await cmd.ExecuteNonQueryAsync();
                                 }
@@ -1251,7 +1309,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
                 SqlDataReader rdr = cmd.ExecuteReader();
 
-                
+
                 if (rdr.Read())
                 {
                     model.Dealer = new Models.DealerModels.DealerVM
@@ -1266,7 +1324,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     };
                 }
 
-               
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
@@ -1279,7 +1337,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     }
                 }
 
-             
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
@@ -1331,7 +1389,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                     }
                 }
 
-               
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
@@ -1360,6 +1418,23 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
             return model;
         }
+
+        public void AddCategory(string category)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = "insert into T_Category(Category,IsDelete) values(@cat,0)";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@cat", category);
+
+                con.Open();
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
 
     }

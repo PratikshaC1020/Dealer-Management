@@ -54,7 +54,7 @@ public class DealerController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> SaveDealerFull([FromBody] Dealer.DealerViewModel model)
+    public async Task<IActionResult> SaveDealerFull([FromForm] DealerViewModel model)
     {
         try
         {
@@ -78,6 +78,19 @@ public class DealerController : Controller
         {
             return Json(new { success = false, message = ex.Message });
         }
+    }
+
+    public JsonResult GetCategories()
+    {
+        var list = repo.GetCategories();
+        return Json(list);
+    }
+
+    [HttpPost]
+    public IActionResult AddCategory(string category)
+    {
+        repo.AddCategory(category);
+        return Ok();
     }
 
     //[HttpPost]
