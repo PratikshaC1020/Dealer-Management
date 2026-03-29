@@ -436,7 +436,11 @@ namespace BespokeSoftware.Repository
                     {
                         NoteId = (int)dr["NoteId"],
                         CategoryId = (int)dr["CategoryId"],
-                        NoteText = dr["NoteText"]?.ToString()
+                        NoteText = dr["NoteText"]?.ToString(),
+                        NoteFor = dr["NoteFor"]?.ToString(),
+                        Notedate = dr["NoteDate"] == DBNull.Value
+            ? (DateTime?)null
+            : Convert.ToDateTime(dr["NoteDate"])
                     });
                 }
                 dr.Close();
@@ -1042,7 +1046,7 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             {
                 list.Add(new CommunicationDetails
                 {
-                    // 👉 adjust as per your model
+                    // adjust as per your model
                     CommunicationID = Convert.ToInt32(rdr["PersonID"]),
                     Type = rdr["PersonType"]?.ToString(),
                     Value = rdr["PersonName"]?.ToString()
@@ -1063,34 +1067,41 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                 {
                     int dealerId = 0;
 
-                    string ownerName = null;
+                    string ownerName = model.Persons?
+                        .FirstOrDefault(x => x.Type == "Owner") is var owner && owner != null
+                        ? $"{owner.First} {owner.Last}".Trim()
+                        : null;
 
-                    var owner = model.Persons?
-                        .FirstOrDefault(x => x.Type == "Owner");
+                    // ================= FOLDERS =================
+                    string dealerFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/dealer");
+                    string personFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/person");
 
-                    if (owner != null)
+                    if (!Directory.Exists(dealerFolder)) Directory.CreateDirectory(dealerFolder);
+                    if (!Directory.Exists(personFolder)) Directory.CreateDirectory(personFolder);
+
+                    // ================= MAIN DEALER IMAGE =================
+                    string dealerFileName = null;
+                    string dealerFilePath = null;
+
+                    var firstDealerImg = model.DealerImages?.FirstOrDefault();
+
+                    if (firstDealerImg != null)
                     {
-                        ownerName = $"{owner.First} {owner.Last}".Trim();
+                        dealerFileName = Guid.NewGuid() + Path.GetExtension(firstDealerImg.FileName);
+                        string fullPath = Path.Combine(dealerFolder, dealerFileName);
+
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await firstDealerImg.CopyToAsync(stream);
+                        }
+
+                        dealerFilePath = "/uploads/dealer/" + dealerFileName;
                     }
 
-
-                    // ================= DEALER (ONLY ONCE) =================
+                    // ================= DEALER INSERT =================
                     using (SqlCommand cmd = new SqlCommand("sp_InsertDealerWithImage", con, tran))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-
-                        byte[] imgBytes = null;
-
-                        var firstImg = model.DealerImages?.FirstOrDefault();
-
-                        if (firstImg != null)
-                        {
-                            using (var ms = new MemoryStream())
-                            {
-                                await firstImg.CopyToAsync(ms);
-                                imgBytes = ms.ToArray();
-                            }
-                        }
 
                         cmd.Parameters.AddWithValue("@DealerCode", model.Dealer.DealerCode);
                         cmd.Parameters.AddWithValue("@DealerName", model.Dealer.DealerName);
@@ -1101,38 +1112,42 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
                         cmd.Parameters.AddWithValue("@CreatedBy", 1);
 
-                        cmd.Parameters.AddWithValue("@ImageBase64", imgBytes ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@FileName", "Dealer.png");
+                        cmd.Parameters.AddWithValue("@ImageBase64", dealerFilePath ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FileName", dealerFileName ?? (object)DBNull.Value);
 
                         dealerId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     }
 
                     // ================= EXTRA DEALER IMAGES =================
-                    if (model.DealerImages != null && model.DealerImages.Count > 0)
+                    if (model.DealerImages != null && model.DealerImages.Count > 1)
                     {
-                        for (int i = 0; i < model.DealerImages.Count; i++)
+                        for (int i = 1; i < model.DealerImages.Count; i++) // skip first
                         {
                             var img = model.DealerImages[i];
 
-                            byte[] imgBytes = null;
+                            string fileName = Guid.NewGuid() + Path.GetExtension(img.FileName);
+                            string fullPath = Path.Combine(dealerFolder, fileName);
 
-                            using (var ms = new MemoryStream())
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
                             {
-                                await img.CopyToAsync(ms);
-                                imgBytes = ms.ToArray();
+                                await img.CopyToAsync(stream);
                             }
 
-                            string type = model.DealerImageTypes?[i] == "MainOffice"
-                                ? "MainOffice"
+                            string dbPath = "/uploads/dealer/" + fileName;
+
+                            // TYPE FIX
+                            string type = (model.DealerImageTypes != null && model.DealerImageTypes.Count > i)
+                                ? model.DealerImageTypes[i]
                                 : "Dealer";
 
                             using (SqlCommand cmd = new SqlCommand(
-                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@Img,GETDATE(),'Dealer.png')",
+                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@ImageBase64,GETDATE(),@FileName)",
                                 con, tran))
                             {
                                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                                cmd.Parameters.AddWithValue("@Img", imgBytes);
-                                cmd.Parameters.AddWithValue("@Type", type);
+                                cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
+                                cmd.Parameters.AddWithValue("@Type", type); 
+                                cmd.Parameters.AddWithValue("@FileName", fileName);
 
                                 await cmd.ExecuteNonQueryAsync();
                             }
@@ -1179,19 +1194,24 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         var firstAddr = p.Addresses?.FirstOrDefault();
                         var firstImg = p.Images?.FirstOrDefault();
 
-                        byte[] personImg = null;
+                        string personFileName = null;
+                        string personFilePath = null;
 
+                        // 🔥 PERSON IMAGE SAVE (PATH)
                         if (firstImg != null)
                         {
-                            using (var ms = new MemoryStream())
+                            personFileName = Guid.NewGuid() + Path.GetExtension(firstImg.FileName);
+                            string fullPath = Path.Combine(personFolder, personFileName);
+
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
                             {
-                                await firstImg.CopyToAsync(ms);
-                                personImg = ms.ToArray();
+                                await firstImg.CopyToAsync(stream);
                             }
+
+                            personFilePath = "/uploads/person/" + personFileName;
                         }
 
-
-                        // ===== FIRST INSERT USING SP =====
+                        // ===== INSERT PERSON =====
                         using (SqlCommand cmd = new SqlCommand("sp_InsertPersonFull", con, tran))
                         {
                             cmd.CommandType = CommandType.StoredProcedure;
@@ -1215,68 +1235,35 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                             cmd.Parameters.AddWithValue("@AddressType", firstAddr?.Type ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@AddressLine", firstAddr?.Address ?? (object)DBNull.Value);
 
-                            cmd.Parameters.AddWithValue("@ImageBase64", personImg ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@FileName", "person.png");
+                            // 🔥 CHANGE HERE
+                            cmd.Parameters.AddWithValue("@ImageBase64", personFilePath ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@FileName", personFileName ?? (object)DBNull.Value);
 
                             personId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                         }
 
-                        // ================= EXTRA COMMUNICATION =================
-                        if (p.Communications != null && p.Communications.Count > 1)
-                        {
-                            foreach (var comm in p.Communications.Skip(1))
-                            {
-                                using (SqlCommand cmd = new SqlCommand(
-                                    "INSERT INTO T_PersonCommunication(PersonID, CommunicationType, Value, CommunicationLabel) VALUES(@PersonId,@Type,@Value,@Label)",
-                                    con, tran))
-                                {
-                                    cmd.Parameters.AddWithValue("@PersonId", personId);
-                                    cmd.Parameters.AddWithValue("@Type", comm.Type);
-                                    cmd.Parameters.AddWithValue("@Value", comm.Value);
-                                    cmd.Parameters.AddWithValue("@Label", comm.Label ?? (object)DBNull.Value);
-
-                                    await cmd.ExecuteNonQueryAsync();
-                                }
-                            }
-                        }
-
-                        // ================= EXTRA ADDRESS =================
-                        if (p.Addresses != null && p.Addresses.Count > 1)
-                        {
-                            foreach (var addr in p.Addresses.Skip(1))
-                            {
-                                using (SqlCommand cmd = new SqlCommand(
-                                    "INSERT INTO T_PersonAddress(PersonID, AddressType, AddressLine) VALUES(@PersonId,@Type,@Address)",
-                                    con, tran))
-                                {
-                                    cmd.Parameters.AddWithValue("@PersonId", personId);
-                                    cmd.Parameters.AddWithValue("@Type", addr.Type);
-                                    cmd.Parameters.AddWithValue("@Address", addr.Address);
-
-                                    await cmd.ExecuteNonQueryAsync();
-                                }
-                            }
-                        }
-
-                        // ================= EXTRA IMAGES =================
+                        // ================= EXTRA PERSON IMAGES =================
                         if (p.Images != null && p.Images.Count > 1)
                         {
                             foreach (var img in p.Images.Skip(1))
                             {
-                                byte[] imgBytes = null;
+                                string fileName = Guid.NewGuid() + Path.GetExtension(img.FileName);
+                                string fullPath = Path.Combine(personFolder, fileName);
 
-                                using (var ms = new MemoryStream())
+                                using (var stream = new FileStream(fullPath, FileMode.Create))
                                 {
-                                    await img.CopyToAsync(ms);
-                                    imgBytes = ms.ToArray();
+                                    await img.CopyToAsync(stream);
                                 }
 
+                                string dbPath = "/uploads/person/" + fileName;
+
                                 using (SqlCommand cmd = new SqlCommand(
-                                    "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@Img,GETDATE(),'person.png')",
+                                    "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@ImageBase64,GETDATE(),@FileName)",
                                     con, tran))
                                 {
                                     cmd.Parameters.AddWithValue("@PersonId", personId);
-                                    cmd.Parameters.AddWithValue("@Img", imgBytes);
+                                    cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
+                                    cmd.Parameters.AddWithValue("@FileName", fileName);
 
                                     await cmd.ExecuteNonQueryAsync();
                                 }

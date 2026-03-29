@@ -124,7 +124,7 @@
                     </div>
                     <div class="col-md-3">
 
-                        <label class="fw-bold">Main Office</label>
+                        <label class="">Main Office</label>
 
                         <div class="d-flex gap-2">
 
@@ -411,32 +411,38 @@
     var dealerImages = [];
     var ownerIndex = null;
 
-        function saveCategory(){
+    function saveCategory(){
 
-    let category = $("#newCategory").val();
+        let category = $("#newCategory").val();
 
-    if(category==""){
-    alert("Enter category");
-    return;
+        if(category==""){
+            alert("Enter category");
+            return;
+        }
+
+        $.post('/Dealer/AddCategory',
+        {
+            Category:category
+        },
+        function(){
+
+            $("#categoryModal").modal('hide');
+            $("#newCategory").val('');
+
+            loadCategories();
+
+            Swal.fire("Success","Category added successfully","success");
+
+        });
+
     }
-
-    $.post('/Dealer/AddCategory',
-    {
-    Category:category
-    },
-    function(){
-
-    $("#categoryModal").modal('hide');
-
-    $("#newCategory").val('');
-
-    alert("Category added successfully");
-
-    });
-
-    }
-
      function openOwnerPopup(){
+
+         if(ownerIndex !== -1){
+        Swal.fire("Warning","Owner already added","warning");
+        return;
+    }
+
 
         $("#personModal").modal('show');
 
@@ -448,13 +454,23 @@
 
     }
 
-        $('#personModal').on('hidden.bs.modal', function () {
+     $('#personModal').on('hidden.bs.modal', function () {
 
         $("#pType").prop("readonly", false);
+        $("#pType").val("");   
+
+        $("#personModal").data("isOwner", false); 
 
     });
 
            function openMainOfficePopup(){
+
+     let alreadyMain = dealerImages.some(x => x.type === "MainOffice");
+
+    if(alreadyMain){
+        Swal.fire("Warning","Main Office image already added","warning");
+        return;
+    }
 
     $("#imageModal").data("type","MainOffice");
     $("#multiImageInput").val("");
@@ -603,19 +619,15 @@
 
     function getCategoryOptions(){
 
-    var options='';
+        var options = '';
 
-    @foreach (var c in ViewBag.CategoryList)
-    {
-        <text>
-        options+=`<option value="@c.ID">@c.CategoryName</option>`;
-        </text>
-    }
+        categoryList.forEach(function(c){
+            options += `<option value="${c.id}">${c.categoryName}</option>`;
+        });
 
-    return options;
+        return options;
 
     }
-
         function refreshCategory(ele){
 
     $.get('/Dealer/GetCategories', function(data){
@@ -828,9 +840,18 @@
     processData: false,
     contentType: false,
 
-    success:function(res){
+       success: function (res) {
 
-    Swal.fire("Success","Dealer Saved Successfully","success");
+        Swal.fire({
+            title: "Success",
+            text: "Dealer Saved Successfully",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+
+            window.location.href = '@Url.Action("Index", "Dealer")';
+
+        });
 
     },
 
@@ -909,10 +930,32 @@
 var personList=[];
 var personImages = [];
 var ownerIndex = -1;
+    var categoryList = [];
 
-function openPersonModal(){ 
-    $("#personModal").modal('show'); 
-}
+        $(document).ready(function () {
+        loadCategories();
+    });
+
+    function loadCategories(){
+
+        $.get('/Dealer/GetCategories', function(data){
+
+            categoryList = data;
+
+        });
+
+    }
+
+    function openPersonModal(){
+
+        $("#personModal").modal('show');
+
+        $("#personModal").data("isOwner", false);
+
+        $("#pType").prop("readonly", false);
+        $("#pType").val("");
+
+    }
 
 function addComm(){
 

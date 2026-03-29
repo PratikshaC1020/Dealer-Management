@@ -128,67 +128,72 @@
 
             <!-- ================= NOTES ================= -->
             <div class="section-box mb-3">
-                <div class="d-flex justify-content-between">
+
+                <div class="d-flex justify-content-between align-items-center">
                     <h5 class="section-title">Notes</h5>
-                    <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+
+                    <div>
+                        <i class="bi bi-arrow-clockwise add-icon me-2" onclick="loadCategories()"></i>
+                        <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+                    </div>
                 </div>
 
                 <div id="notesContainer">
+
                     @for (int i = 0; i < Model.DealerNotes.Count; i++)
                     {
                         <div class="box">
-                            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+                            <i class="bi bi-x-circle text-danger remove"
+                               onclick="$(this).parent().remove()"></i>
 
-                            <select name="DealerNotes[@i].CategoryId" class="form-control mb-1">
-                                <option value="">Select</option>
-                                @foreach (var c in ViewBag.CategoryList)
-                                {
-                                    <option value="@c.ID" selected="@(c.ID == Model.DealerNotes[i].CategoryId)">
-                                        @c.CategoryName
-                                    </option>
-                                }
+                            <select name="DealerNotes[@i].CategoryId"
+                                    class="form-control mb-1 categoryDropdown">
                             </select>
 
-    <textarea name="DealerNotes[@i].NoteText" class="form-control">@Model.DealerNotes[i].NoteText</textarea>
+                            <input type="text"
+                                   name="DealerNotes[@i].NoteFor"
+                                   value="@Model.DealerNotes[i].NoteFor"
+                                   placeholder="Note For"
+                                   class="form-control mb-1" />
+
+                            <input type="date"
+                                   name="DealerNotes[@i].NoteDate"
+                                   value="@Model.DealerNotes[i].Notedate?.ToString("yyyy-MM-dd")"
+                                   class="form-control mb-1" />
+
+                            <textarea name="DealerNotes[@i].NoteText"
+                                  class="form-control">@Model.DealerNotes[i].NoteText</textarea>
                         </div>
                     }
-                </div>
-            </div>
 
-            <!-- ================= IMAGES ================= -->
+                </div>
+
+            </div>            <!-- ================= IMAGES ================= -->
             <div class="section-box mb-3">
 
-                <div class="d-flex justify-content-between">
-                    <h5 class="section-title">Images</h5>
-                    <i class="bi bi-plus-circle-fill add-icon" onclick="openImageModal()"></i>
-                </div>
+                <h5 class="section-title">Dealer Images</h5>
 
-                <div class="row" id="imageGrid">
+                <!-- TOP -->
+                <div class="row mt-3">
 
-                    @foreach (var img in Model.DealerImages ?? new List<string>())
-                    {
-                        <div class="col-md-3 mb-2">
-                            <div class="position-relative">
+                    <div class="col-md-2 text-center">
+                        <label class="fw-bold">Owner</label>
+                        <div id="ownerImagePreview"></div>
+                    </div>
 
-                                <img src="data:image/png;base64,@img" class="img-fluid rounded" />
-
-                                <i class="bi bi-x-circle text-danger"
-                                   style="position:absolute;top:5px;right:5px;cursor:pointer;"
-                                   onclick="$(this).parent().parent().remove()">
-                                </i>
-
-                            </div>
-                        </div>
-                    }
+                    <div class="col-md-2 text-center">
+                        <label class="fw-bold">Main Office</label>
+                        <div id="mainOfficePreview"></div>
+                    </div>
 
                 </div>
 
-                <!-- 🔥 hidden binding -->
-                <div id="hiddenImages"></div>
+                <hr />
 
-            </div>
+                <!-- GRID -->
+                <div class="row" id="imageGrid"></div>
 
-            <!-- ================= PERSON ================= -->
+            </div>            <!-- ================= PERSON ================= -->
             <div class="section-box mb-3">
                 <div class="d-flex justify-content-between">
                     <h5 class="section-title">Person Details</h5>
@@ -684,123 +689,7 @@
     });
 </script>
 
-<script>
-        // IMAGE LIST
-    var imageList = @Html.Raw(JsonSerializer.Serialize(Model.DealerImages ?? new List<string>()));
 
-    // OPEN MODAL
-    function openImageModal(){
-        $("#multiImageInput").val("");
-        $("#imageModal").modal('show');
-    }
-
-    // SAVE IMAGE
-    function saveImages(){
-
-        let files = $("#multiImageInput")[0].files;
-
-        if(files.length === 0){
-            alert("Select image");
-            return;
-        }
-
-        for(let i=0;i<files.length;i++){
-
-            let reader = new FileReader();
-
-            reader.onload = function(e){
-
-                imageList.push(e.target.result.split(',')[1]); // base64 only
-
-                renderImages();
-            };
-
-            reader.readAsDataURL(files[i]);
-        }
-
-        $("#imageModal").modal('hide');
-    }
-
-    // RENDER IMAGE
-    function renderImages(){
-
-        $("#imageGrid").empty();
-        $("#hiddenImages").empty();
-
-        imageList.forEach((img,i)=>{
-
-    $("#imageGrid").append(`
-    <div class="col-md-2 mb-2">
-        <div class="position-relative">
-            <img src="data:image/png;base64,${img}"
-                 class="rounded border"
-                 style="width:120px;height:120px;object-fit:cover;cursor:pointer"
-                 onclick="showImage('data:image/png;base64,${img}')"/>
-
-            <i class="bi bi-x-circle text-danger"
-               style="position:absolute;top:5px;right:5px;cursor:pointer;"
-               onclick="removeImage(${i})">
-            </i>
-        </div>
-    </div>
-    `);
-            // 🔥 hidden input for POST
-            $("#hiddenImages").append(`
-                <input type="hidden" name="DealerImages[${i}]" value="${img}" />
-            `);
-        });
-    }
-
-    // REMOVE IMAGE
-    function removeImage(i){
-        imageList.splice(i,1);
-        renderImages();
-    }
-
-    // PAGE LOAD
-    $(document).ready(function(){
-        renderImages();
-    });
-
-        var dealerAddressIndex = @Model.DealerAddresses.Count;
-
-    function addDealerAddress(){
-
-        $("#dealerAddressContainer").append(`
-        <div class="box">
-            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
-
-            <input name="DealerAddresses[${dealerAddressIndex}].AddressType" class="form-control mb-1"/>
-            <input name="DealerAddresses[${dealerAddressIndex}].AddressLine" class="form-control"/>
-        </div>
-        `);
-
-        dealerAddressIndex++;
-    }
-
-        var noteIndex = @Model.DealerNotes.Count;
-
-    function addNote(){
-
-        $("#notesContainer").append(`
-        <div class="box">
-            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
-
-            <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
-                <option value="">Select</option>
-                @foreach (var c in ViewBag.CategoryList)
-                {
-                        <text><option value="@c.ID">@c.CategoryName</option></text>
-                }
-            </select>
-
-            <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
-        </div>
-        `);
-
-        noteIndex++;
-    }
-</script>
 
 <div class="modal fade" id="previewImageModal">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -825,5 +714,197 @@
         $("#previewImage").attr("src", img);
         $("#previewImageModal").modal("show");
     }
+</script>
+
+<script>
+        // ================= GLOBAL DATA =================
+
+    // PERSON LIST (already from model)
+    var personList = @Html.Raw(JsonSerializer.Serialize(
+                Model.Persons ?? new List<BespokeSoftware.Models.PersonVM>(),
+                new JsonSerializerOptions { PropertyNamingPolicy = null }
+        ));
+
+    // ================= DEALER IMAGES =================
+    var dealerImages = [];
+
+    // 🔥 LOAD EXISTING IMAGES (PATH BASED)
+    var existingImages = @Html.Raw(JsonSerializer.Serialize(Model.DealerImages ?? new List<string>()));
+
+    existingImages.forEach(x => {
+        dealerImages.push({
+            path: x,
+            type: "Dealer" // default
+        });
+    });
+
+    // ================= RENDER DEALER IMAGES =================
+    function renderImages() {
+
+        $("#imageGrid").empty();
+        $("#mainOfficePreview").empty();
+
+        dealerImages.forEach((img, i) => {
+
+            let src = img.path;
+
+            // MAIN OFFICE
+            if (img.type === "MainOffice") {
+
+                $("#mainOfficePreview").html(`
+                    <div class="position-relative">
+                        <img src="${src}"
+                             style="width:80px;height:80px;object-fit:cover;border-radius:6px"/>
+
+                        <i class="bi bi-x-circle text-danger"
+                           style="position:absolute;top:0;right:0;cursor:pointer"
+                           onclick="removeDealerImage(${i})"></i>
+                    </div>
+                `);
+            }
+            else {
+
+                $("#imageGrid").append(`
+                    <div class="col-md-2 mb-2">
+                        <div class="position-relative">
+
+                            <img src="${src}"
+                                 class="rounded border"
+                                 style="width:120px;height:120px;object-fit:cover;cursor:pointer"
+                                 onclick="showImage('${src}')"/>
+
+                            <i class="bi bi-x-circle text-danger"
+                               style="position:absolute;top:5px;right:5px;cursor:pointer"
+                               onclick="removeDealerImage(${i})">
+                            </i>
+
+                        </div>
+                    </div>
+                `);
+            }
+
+        });
+    }
+
+    // ================= REMOVE DEALER IMAGE =================
+    function removeDealerImage(i) {
+        dealerImages.splice(i, 1);
+        renderImages();
+    }
+
+    // ================= OWNER IMAGE =================
+    function renderOwnerImage() {
+
+        let owner = personList.find(p =>
+            (p.PersonType || p.personType) === "Owner"
+        );
+
+        if (owner && owner.Images && owner.Images.length > 0) {
+
+            let img = owner.Images[0];
+
+            let src = img.startsWith("data:")
+                ? img
+                : "data:image/png;base64," + img;
+
+            $("#ownerImagePreview").html(`
+                <img src="${src}"
+                     style="width:80px;height:80px;border-radius:6px"/>
+            `);
+        }
+    }
+
+    // ================= IMAGE PREVIEW MODAL =================
+    function showImage(img) {
+        $("#previewImage").attr("src", img);
+        $("#previewImageModal").modal("show");
+    }
+
+    // ================= ADDRESS =================
+    var dealerAddressIndex = @Model.DealerAddresses.Count;
+
+    function addDealerAddress() {
+
+        $("#dealerAddressContainer").append(`
+            <div class="box">
+                <i class="bi bi-x-circle text-danger remove"
+                   onclick="$(this).parent().remove()"></i>
+
+                <input name="DealerAddresses[${dealerAddressIndex}].AddressType"
+                       class="form-control mb-1"/>
+
+                <input name="DealerAddresses[${dealerAddressIndex}].AddressLine"
+                       class="form-control"/>
+            </div>
+        `);
+
+        dealerAddressIndex++;
+    }
+
+    // ================= NOTES =================
+      // ================= CATEGORY LIST =================
+    var categoryList = [];
+
+    // ================= LOAD CATEGORY =================
+    function loadCategories(){
+
+        $.get('/Dealer/GetCategories', function(data){
+
+            categoryList = data;
+
+            $(".categoryDropdown").each(function(){
+
+                let dropdown = $(this);
+                let selected = dropdown.data("selected");
+
+                dropdown.empty();
+                dropdown.append(`<option value="">Select</option>`);
+
+                data.forEach(c=>{
+                    dropdown.append(`
+                        <option value="${c.id}" ${selected == c.id ? "selected" : ""}>
+                            ${c.categoryName}
+                        </option>
+                    `);
+                });
+
+            });
+
+        });
+    }
+
+    // ================= ADD NOTE =================
+    var noteIndex = @Model.DealerNotes.Count;
+
+    function addNote(){
+
+        $("#notesContainer").append(`
+            <div class="box">
+                <i class="bi bi-x-circle text-danger remove"
+                   onclick="$(this).parent().remove()"></i>
+
+                <select name="DealerNotes[${noteIndex}].CategoryId"
+                        class="form-control mb-1 categoryDropdown"></select>
+
+                <input type="text"
+                       name="DealerNotes[${noteIndex}].NoteFor"
+                       placeholder="Note For"
+                       class="form-control mb-1"/>
+
+                <input type="date"
+                       name="DealerNotes[${noteIndex}].NoteDate"
+                       class="form-control mb-1"/>
+
+                <textarea name="DealerNotes[${noteIndex}].NoteText"
+                          class="form-control"></textarea>
+            </div>
+        `);
+
+        noteIndex++;
+
+        loadCategories(); // 🔥 auto refresh dropdown
+    }
+
+
 </script>
 

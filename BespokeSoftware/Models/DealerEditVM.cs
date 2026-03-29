@@ -36,6 +36,8 @@
         public int NoteId { get; set; }
         public int CategoryId { get; set; }
         public string NoteText { get; set; }
+        public string NoteFor { get; set; }
+        public DateTime? Notedate { get; set; }
     }
 
     public class PersonVM
