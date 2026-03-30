@@ -284,7 +284,7 @@ public class DealerController : Controller
 
         try
         {
-            repo.DeleteDealer(dealerId);  
+            repo.DeleteDealer(dealerId);
 
             return Json(new { success = true, message = "Dealer deleted successfully" });
         }
@@ -293,5 +293,40 @@ public class DealerController : Controller
             return Json(new { success = false, message = ex.Message });
         }
     }
+
+    public IActionResult PrintNotes(int dealerId)
+    {
+        DealerFullViewModel model = new DealerFullViewModel();
+
+        model.Notes = new List<DealerNotesVM>();
+
+        using (SqlConnection con = new SqlConnection(_connectionString))
+        {
+            con.Open();
+
+            using (SqlCommand cmd = new SqlCommand("sp_GetDealerNotes", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    model.Notes.Add(new DealerNotesVM
+                    {
+                        CategoryId = Convert.ToInt32(dr["CategoryId"]), // ✅ FIX
+                        CategoryName = dr["Category"].ToString(),
+                        NoteFor = dr["NoteFor"].ToString(),
+                        NoteText = dr["NoteText"].ToString(),
+                        NoteDate = Convert.ToDateTime(dr["NoteDate"])
+                    });
+                }
+            }
+        }
+
+        return View("PrintNotes", model);
+    }
 }
+
 
