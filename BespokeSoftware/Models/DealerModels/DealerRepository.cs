@@ -456,6 +456,22 @@ namespace BespokeSoftware.Repository
                 }
                 dr.Close();
 
+                // ================= MAIN OFFICE IMAGE =================
+                cmd = new SqlCommand(@"
+                    SELECT TOP 1 * FROM T_Image 
+                    WHERE IdentityID=@DealerId AND Type='MainOffice'", con);
+
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.MainOfficeImage = dr["ImageBase64"]?.ToString();
+                }
+
+                dr.Close();
+
                 // ================= PERSON =================
                 cmd = new SqlCommand("SELECT * FROM T_Person WHERE DealerId=@DealerId", con);
                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
@@ -548,6 +564,13 @@ namespace BespokeSoftware.Repository
                     {
                         int dealerId = model.Dealer.DealerId;
 
+                        // ================= FOLDERS =================
+                        string dealerFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/dealer");
+                        string personFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/person");
+
+                        if (!Directory.Exists(dealerFolder)) Directory.CreateDirectory(dealerFolder);
+                        if (!Directory.Exists(personFolder)) Directory.CreateDirectory(personFolder);
+
                         // ================= DEALER UPDATE =================
                         SqlCommand cmd = new SqlCommand(@"
 UPDATE T_Dealer SET
@@ -573,35 +596,107 @@ WHERE DealerId=@DealerId", con, tran);
 
                         // ================= DELETE OLD =================
 
-                        Execute("DELETE FROM T_DealerAddress WHERE DealerId=@Id", dealerId, con, tran);
-                        Execute("DELETE FROM T_DealerNotes WHERE DealerId=@Id", dealerId, con, tran);
+                        // Dealer child
+                        Execute("DELETE FROM T_DealerAddress WHERE DealerId=@Id", con, tran, ("@Id", dealerId));
+                        Execute("DELETE FROM T_DealerNotes WHERE DealerId=@Id", con, tran, ("@Id", dealerId));
 
-                        // 🔥 DEALER IMAGES DELETE
-                        Execute("DELETE FROM T_Image WHERE IdentityID=@Id AND Type='Dealer'", dealerId, con, tran);
+                        // Person child (🔥 FIX)
+                        Execute(@"
+DELETE FROM T_PersonAddress 
+WHERE PersonID IN (SELECT PersonID FROM T_Person WHERE DealerId=@Id)",
+                            con, tran, ("@Id", dealerId));
 
-                        // 🔥 PERSON IMAGES DELETE
+                        Execute(@"
+DELETE FROM T_PersonCommunication 
+WHERE PersonID IN (SELECT PersonID FROM T_Person WHERE DealerId=@Id)",
+                            con, tran, ("@Id", dealerId));
+
                         Execute(@"
 DELETE FROM T_Image 
-WHERE Type='Person' 
-AND IdentityID IN (SELECT PersonID FROM T_Person WHERE DealerId=@Id)
-", dealerId, con, tran);
+WHERE Type='Person' AND IdentityID IN 
+(SELECT PersonID FROM T_Person WHERE DealerId=@Id)",
+                            con, tran, ("@Id", dealerId));
 
-                        // PERSON related delete
-                        Execute(@"
-DELETE FROM T_PersonAddress WHERE PersonID IN (SELECT PersonID FROM T_Person WHERE DealerId=@Id)
-", dealerId, con, tran);
+                        // Person
+                        Execute("DELETE FROM T_Person WHERE DealerId=@Id", con, tran, ("@Id", dealerId));
 
-                        Execute(@"
-DELETE FROM T_PersonCommunication WHERE PersonID IN (SELECT PersonID FROM T_Person WHERE DealerId=@Id)
-", dealerId, con, tran);
+                        // Dealer Images
+                        Execute("DELETE FROM T_Image WHERE IdentityID=@Id AND Type='Dealer'", con, tran, ("@Id", dealerId));
 
-                        Execute(@"
-DELETE FROM T_Person WHERE DealerId=@Id
-", dealerId, con, tran);
+                        Execute("DELETE FROM T_Image WHERE IdentityID=@Id AND Type='MainOffice'",
+    con, tran, ("@Id", dealerId));
 
-                        // ================= INSERT NEW =================
+                        // ================= DEALER IMAGES =================
 
-                        // DEALER ADDRESS
+                        // EXISTING
+                        foreach (var img in model.DealerImages ?? new List<string>())
+                        {
+                            ExecuteInsert(@"
+INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+VALUES('Dealer',@Id,@Img,GETDATE())",
+                                con, tran,
+                                ("@Id", dealerId),
+                                ("@Img", img));
+                        }
+
+                        // NEW FILES
+                        foreach (var file in model.NewDealerImages ?? new List<IFormFile>())
+                        {
+                            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                            string fullPath = Path.Combine(dealerFolder, fileName);
+
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
+                            {
+                                file.CopyTo(stream);
+                            }
+
+                            string dbPath = "/uploads/dealer/" + fileName;
+
+                            ExecuteInsert(@"
+INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+VALUES('Dealer',@Id,@Img,GETDATE())",
+                                con, tran,
+                                ("@Id", dealerId),
+                                ("@Img", dbPath));
+                        }
+
+                        // ================= MAIN OFFICE IMAGE =================
+
+                        // NEW FILE
+                        if (model.MainOfficeImageFile != null)
+                        {
+                            string fileName = Guid.NewGuid() + Path.GetExtension(model.MainOfficeImageFile.FileName);
+                            string fullPath = Path.Combine(dealerFolder, fileName);
+
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
+                            {
+                                model.MainOfficeImageFile.CopyTo(stream);
+                            }
+
+                            string dbPath = "/uploads/dealer/" + fileName;
+
+                            ExecuteInsert(@"
+    INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+    VALUES('MainOffice',@Id,@Img,GETDATE())",
+                                con, tran,
+                                ("@Id", dealerId),
+                                ("@Img", dbPath));
+                        }
+
+                        // EXISTING KEEP
+                        else if (!string.IsNullOrEmpty(model.MainOfficeImagePath) && !model.IsMainRemoved)
+                        {
+                            ExecuteInsert(@"
+    INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+    VALUES('MainOffice',@Id,@Img,GETDATE())",
+                                con, tran,
+                                ("@Id", dealerId),
+                                ("@Img", model.MainOfficeImagePath));
+                        }
+
+                        // REMOVE → do nothing (already deleted above)
+
+                        // ================= ADDRESS =================
                         foreach (var a in model.DealerAddresses ?? new List<Models.DealerAddressVM>())
                         {
                             ExecuteInsert(@"
@@ -610,36 +705,25 @@ VALUES (@DealerId,@Type,@Line,GETDATE())",
                                 con, tran,
                                 ("@DealerId", dealerId),
                                 ("@Type", a.AddressType ?? ""),
-                                ("@Line", a.AddressLine ?? "")
-                            );
+                                ("@Line", a.AddressLine ?? ""));
                         }
 
-                        // NOTES
+                        // ================= NOTES =================
                         foreach (var n in model.DealerNotes ?? new List<DealerNoteVM>())
                         {
                             ExecuteInsert(@"
-INSERT INTO T_DealerNotes (DealerId, CategoryId, NoteText, CreatedDate)
-VALUES (@DealerId,@Cat,@Text,GETDATE())",
+INSERT INTO T_DealerNotes 
+(DealerId, CategoryId, NoteText, CreatedDate, NoteFor, NoteDate)
+VALUES (@DealerId,@Cat,@Text,GETDATE(),@NoteFor,@NoteDate)",
                                 con, tran,
                                 ("@DealerId", dealerId),
                                 ("@Cat", n.CategoryId),
-                                ("@Text", n.NoteText ?? "")
-                            );
+                                ("@Text", n.NoteText ?? ""),
+                                ("@NoteFor", n.NoteFor ?? ""),
+                                ("@NoteDate", (object)n.Notedate ?? DBNull.Value));
                         }
 
-                        // 🔥 DEALER IMAGES INSERT
-                        foreach (var img in model.DealerImages ?? new List<string>())
-                        {
-                            ExecuteInsert(@"
-INSERT INTO T_Image (Type, IdentityID, ImageBase64, CreatedDate)
-VALUES ('Dealer', @DealerId, @Img, GETDATE())",
-                                con, tran,
-                                ("@DealerId", dealerId),
-                                ("@Img", img ?? "")
-                            );
-                        }
-
-                        // PERSON
+                        // ================= PERSON =================
                         foreach (var p in model.Persons ?? new List<Models.PersonVM>())
                         {
                             SqlCommand pCmd = new SqlCommand(@"
@@ -663,7 +747,7 @@ VALUES (@Title,@F,@M,@L,@G,@DOB,@Ann,@PAN,@Type,@Remark,@DealerId,GETDATE())",
 
                             int personId = Convert.ToInt32(pCmd.ExecuteScalar());
 
-                            // PERSON ADDRESS
+                            // ADDRESS
                             foreach (var pa in p.Addresses ?? new List<Models.PersonAddressVM>())
                             {
                                 ExecuteInsert(@"
@@ -672,11 +756,10 @@ VALUES (@Pid,@Type,@Line)",
                                     con, tran,
                                     ("@Pid", personId),
                                     ("@Type", pa.AddressType ?? ""),
-                                    ("@Line", pa.AddressLine ?? "")
-                                );
+                                    ("@Line", pa.AddressLine ?? ""));
                             }
 
-                            // PERSON COMMUNICATION
+                            // COMMUNICATION
                             foreach (var c in p.Communications ?? new List<Models.PersonCommunicationVM>())
                             {
                                 ExecuteInsert(@"
@@ -686,26 +769,47 @@ VALUES (@Pid,@Type,@Label,@Value)",
                                     ("@Pid", personId),
                                     ("@Type", c.Type ?? ""),
                                     ("@Label", c.Label ?? ""),
-                                    ("@Value", c.Value ?? "")
-                                );
+                                    ("@Value", c.Value ?? ""));
                             }
 
-                            // 🔥 PERSON IMAGES INSERT
+                            // ================= PERSON IMAGES =================
+
+                            // EXISTING
                             foreach (var img in p.Images ?? new List<string>())
                             {
                                 ExecuteInsert(@"
-INSERT INTO T_Image (Type, IdentityID, ImageBase64, CreatedDate)
-VALUES ('Person', @Pid, @Img, GETDATE())",
+INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+VALUES('Person',@Pid,@Img,GETDATE())",
                                     con, tran,
                                     ("@Pid", personId),
-                                    ("@Img", img ?? "")
-                                );
+                                    ("@Img", img));
+                            }
+
+                            // NEW FILES
+                            foreach (var file in p.NewImages ?? new List<IFormFile>())
+                            {
+                                string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                                string fullPath = Path.Combine(personFolder, fileName);
+
+                                using (var stream = new FileStream(fullPath, FileMode.Create))
+                                {
+                                    file.CopyTo(stream);
+                                }
+
+                                string dbPath = "/uploads/person/" + fileName;
+
+                                ExecuteInsert(@"
+INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate)
+VALUES('Person',@Pid,@Img,GETDATE())",
+                                    con, tran,
+                                    ("@Pid", personId),
+                                    ("@Img", dbPath));
                             }
                         }
 
                         tran.Commit();
                     }
-                    catch (Exception)
+                    catch
                     {
                         tran.Rollback();
                         throw;
@@ -714,10 +818,15 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
             }
         }
 
-        private void Execute(string query, int id, SqlConnection con, SqlTransaction tran)
+        public void Execute(string query, SqlConnection con, SqlTransaction tran, params (string, object)[] parameters)
         {
             SqlCommand cmd = new SqlCommand(query, con, tran);
-            cmd.Parameters.AddWithValue("@Id", id);
+
+            foreach (var p in parameters)
+            {
+                cmd.Parameters.AddWithValue(p.Item1, p.Item2 ?? DBNull.Value);
+            }
+
             cmd.ExecuteNonQuery();
         }
 
