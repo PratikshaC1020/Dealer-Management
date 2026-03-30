@@ -117,61 +117,63 @@
     <aside id="sidebar" class="sidebar">
 
         <ul class="sidebar-nav" id="sidebar-nav">
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-mask"></i>
-                    <span>Admin</span>
-                    <i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-
-                <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-
-                    <li>
-                        <a href="@Url.Action("User", "MasterData", new { id = (int?)null })">
-                            <i class="bi bi-circle"></i>
-                            <span>User Management</span>
+            @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-mask"></i>
+                            <span>Admin</span>
+                            <i class="bi bi-chevron-down ms-auto"></i>
                         </a>
-                    </li>
-                 @*    <li>
+
+                        <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+
+                            <li>
+                                <a href="@Url.Action("User", "MasterData", new { id = (int?)null })">
+                                    <i class="bi bi-circle"></i>
+                                    <span>User Management</span>
+                                </a>
+                            </li>
+                            @*    <li>
                         <a href="@Url.Action("PersonList", "MasterData")">
                             <i class="bi bi-circle"></i>
                             <span>Person Management</span>
                         </a>
                     </li> *@
-                    <li>
-                        <a href="@Url.Action("Department", "MasterData")">
-                            <i class="bi bi-circle"></i>
-                            <span>Department Management</span>
-                        </a>
+                            <li>
+                                <a href="@Url.Action("Department", "MasterData")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Department Management</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Category", "MasterData")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Notes Category Management</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="@Url.Action("Payment", "MasterData")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Payment Management</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Role", "MasterData")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Role Management</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("RolePermission", "MasterData")">
+                                    <i class="bi bi-shield-lock"></i>
+                                    <span>Role Permission</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li>
-                        <a href="@Url.Action("Category", "MasterData")">
-                            <i class="bi bi-circle"></i>
-                            <span>Notes Category Management</span>
-                        </a>
-                    </li>
-                      
-                    <li>
-                        <a href="@Url.Action("Payment", "MasterData")">
-                            <i class="bi bi-circle"></i>
-                            <span>Payment Management</span>
-                        </a>
-                    </li>
-                        <li>
-                            <a href="@Url.Action("Role", "MasterData")">
-                                <i class="bi bi-circle"></i>
-                                <span>Role Management</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="@Url.Action("RolePermission", "MasterData")">
-                                <i class="bi bi-shield-lock"></i>
-                                <span>Role Permission</span>
-                            </a>
-                        </li>
-                </ul>
-            </li>
+                }
 
             <!-- Dealer Menu -->
             <li class="nav-item">

@@ -38,9 +38,16 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 <div class="card-body">
 
     <div class="text-end mb-3">
-        <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
+        @* <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
             Add Dealer <i class="bi bi-plus"></i>
-        </a>
+        </a> *@
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+            {
+                <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
+                    Add Dealer<i class="bi bi-plus"></i>
+                </a>
+            }
     </div>
 
     <div class="table-responsive">
@@ -95,11 +102,17 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
                         <td class="text-center">
 
-                            <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
+                           @*  <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
                                 <i class="bi bi-pencil-square"></i>
-                            </a>
+                            </a> *@
+                                @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                                {
+                                    <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
 
-                                <a href="javascript:void(0);"
+                              @*   <a href="javascript:void(0);"
                                        onclick="DeleteDealer(@item.DealerId)"
                                        class="btn btn-danger btn-sm"
                                        data-bs-toggle="tooltip"
@@ -107,7 +120,15 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                                        title="Delete Dealer">
     
                                     <i class="bi bi-trash"></i>
-                                </a>
+                                </a> *@
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a href="javascript:void(0);"
+                                           onclick="DeleteDealer(@item.DealerId)"
+                                           class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
 
                             @* <button class="btn btn-primary btn-sm"
                                 <a href="@Url.Action("EditDealer", "Dealer", new { id = item.DealerId })"
