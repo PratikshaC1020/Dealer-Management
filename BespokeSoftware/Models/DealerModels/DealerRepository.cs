@@ -1491,6 +1491,7 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                     {
                         model.Notes.Add(new DealerNotesVM
                         {
+                            NoteId = Convert.ToInt32(rdr["NoteId"]),
                             NoteText = rdr["NoteText"]?.ToString(),
                             NoteFor = rdr["NoteFor"]?.ToString(),
                             NoteDate = rdr["NoteDate"] == DBNull.Value

@@ -14,6 +14,18 @@
         box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
+    .section-box {
+        padding: 10px !important; /* less space */
+    }
+
+        .section-box b {
+            color: #0dcaf0;
+        }
+
+    .small {
+        font-size: 13px;
+    }
+
     /* 🔥 SCROLL LOGIC */
     .inner-scroll {
         max-height: 220px;
@@ -33,15 +45,29 @@
     img {
         object-fit: cover;
     }
-    .img-thumb{
-    width:100%;
-    height:100px;
-    object-fit:cover;
-    border-radius:6px;
-    cursor:pointer;
-    border:1px solid #ddd;
-    transition:0.2s;
-}
+
+    .box {
+        padding: 4px !important;
+    }
+    .img-thumb-small {
+        width: 100%;
+        height: 50px; /* ✅ reduced height */
+        object-fit: contain; /* no crop */
+        background: #f8f9fa;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+    }
+
+    .img-thumb {
+        width: 100%;
+        height: 120px;
+        object-fit: contain; /* ✅ no crop */
+        background: #f8f9fa;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+    }
 
 .img-thumb:hover{
     transform:scale(1.05);
@@ -63,19 +89,7 @@
     border-radius: 6px 6px 0 0;
 }
 
-    .img-thumb {
-        width: 100%;
-        height: 80px; 
-        object-fit: cover;
-        border-radius: 6px;
-        cursor: pointer;
-        border: 1px solid #ddd;
-        transition: 0.2s;
-    }
-
-        .img-thumb:hover {
-            transform: scale(1.05);
-        }
+       
 </style>
 
 <div class="card border-info">
@@ -87,106 +101,118 @@
     <div class="card-body">
 
         <!-- ================= DEALER INFO ================= -->
-        <div class="section-box mb-3">
-            <div class="text-end mt-3">
-                <button type="button" class="btn btn-secondary"x
+        <div class="section-box mb-3 p-2">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="section-title mb-0">Dealer Overview</h6>
+
+                <button class="btn btn-sm btn-secondary"
                         onclick="location.href='@Url.Action("Index", "Dealer")'">
-                    Go Back
+                    ← Back
                 </button>
             </div>
-    <h5 class="section-title">Dealer Information</h5>
 
-            <div class="row g-3">
+        @*     <div class="section-box"> *@
 
-                <!-- LEFT SIDE (DETAILS) -->
-                <div class="col-md-9">
+                <h6 class="section-title mb-2">Dealer Info</h6>
 
-                    <div class="row g-3">
+                <div class="row g-2">
 
-                        <div class="col-md-4">
-                            <label>Dealer Name</label>
-                            <input class="form-control" value="@Model.Dealer?.DealerName" readonly />
+                    <!-- LEFT (6) -->
+                    <div class="col-md-6">
+
+                        <!-- DETAILS -->
+                        <div class="row g-1 small">
+
+                            <div class="col-6"><b>Name:</b> @Model.Dealer?.DealerName</div>
+                            <div class="col-6"><b>Owner:</b> @Model.Dealer?.OwnerName</div>
+                            <div class="col-6"><b>GST:</b> @Model.Dealer?.GSTNo</div>
+@*                             <div class="col-6"><b>PAN:</b> @Model.Dealer?.PANNo</div>
+ *@                            <div class="col-6"><b>Payment:</b> @Model.Dealer?.PaymentMode</div>
+                            <div class="col-6"><b>Off:</b> @Model.Dealer?.WeeklyOff</div>
+
                         </div>
 
-                        <div class="col-md-4">
-                            <label>Owner Name</label>
-                            <input class="form-control" value="@Model.Dealer?.OwnerName" readonly />
-                        </div>
+                        <!-- IMAGES -->
+                        <div class="d-flex gap-2 mt-2">
 
-                        <div class="col-md-4">
-                            <label>GST</label>
-                            <input class="form-control" value="@Model.Dealer?.GSTNo" readonly />
-                        </div>
-
-                        <div class="col-md-4">
-                            <label>PAN</label>
-                            <input class="form-control" value="@Model.Dealer?.PANNo" readonly />
-                        </div>
-
-                        <div class="col-md-4">
-                            <label>Credit Terms</label>
-                            <input class="form-control" value="@Model.Dealer?.PaymentMode" readonly />
-                        </div>
-
-                        <div class="col-md-4">
-                            <label>Weekly Off</label>
-                            <input class="form-control" value="@Model.Dealer?.WeeklyOff" readonly />
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <div class="text-center">
-
-                        <div class="d-flex gap-2">
-
-                            <!-- DEALER IMAGE -->
                             <div style="width:50%;">
                                 @{
                                     var dealerImg = Model.Images
-                                        .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
+                                    .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
                                 }
 
                                 <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
-                                     class="img-fluid rounded border"
-                                     style="height:120px; width:100%; object-fit:cover; cursor:pointer;"
+                                     class="img-thumb"
+                                     style="height:70px;"
                                      onclick="openImagePreview(this.src)" />
-
-                                <small class="d-block mt-1 fw-bold text-muted">Main Dealer</small>
                             </div>
 
-                            <!-- OWNER IMAGE -->
                             <div style="width:50%;">
-                              @{
+                                @{
                                     var owner = Model.Persons.FirstOrDefault(x => x.PersonType == "Owner");
 
                                     var ownerImg = Model.Images
-                                        .FirstOrDefault(x => x.Type == "Person" && owner != null && x.IdentityID == owner.PersonID)
-                                        ?.ImageBase64;
+                                    .FirstOrDefault(x => x.Type == "Person" && owner != null && x.IdentityID == owner.PersonID)
+                                    ?.ImageBase64;
                                 }
 
                                 <img src="@(string.IsNullOrEmpty(ownerImg) ? "/images/no-image.png" : ownerImg)"
-                                     class="img-fluid rounded border"
-                                     style="height:120px; width:100%; object-fit:cover; cursor:pointer;"
+                                     class="img-thumb"
+                                     style="height:70px;"
                                      onclick="openImagePreview(this.src)" />
-
-                                <small class="d-block mt-1 fw-bold text-muted">Owner</small>
                             </div>
 
                         </div>
 
                     </div>
 
+                    <!-- RIGHT (6) -->
+                    <div class="col-md-6">
+
+                        <!-- DEALER IMAGES -->
+                        <div class="mb-2">
+                            <label class="fw-bold text-info">Dealer Images</label>
+
+                            <div class="scroll-box-small mt-1">
+                                <div class="row g-1">
+                                    @foreach (var img in Model.Images.Where(x => x.Type == "Dealer"))
+                                    {
+                                        <div class="col-4">
+                                            <img src="@(string.IsNullOrEmpty(img.ImageBase64) ? "/images/no-image.png" : img.ImageBase64)"
+                                                 class="img-thumb-small"
+                                                 onclick="openImagePreview(this.src)" />
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DEALER ADDRESS -->
+                        <div class="scroll-box mt-1">
+                            @foreach (var addr in Model.Addresses)
+                            {
+                                <div class="box p-1 mb-1 small">
+
+                                    <!-- TYPE -->
+                                    <div class="fw-bold text-primary">
+                                        @addr.AddressType
+                                    </div>
+
+                                    <!-- ADDRESS -->
+                                    <div>
+                                        📍 @addr.AddressLine
+                                    </div>
+
+                                </div>
+                            }
+                        </div>
+
+                    </div>
                 </div>
-
-            </div>
-
-</div>
-
-       
+@* 
+            </div> *@
+        </div>
         <div class="row mb-3">
 
             <div class="col-md-12">
@@ -235,6 +261,7 @@
 
                         @for (int i = 0; i < categories.Count; i++)
                         {
+
                             var cat = categories[i];
 
                             <div class="tab-pane fade @(i == 0 ? "show active" : "")"
@@ -242,8 +269,16 @@
 
                                 @foreach (var note in cat)
                                 {
-                                    <div class="box">
+                                    <div class="box position-relative">
+
+                                        <!-- ❌ DELETE ICON -->
+                                        <i class="bi bi-x-circle-fill text-danger"
+                                           style="position:absolute; top:8px; right:10px; cursor:pointer; font-size:18px;"
+                                           onclick="deleteNote(@note.NoteId, this)">
+                                        </i>
+
                                         <div class="row g-2 align-items-center">
+
                                             <!-- NOTE DATE -->
                                             <div class="col-md-2">
                                                 <label class="fw-bold">Date</label>
@@ -263,8 +298,9 @@
                                             <!-- NOTE TEXT -->
                                             <div class="col-md-7">
                                                 <label class="fw-bold">Note</label>
-                                                <textarea class="form-control" rows="1" readonly style="resize:none; overflow:hidden;">
-                                                @note.NoteText</textarea>
+                                                <textarea class="form-control" rows="1" readonly style="resize:none;">
+                    @note.NoteText
+                </textarea>
                                             </div>
 
                                         </div>
@@ -279,7 +315,7 @@
                 </div>
             </div>
 
-            <div class="col-md-12">
+      @*       <div class="col-md-12">
                
                 <!-- DEALER ADDRESS (HIDDEN DEFAULT) -->
                
@@ -339,7 +375,7 @@
                     </div>
 
                 </div>
-            </div>
+            </div> *@
         </div>
 
         <div class="section-box">
@@ -409,19 +445,23 @@
                             <hr />
                             <div class="fw-bold">Images</div>
 
-                           <div class="row">
-                            @foreach (var img in Model.Images
-                                .Where(x => x.IdentityID == p.PersonID && x.Type == "Person"))
-                            {
-                                <div class="col-md-3 mb-2">
-                                    <img src="@(string.IsNullOrEmpty(img.ImageBase64) 
-                                        ? "/images/no-image.png" 
-                                        : "data:image/png;base64," + img.ImageBase64)"
-                                         class="img-thumb"
-                                         onclick="openImagePreview(this.src)" />
-                                </div>
-                            }
-                        </div>
+                            <div class="row">
+                                @foreach (var img in Model.Images
+                                                            .Where(x => x.IdentityID == p.PersonID
+                                                            && x.Type != null
+                                                            && x.Type.Trim().ToLower() == "person"))
+                                {
+                                    var imgSrc = string.IsNullOrEmpty(img.ImageBase64)
+                                    ? "/images/no-image.png"
+                                    : img.ImageBase64;   // ✅ direct path
+
+                                    <div class="col-md-3 mb-2">
+                                        <img src="@imgSrc"
+                                             class="img-thumb"
+                                             onclick="openImagePreview(this.src)" />
+                                    </div>
+                                }
+                            </div>
 
                         </div>
                     }
@@ -437,8 +477,8 @@
    
 <input type="hidden" id="dealerId" value="@Model.Dealer?.DealerId" />
 
- <div class="modal fade" id="imagePreviewModal">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="imagePreviewModal">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
 
             <div class="modal-header bg-info text-white">
@@ -447,12 +487,15 @@
             </div>
 
             <div class="modal-body text-center">
-                <img id="previewImg" class="img-fluid rounded"/>
+                <img id="previewImg"
+                     style="max-height:400px; width:auto; object-fit:contain;"
+                     class="img-fluid rounded" />
             </div>
 
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="noteModal">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -484,7 +527,7 @@
 
                 <!-- NOTE FOR -->
                 <div class="mb-2">
-                    <label>Note For</label>
+                    <label>Note By</label>
                     <input type="text" id="noteFor" class="form-control" />
                 </div>
 
@@ -632,6 +675,22 @@ function openImagePreview(src){
 
         $.post('/Dealer/AddNote', data, function (res) {
             location.reload();
+        });
+    }
+
+        function deleteNote(noteId, el) {
+
+        if (!confirm("Delete this note?")) return;
+
+        $.post('/Dealer/DeleteNote', { id: noteId }, function (res) {
+
+            if (res.success) {
+                // ✅ UI मधून remove (reload नाही)
+                $(el).closest('.box').remove();
+            } else {
+                alert("Delete failed");
+            }
+
         });
     }
 </script>
