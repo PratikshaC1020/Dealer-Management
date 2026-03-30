@@ -1118,10 +1118,57 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         dealerId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     }
 
-                    // ================= EXTRA DEALER IMAGES =================
+                    // ================= DEALER IMAGE SAVE =================
+
+                     dealerFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/dealer");
+
+                    if (!Directory.Exists(dealerFolder))
+                    {
+                        Directory.CreateDirectory(dealerFolder);
+                    }
+
+                    // ================= FIRST IMAGE =================
+                    if (model.DealerImages != null && model.DealerImages.Count > 0)
+                    {
+                        var firstImg = model.DealerImages[0];
+
+                        string fileName = Guid.NewGuid() + Path.GetExtension(firstImg.FileName);
+                        string fullPath = Path.Combine(dealerFolder, fileName);
+
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await firstImg.CopyToAsync(stream);
+                        }
+
+                        string dbPath = "/uploads/dealer/" + fileName;
+
+                        // TYPE FIX (FIRST IMAGE)
+                        string firstType = "Dealer";
+
+                        if (model.DealerImageTypes != null && model.DealerImageTypes.Count > 0)
+                        {
+                            firstType = model.DealerImageTypes[0] == "MainOffice"
+                                ? "MainOffice"
+                                : "Dealer";
+                        }
+
+                        using (SqlCommand cmd = new SqlCommand(
+                            "INSERT INTO T_Image(Type, IdentityID, ImagePath, CreatedDate, FileName) VALUES(@Type,@DealerId,@Path,GETDATE(),@FileName)",
+                            con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                            cmd.Parameters.AddWithValue("@Path", dbPath);
+                            cmd.Parameters.AddWithValue("@Type", firstType);
+                            cmd.Parameters.AddWithValue("@FileName", fileName);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    // ================= EXTRA IMAGES =================
                     if (model.DealerImages != null && model.DealerImages.Count > 1)
                     {
-                        for (int i = 1; i < model.DealerImages.Count; i++) // skip first
+                        for (int i = 1; i < model.DealerImages.Count; i++)
                         {
                             var img = model.DealerImages[i];
 
@@ -1135,25 +1182,29 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
 
                             string dbPath = "/uploads/dealer/" + fileName;
 
-                            // TYPE FIX
-                            string type = (model.DealerImageTypes != null && model.DealerImageTypes.Count > i)
-                                ? model.DealerImageTypes[i]
-                                : "Dealer";
+                            //  TYPE FIX
+                            string type = "Dealer";
+
+                            if (model.DealerImageTypes != null && model.DealerImageTypes.Count > i)
+                            {
+                                type = model.DealerImageTypes[i] == "MainOffice"
+                                    ? "MainOffice"
+                                    : "Dealer";
+                            }
 
                             using (SqlCommand cmd = new SqlCommand(
-                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@ImageBase64,GETDATE(),@FileName)",
+                                "INSERT INTO T_Image(Type, IdentityID, ImagePath, CreatedDate, FileName) VALUES(@Type,@DealerId,@Path,GETDATE(),@FileName)",
                                 con, tran))
                             {
                                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                                cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
-                                cmd.Parameters.AddWithValue("@Type", type); 
+                                cmd.Parameters.AddWithValue("@Path", dbPath);
+                                cmd.Parameters.AddWithValue("@Type", type);
                                 cmd.Parameters.AddWithValue("@FileName", fileName);
 
                                 await cmd.ExecuteNonQueryAsync();
                             }
                         }
-                    }
-                    // ================= DEALER ADDRESS =================
+                    }                    // ================= DEALER ADDRESS =================
                     foreach (var addr in model.DealerAddresses)
                     {
                         using (SqlCommand cmd = new SqlCommand("sp_InsertDealerAddress", con, tran))
