@@ -124,7 +124,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label>Payment Mode</label>
+                            <label>Credit Terms</label>
                             <input class="form-control" value="@Model.Dealer?.PaymentMode" readonly />
                         </div>
 
@@ -147,7 +147,7 @@
                             <div style="width:50%;">
                                 @{
                                     var dealerImg = Model.Images
-                                    .FirstOrDefault(x => x.Type == "MainOffice")?.ImageBase64;
+                                        .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
                                 }
 
                                 <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
@@ -160,9 +160,12 @@
 
                             <!-- OWNER IMAGE -->
                             <div style="width:50%;">
-                                @{
-                                    var ownerImg = Model.ImagesOwner
-                                    .FirstOrDefault()?.ImageBase64;
+                              @{
+                                    var owner = Model.Persons.FirstOrDefault(x => x.PersonType == "Owner");
+
+                                    var ownerImg = Model.Images
+                                        .FirstOrDefault(x => x.Type == "Person" && owner != null && x.IdentityID == owner.PersonID)
+                                        ?.ImageBase64;
                                 }
 
                                 <img src="@(string.IsNullOrEmpty(ownerImg) ? "/images/no-image.png" : ownerImg)"
@@ -307,7 +310,7 @@
 
                     <div id="imageSection" style="display:none;">
                         <div class="row inner-scroll">
-                            @foreach (var img in Model.Images)
+                          @foreach (var img in Model.Images.Where(x => x.Type == "Dealer"))
                             {
                                 <div class="col-md-2 mb-2">
 
@@ -397,17 +400,19 @@
                             <hr />
                             <div class="fw-bold">Images</div>
 
-                            <div class="row">
-                                @foreach (var img in Model.Images
-                                                            .Where(x => x.IdentityID == p.PersonID && x.Type == "Person"))
-                                {
-                                    <div class="col-md-3 mb-2">
-                                        <img src="data:image/png;base64,@img.ImageBase64"
-                                             class="img-thumb"
-                                             onclick="openImagePreview(this.src)" />
-                                    </div>
-                                }
-                            </div>
+                           <div class="row">
+                            @foreach (var img in Model.Images
+                                .Where(x => x.IdentityID == p.PersonID && x.Type == "Person"))
+                            {
+                                <div class="col-md-3 mb-2">
+                                    <img src="@(string.IsNullOrEmpty(img.ImageBase64) 
+                                        ? "/images/no-image.png" 
+                                        : "data:image/png;base64," + img.ImageBase64)"
+                                         class="img-thumb"
+                                         onclick="openImagePreview(this.src)" />
+                                </div>
+                            }
+                        </div>
 
                         </div>
                     }
@@ -420,8 +425,7 @@
 
         </div>
 
-    </div>
-</div>
+   
 <input type="hidden" id="dealerId" value="@Model.Dealer?.DealerId" />
 
  <div class="modal fade" id="imagePreviewModal">

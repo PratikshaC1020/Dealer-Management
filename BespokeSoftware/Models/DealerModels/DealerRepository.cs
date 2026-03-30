@@ -1565,11 +1565,12 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                         });
                     }
                 }
+
                 if (rdr.NextResult())
                 {
                     while (rdr.Read())
                     {
-                        model.ImagesOwner.Add(new ImageVMOwner
+                        model.Images.Add(new ImageVM   
                         {
                             IdentityID = Convert.ToInt32(rdr["IdentityID"]),
                             Type = rdr["Type"]?.ToString(),
