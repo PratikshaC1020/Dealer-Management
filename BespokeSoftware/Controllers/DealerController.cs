@@ -345,6 +345,21 @@ public class DealerController : Controller
             return Json(new { success = rows > 0 });
         }
     }
+
+    [HttpPost]
+    public JsonResult UpdateDealerStatus(int id, bool isActive)
+    {
+        try
+        {
+            bool result = repo.UpdateDealerStatus(id, isActive);
+
+            return Json(new { success = result });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
 }
 
 

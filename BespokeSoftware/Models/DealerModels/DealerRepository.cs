@@ -49,7 +49,7 @@ namespace BespokeSoftware.Repository
         FROM T_Dealer d
 
         LEFT JOIN T_PaymentMode pm ON d.DefaultPaymentModeId = pm.ID
-        LEFT JOIN T_WeeklyOff w ON d.WeeklyOffDayId = w.ID where d.IsActive='1'
+        LEFT JOIN T_WeeklyOff w ON d.WeeklyOffDayId = w.ID 
         ";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
@@ -64,6 +64,7 @@ namespace BespokeSoftware.Repository
 
                             dealer.DealerId = Convert.ToInt32(rdr["DealerId"]);
                             dealer.DealerCode = rdr["DealerCode"]?.ToString();
+                            dealer.IsActive = Convert.ToBoolean(rdr["IsActive"]);
                             dealer.DealerName = rdr["DealerName"]?.ToString();
                             dealer.OwnerName = rdr["OwnerName"]?.ToString();
                             dealer.GSTNo = rdr["GSTNo"]?.ToString();
@@ -1229,7 +1230,7 @@ VALUES('Person',@Pid,@Img,GETDATE())",
 
                     // ================= DEALER IMAGE SAVE =================
 
-                     dealerFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/dealer");
+                    dealerFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/dealer");
 
                     if (!Directory.Exists(dealerFolder))
                     {
@@ -1571,7 +1572,7 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                 {
                     while (rdr.Read())
                     {
-                        model.Images.Add(new ImageVM   
+                        model.Images.Add(new ImageVM
                         {
                             IdentityID = Convert.ToInt32(rdr["IdentityID"]),
                             Type = rdr["Type"]?.ToString(),
@@ -1601,6 +1602,29 @@ VALUES('Person',@Pid,@Img,GETDATE())",
         }
 
 
+        public bool UpdateDealerStatus(int dealerId, bool isActive)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+ UPDATE T_Dealer
+ SET 
+     IsActive = @IsActive,
+     UpdatedDate = GETDATE()
+ WHERE DealerId = @DealerId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                cmd.Parameters.AddWithValue("@IsActive", isActive);
+
+                con.Open();
+
+                int rows = cmd.ExecuteNonQuery();
+
+                return rows > 0;
+            }
+        }
 
     }
 }

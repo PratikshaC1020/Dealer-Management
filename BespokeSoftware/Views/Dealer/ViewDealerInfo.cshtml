@@ -53,7 +53,6 @@
         width: 100%;
         height: 50px; /* ✅ reduced height */
         object-fit: contain; /* no crop */
-        background: #f8f9fa;
         border-radius: 4px;
         cursor: pointer;
         border: 1px solid #ddd;
@@ -63,7 +62,6 @@
         width: 100%;
         height: 120px;
         object-fit: contain; /* ✅ no crop */
-        background: #f8f9fa;
         border-radius: 6px;
         cursor: pointer;
         border: 1px solid #ddd;
@@ -89,11 +87,13 @@
     border-radius: 6px 6px 0 0;
 }
 
-       
+    .blacklist-card {
+        border: 2px solid #dc3545 !important;
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        background-color: #fff5f5;
 </style>
 
-<div class="card border-info">
-
+<div class="card @(Model.Dealer != null && !Model.Dealer.IsActive ? "border-danger blacklist-card" : "border-info")">
     <div class="card-header text-center fw-bold bg-info text-white">
         View Dealer Information
     </div>
@@ -128,43 +128,52 @@
                             <div class="col-6"><b>Owner:</b> @Model.Dealer?.OwnerName</div>
                             <div class="col-6"><b>GST:</b> @Model.Dealer?.GSTNo</div>
 @*                             <div class="col-6"><b>PAN:</b> @Model.Dealer?.PANNo</div>
- *@                            <div class="col-6"><b>Payment:</b> @Model.Dealer?.PaymentMode</div>
+ *@                            <div class="col-6"><b>Credit Terms:</b> @Model.Dealer?.PaymentMode</div>
                             <div class="col-6"><b>Off:</b> @Model.Dealer?.WeeklyOff</div>
 
                         </div>
 
                         <!-- IMAGES -->
-                        <div class="d-flex gap-2 mt-2">
+                    <div class="d-flex gap-2 mt-2">
 
-                            <div style="width:50%;">
-                                @{
-                                    var dealerImg = Model.Images
-                                    .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
-                                }
+                        <!-- MAIN COMPANY -->
+                        <div style="width:50%; text-align:center;">
+                            <label class="small fw-bold text-info d-block mb-1">
+                                Main Company
+                            </label>
 
-                                <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
-                                     class="img-thumb"
-                                     style="height:70px;"
-                                     onclick="openImagePreview(this.src)" />
-                            </div>
+                            @{
+                                var dealerImg = Model.Images
+                                .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
+                            }
 
-                            <div style="width:50%;">
-                                @{
-                                    var owner = Model.Persons.FirstOrDefault(x => x.PersonType == "Owner");
-
-                                    var ownerImg = Model.Images
-                                    .FirstOrDefault(x => x.Type == "Person" && owner != null && x.IdentityID == owner.PersonID)
-                                    ?.ImageBase64;
-                                }
-
-                                <img src="@(string.IsNullOrEmpty(ownerImg) ? "/images/no-image.png" : ownerImg)"
-                                     class="img-thumb"
-                                     style="height:70px;"
-                                     onclick="openImagePreview(this.src)" />
-                            </div>
-
+                            <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
+                                 class="img-thumb"
+                                 style="height:70px;"
+                                 onclick="openImagePreview(this.src)" />
                         </div>
 
+                        <!-- OWNER -->
+                        <div style="width:50%; text-align:center;">
+                            <label class="small fw-bold text-info d-block mb-1">
+                                Owner
+                            </label>
+
+                            @{
+                                var owner = Model.Persons.FirstOrDefault(x => x.PersonType == "Owner");
+
+                                var ownerImg = Model.Images
+                                .FirstOrDefault(x => x.Type == "Person" && owner != null && x.IdentityID == owner.PersonID)
+                                ?.ImageBase64;
+                            }
+
+                            <img src="@(string.IsNullOrEmpty(ownerImg) ? "/images/no-image.png" : ownerImg)"
+                                 class="img-thumb"
+                                 style="height:70px;"
+                                 onclick="openImagePreview(this.src)" />
+                        </div>
+
+                    </div>
                     </div>
 
                     <!-- RIGHT (6) -->
@@ -575,10 +584,26 @@
 </div>
 
 <script>
-function openImagePreview(src){
-    document.getElementById("previewImg").src = src;
-    new bootstrap.Modal(document.getElementById('imagePreviewModal')).show();
-}
+    let imageModal;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        imageModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+    });
+
+    function openImagePreview(src) {
+        document.getElementById("previewImg").src = src;
+        imageModal.show();
+    }
+
+        document.getElementById('imagePreviewModal').addEventListener('hidden.bs.modal', function () {
+
+        // remove leftover backdrop
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+
+        // reset body
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    });
 
     function openPrintNotes() {
 

@@ -25,6 +25,7 @@
         public string PANNo { get; set; }
         public string PaymentMode { get; set; }
         public string WeeklyOff { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class DealerAddressVM

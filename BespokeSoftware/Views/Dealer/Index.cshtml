@@ -28,6 +28,56 @@ Layout = "~/Views/Shared/_Layout.cshtml";
         border-radius:6px;
         object-fit:cover;
     }
+
+    /* Switch container */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+        /* Hide default checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* Slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+        /* Circle */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    /* Checked */
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
 </style>
 
 <div class="card border border-info">
@@ -89,16 +139,15 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                                  class="img-box" />
                         </td> *@
 
-                        <td class="text-center">
-                            @if (item.IsActive)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Inactive</span>
-                            }
-                        </td>
+                            <td class="text-center">
+                                <label class="switch">
+                                    <input type="checkbox"
+                                           class="status-toggle"
+                                           data-id="@item.DealerId"
+                                           @(item.IsActive ? "checked" : "") />
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
 
                         <td class="text-center">
 
@@ -331,5 +380,48 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
     });
     }
+
+        $(document).on("change", ".status-toggle", function () {
+
+    let checkbox = $(this);
+    let dealerId = checkbox.data("id");
+    let isChecked = checkbox.is(":checked");
+
+    let statusText = isChecked ? "Active" : "Blacklisted";
+
+    Swal.fire({
+    title: 'Are you sure?',
+    text: "Change status to " + statusText,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes'
+    }).then((result) => {
+
+    if (result.isConfirmed) {
+
+    $.ajax({
+    url: '/Dealer/UpdateDealerStatus',
+    type: 'POST',
+    data: {
+    id: dealerId,
+    isActive: isChecked
+    },
+    success: function (res) {
+    if (res.success) {
+    Swal.fire('Updated!', '', 'success');
+    } else {
+    checkbox.prop("checked", !isChecked); // revert
+    }
+    },
+    error: function () {
+    checkbox.prop("checked", !isChecked); // revert
+    }
+    });
+
+    } else {
+    checkbox.prop("checked", !isChecked); // revert if cancel
+    }
+    });
+    });
 
 </script>
