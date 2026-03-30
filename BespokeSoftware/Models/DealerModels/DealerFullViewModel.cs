@@ -10,6 +10,7 @@
         public List<PersonAddressVM> PersonAddresses { get; set; } = new();
         public List<PersonCommunicationVM> Communications { get; set; } = new();
         public List<ImageVM> Images { get; set; } = new();
+        public List<CategoryVM> Categories { get; set; } = new();
     }
 
     
@@ -36,8 +37,11 @@
     {
         public int NoteId { get; set; }
         public string NoteText { get; set; }
+        public string NoteFor { get; set; }
+        public DateTime? NoteDate { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
+        public string DealerId { get; set; }
     }
 
     public class PersonVM
@@ -69,7 +73,11 @@
         public int PersonID { get; set; }
         public string Value { get; set; }
     }
-
+    public class CategoryVM
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
+    }
     public class ImageVM
     {
         public int IdentityID { get; set; }
