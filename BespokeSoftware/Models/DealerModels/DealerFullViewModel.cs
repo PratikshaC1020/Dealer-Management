@@ -10,6 +10,7 @@
         public List<PersonAddressVM> PersonAddresses { get; set; } = new();
         public List<PersonCommunicationVM> Communications { get; set; } = new();
         public List<ImageVM> Images { get; set; } = new();
+        public List<ImageVMOwner> ImagesOwner { get; set; } = new();
         public List<CategoryVM> Categories { get; set; } = new();
     }
 
@@ -79,6 +80,12 @@
         public string CategoryName { get; set; }
     }
     public class ImageVM
+    {
+        public int IdentityID { get; set; }
+        public string Type { get; set; }
+        public string ImageBase64 { get; set; }
+    }
+    public class ImageVMOwner
     {
         public int IdentityID { get; set; }
         public string Type { get; set; }

@@ -62,6 +62,20 @@
     border-color: #0dcaf0 #0dcaf0 white;
     border-radius: 6px 6px 0 0;
 }
+
+    .img-thumb {
+        width: 100%;
+        height: 80px; /* 👈 कमी height */
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        transition: 0.2s;
+    }
+
+        .img-thumb:hover {
+            transform: scale(1.05);
+        }
 </style>
 
 <div class="card border-info">
@@ -131,7 +145,12 @@
 
                             <!-- DEALER IMAGE -->
                             <div style="width:50%;">
-                                <img src="data:image/png;base64,@Model.Images.FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64"
+                                @{
+                                    var dealerImg = Model.Images
+                                    .FirstOrDefault(x => x.Type == "MainOffice")?.ImageBase64;
+                                }
+
+                                <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
                                      class="img-fluid rounded border"
                                      style="height:120px; width:100%; object-fit:cover; cursor:pointer;"
                                      onclick="openImagePreview(this.src)" />
@@ -141,7 +160,12 @@
 
                             <!-- OWNER IMAGE -->
                             <div style="width:50%;">
-                                <img src="data:image/png;base64,@Model.Images.FirstOrDefault(x => x.Type == "Person")?.ImageBase64"
+                                @{
+                                    var ownerImg = Model.ImagesOwner
+                                    .FirstOrDefault()?.ImageBase64;
+                                }
+
+                                <img src="@(string.IsNullOrEmpty(ownerImg) ? "/images/no-image.png" : ownerImg)"
                                      class="img-fluid rounded border"
                                      style="height:120px; width:100%; object-fit:cover; cursor:pointer;"
                                      onclick="openImagePreview(this.src)" />
@@ -281,17 +305,24 @@
                         </button>
                     </div>
 
-                    <!-- TOGGLE CONTENT -->
                     <div id="imageSection" style="display:none;">
                         <div class="row inner-scroll">
                             @foreach (var img in Model.Images)
                             {
-                                <div class="col-md-4 mb-2">
-                                    <img src="data:image/png;base64,@img.ImageBase64"
-                                            class="img-thumb"
-                                            onclick="openImagePreview(this.src)" />
+                                <div class="col-md-2 mb-2">
+
+                                    @{
+                                        var imagePath = img.ImageBase64;
+                                    }
+
+                                    <img src="@(string.IsNullOrEmpty(imagePath)
+                                                                 ? "/images/no-image.png"
+                                                                 : imagePath)"
+                                     class="img-thumb"
+                                     onclick="openImagePreview(this.src)" />
+
                                 </div>
-                            }
+                                                        }
                         </div>
                     </div>
 
