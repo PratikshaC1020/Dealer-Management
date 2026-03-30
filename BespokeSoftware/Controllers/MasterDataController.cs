@@ -9,6 +9,7 @@ namespace BespokeSoftware.Controllers
 {
 
     [Authorize(AuthenticationSchemes = "MyCookieAuth")]
+    [Authorize(Roles = "Admin")]
     public class MasterDataController : Controller
     {
         private readonly string _connectionString;

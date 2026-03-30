@@ -201,8 +201,14 @@
             </div>
 
             <div class="text-center">
-                <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
-                <button type="button"
+@*                 <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
+
+ *@                
+                @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                {
+                    <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
+                }
+ <button type="button"
                         class="btn btn-secondary px-4 fw-bold"
                         onclick="window.location.href='@Url.Action("Index", "Dealer")'">
                     Cancel
