@@ -1565,6 +1565,18 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                         });
                     }
                 }
+                if (rdr.NextResult())
+                {
+                    while (rdr.Read())
+                    {
+                        model.ImagesOwner.Add(new ImageVMOwner
+                        {
+                            IdentityID = Convert.ToInt32(rdr["IdentityID"]),
+                            Type = rdr["Type"]?.ToString(),
+                            ImageBase64 = rdr["ImageBase64"]?.ToString()
+                        });
+                    }
+                }
             }
 
             return model;
