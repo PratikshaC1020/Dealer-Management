@@ -18,6 +18,11 @@ public class DealerController : Controller
         repo = new DealerRepository(configuration);
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
+
+
+
+    [Authorize(Roles = "Admin,Supervisor,Executive")]
+
     public IActionResult Index()
     {
         var dealers = repo.GetDealerList();
@@ -172,6 +177,7 @@ public class DealerController : Controller
 
     //    return View("_AddEditDealer", model);
     //}
+    [Authorize(Roles = "Admin,Supervisor")]
     [HttpPost]
     public IActionResult InsertDealer(DealerViewModel model)
     {
@@ -192,8 +198,8 @@ public class DealerController : Controller
         return View("_AddEditDealer", model);
     }
 
-   
 
+    [Authorize(Roles = "Admin,Supervisor")]
     public IActionResult EditDealer(int id)
     {
         DealerEditVM model = repo.GetDealerFullById(id);
@@ -206,6 +212,7 @@ public class DealerController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Supervisor")]
     public IActionResult EditDealer(DealerEditVM model)
     {
         if (model == null || model.Dealer == null)
@@ -238,6 +245,7 @@ public class DealerController : Controller
     //    repo.DeleteDealer(id);
     //    return RedirectToAction("Index");
     //}
+    [Authorize(Roles = "Admin,Supervisor,Executive")]
     public IActionResult ViewDealerDetails(int dealerId)
     {
        // ViewBag.CategoryList = repo.GetCategories();
@@ -266,6 +274,7 @@ public class DealerController : Controller
     //}
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public IActionResult Delete(int dealerId)
     {
         if (dealerId <= 0)

@@ -7,8 +7,12 @@
         public List<DealerAddressVM> DealerAddresses { get; set; } = new();
         public List<DealerNoteVM> DealerNotes { get; set; } = new();
         public List<string> DealerImages { get; set; } = new();
-
+        public List<IFormFile> NewDealerImages { get; set; } = new();
         public List<PersonVM> Persons { get; set; } = new();
+        public string MainOfficeImage { get; set; }
+        public string MainOfficeImagePath { get; set; }
+        public IFormFile MainOfficeImageFile { get; set; }
+        public bool IsMainRemoved { get; set; }
     }
 
     public class DealerVM
@@ -48,7 +52,7 @@
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }
-
+        public List<IFormFile> NewImages { get; set; } = new();
         public string Gender { get; set; }
         public DateTime? DOB { get; set; }
         public DateTime? AnniversaryDate { get; set; }
