@@ -381,7 +381,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <div class="modal-header">
+            <div class="modal-header bg-info">
                 <h5>Add Category</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -634,6 +634,7 @@
         return options;
 
     }
+
         function refreshCategory(ele){
 
     $.get('/Dealer/GetCategories', function(data){
@@ -786,6 +787,12 @@
 
     formData.append(`DealerNotes[${i}].NoteText`,
     $(this).find("textarea").val());
+
+    formData.append(`DealerNotes[${i}].NoteFor`,
+        $(this).find("input[type='text']").val());
+
+    formData.append(`DealerNotes[${i}].Notedate`,
+        $(this).find("input[type='date']").val());
 
     });
 

@@ -2,6 +2,8 @@
 @using System.Text.Json
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <style>
     .section-box {
@@ -61,6 +63,22 @@
                     <div class="col-md-3">
                         <label>Owner</label>
                         <input name="Dealer.OwnerName" value="@Model.Dealer.OwnerName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="">Main Office</label>
+
+                     @*    <div class="d-flex gap-2">
+                            <button type="button"
+                                    class="btn btn-info w-100"
+                                    onclick="openMainOfficePopup()">
+                                + Add
+                            </button>
+                        </div> *@
+
+                        <div id="companyPreview" class="mt-2"></div>
+
                     </div>
 
                     <div class="col-md-3">
@@ -128,33 +146,93 @@
 
             <!-- ================= NOTES ================= -->
             <div class="section-box mb-3">
+
                 <div class="d-flex justify-content-between">
                     <h5 class="section-title">Notes</h5>
-                    <i class="bi bi-plus-circle-fill add-icon" onclick="addNote()"></i>
+
+                    <!-- ✅ ADD BUTTON / ICON -->
+                    <i class="bi bi-plus-circle-fill add-icon"
+                       onclick="addNote()"></i>
                 </div>
+            <div id="notesContainer">
 
-                <div id="notesContainer">
-                    @for (int i = 0; i < Model.DealerNotes.Count; i++)
-                    {
-                        <div class="box">
-                            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+                @for (int i = 0; i < Model.DealerNotes.Count; i++)
+                {
+                    <div class="box">
 
-                            <select name="DealerNotes[@i].CategoryId" class="form-control mb-1">
-                                <option value="">Select</option>
-                                @foreach (var c in ViewBag.CategoryList)
-                                {
-                                    <option value="@c.ID" selected="@(c.ID == Model.DealerNotes[i].CategoryId)">
-                                        @c.CategoryName
-                                    </option>
-                                }
-                            </select>
+                        <i class="bi bi-x-circle text-danger remove"
+                           onclick="$(this).parent().remove()"></i>
 
-                            <textarea name="DealerNotes[@i].NoteText" class="form-control">@Model.DealerNotes[i].NoteText</textarea>
+                        <div class="row">
+
+                            <!-- CATEGORY -->
+                            <div class="col-md-4">
+                                <label>Category</label>
+
+                                <div class="d-flex">
+
+                                    <select name="DealerNotes[@i].CategoryId"
+                                            class="form-control">
+
+                                        <option value="">Select Notes Category</option>
+
+                                        @foreach (var c in ViewBag.CategoryList)
+                                        {
+                                            <option value="@c.ID"
+                                                    selected="@(c.ID == Model.DealerNotes[i].CategoryId)">
+                                                @c.CategoryName
+                                            </option>
+                                        }
+
+                                    </select>
+
+                                    <!-- ADD CATEGORY -->
+                                    <i class="bi bi-plus-circle text-primary ms-2 mt-2"
+                                       onclick="openCategoryModal()"
+                                       style="cursor:pointer"></i>
+
+                                    <!-- REFRESH -->
+                                    <i class="bi bi-arrow-clockwise text-success ms-2 mt-2"
+                                       onclick="refreshCategory(this)"
+                                       style="cursor:pointer"></i>
+
+                                </div>
+                            </div>
+
+                            <!-- NOTE FOR -->
+                            <div class="col-md-4">
+                                <label>Note For</label>
+                                <input type="text"
+                                       name="DealerNotes[@i].NoteFor"
+                                       value="@Model.DealerNotes[i].NoteFor"
+                                       class="form-control" />
+                            </div>
+
+                            <!-- DATE -->
+                            <div class="col-md-4">
+                                <label>Date</label>
+                                <input type="date"
+                                       name="DealerNotes[@i].NoteDate"
+                                       value="@Model.DealerNotes[i].Notedate?.ToString("yyyy-MM-dd")"
+                                       class="form-control" />
+                            </div>
+
                         </div>
-                    }
-                </div>
-            </div>
 
+                        <!-- NOTE TEXT -->
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <label>Note</label>
+                                <textarea name="DealerNotes[@i].NoteText"
+                                      class="form-control">@Model.DealerNotes[i].NoteText</textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+            </div>
             <!-- ================= IMAGES ================= -->
             <div class="section-box mb-3">
 
@@ -170,7 +248,7 @@
                         <div class="col-md-3 mb-2">
                             <div class="position-relative">
 
-                                <img src="data:image/png;base64,@img" class="img-fluid rounded" />
+                                <img src="@img" class="img-fluid rounded" />
 
                                 <i class="bi bi-x-circle text-danger"
                                    style="position:absolute;top:5px;right:5px;cursor:pointer;"
@@ -218,6 +296,40 @@
         </form>
     </div>
 </div>
+
+<div class="modal fade" id="categoryModal">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info">
+                <h5>Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="text"
+                       id="newCategory"
+                       class="form-control"
+                       placeholder="Enter Category" />
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-primary"
+                        onclick="saveCategory()">
+                    Save
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 
 <!-- ================= PERSON MODAL FULL ================= -->
 <div class="modal fade" id="personModal">
@@ -320,6 +432,81 @@
 
 <script>
 
+        var categoryList = [];
+        var dealerImages = [];
+           
+
+    $(document).ready(function () {
+        loadCategories();
+    });
+
+    function loadCategories(){
+
+        $.get('/Dealer/GetCategories', function(data){
+            categoryList = data;
+        });
+
+    }
+
+     function getCategoryOptions(){
+
+        var options = '';
+
+        categoryList.forEach(function(c){
+            options += `<option value="${c.id}">${c.categoryName}</option>`;
+        });
+
+        return options;
+
+    }
+
+        function refreshCategory(ele){
+
+    $.get('/Dealer/GetCategories', function(data){
+
+    let dropdown = $(ele).closest('.box').find('select');
+
+    dropdown.empty();
+
+    dropdown.append('<option value="">Select Notes Category</option>');
+
+    data.forEach(function(c){
+
+    dropdown.append(`<option value="${c.id}">${c.categoryName}</option>`);
+
+    });
+
+    });
+
+    }
+
+        function saveCategory(){
+
+        let category = $("#newCategory").val();
+
+        if(category==""){
+            alert("Enter category");
+            return;
+        }
+
+        $.post('/Dealer/AddCategory',
+        {
+            Category:category
+        },
+        function(){
+
+            $("#categoryModal").modal('hide');
+            $("#newCategory").val('');
+
+            loadCategories();
+
+            Swal.fire("Success","Category added successfully","success");
+
+        });
+
+    }
+
+
        var personList = @Html.Raw(JsonSerializer.Serialize(
                                 Model.Persons ?? new List<BespokeSoftware.Models.PersonVM>(),
                                 new JsonSerializerOptions { PropertyNamingPolicy = null }
@@ -327,38 +514,53 @@
 
       var personImages = [];
 
-    function openPersonModal(){
+        function openPersonModal(){
+
+        editIndex = -1; // 🔥 NEW PERSON MODE
+
+        // CLEAR ALL INPUTS
+        $("#personModal input, #personModal textarea").val("");
+        $("#personModal select").val("");
+
+        // CLEAR CONTAINERS
+        $("#commContainer").empty();
+        $("#personAddressContainer").empty();
+        $("#personImagePreview").empty();
+
+        // RESET IMAGE ARRAY
+        personImages = [];
+
         $("#personModal").modal('show');
     }
-        $("#pImageInput").change(function(){
+    var personImages = [];
+
+    $("#pImageInput").change(function () {
 
         let files = this.files;
 
-        for(let i=0;i<files.length;i++){
+        for (let i = 0; i < files.length; i++) {
+
+            let file = files[i];
+
+            // 👉 STORE FILE (NOT base64)
+            personImages.push(file);
 
             let reader = new FileReader();
 
-            reader.onload = function(e){
-
-                let base64 = e.target.result.split(',')[1];
-
-                personImages.push(base64);
+            reader.onload = function (e) {
 
                 $("#personImagePreview").append(`
-                    <div style="display:inline-block;position:relative;margin:5px;">
+                    <div style="display:inline-block;margin:5px;">
                         <img src="${e.target.result}" width="80"/>
-                        <i class="bi bi-x-circle text-danger"
-                           style="position:absolute;top:0;right:0;cursor:pointer;"
-                           onclick="removePersonImage(${personImages.length-1})">
-                        </i>
                     </div>
                 `);
             };
 
-            reader.readAsDataURL(files[i]);
+            reader.readAsDataURL(file);
         }
     });
-        function removePersonImage(index){
+    
+    function removePersonImage(index){
         personImages.splice(index,1);
         $("#personImagePreview").children().eq(index).remove();
     }
@@ -382,7 +584,7 @@
             remark:$("#pRemark").val(),
             communications:[],
             addresses:[],
-            images:personImages
+           Images: personImages
         };
 
         $("#commContainer .box").each(function(){
@@ -450,15 +652,26 @@
             });
 
             // ================= IMAGES =================
-            (p.Images || p.images || []).forEach(img=>{
-                imgs+=`
-                 <img src="data:image/png;base64,${img}"
-    width="70"
-    class="me-2 mb-1 border rounded"
-    style="cursor:pointer"
-    onclick="showImage('data:image/png;base64,${img}')"/>
-                `;
-            });
+                (p.Images || p.images || []).forEach(img => {
+
+        let src = "";
+
+        //  EXISTING IMAGE (string path)
+        if (typeof img === "string") {
+            src = img;
+        }
+
+        //  NEW IMAGE (File object)
+        else if (img instanceof File) {
+            src = URL.createObjectURL(img);
+        }
+
+        imgs += `
+            <img src="${src}"
+                 width="70"
+                 class="me-2 mb-1 border rounded"/>
+        `;
+    });
 
             // ================= UI CARD =================
             $("#personGrid").append(`
@@ -553,13 +766,18 @@
             `;
 
             // ================= IMAGES =================
-            (p.Images || p.images || []).forEach((img,j)=>{
-                html += `
-                <input type="hidden"
-                name="Persons[${i}].Images[${j}]"
-                value="${img}"/>
-                `;
-            });
+               (p.Images || p.images || []).forEach((img,j)=>{
+
+        if (typeof img === "string") { // ONLY EXISTING
+
+            html += `
+            <input type="hidden"
+            name="Persons[${i}].Images[${j}]"
+            value="${img}"/>
+            `;
+        }
+
+    });
 
             // ================= COMMUNICATION =================
             (p.Communications || p.communications || []).forEach((c,j)=>{
@@ -617,13 +835,21 @@
         $("#personImagePreview").empty();
         personImages = p.Images || p.images || [];
 
-        personImages.forEach((img,i)=>{
-            $("#personImagePreview").append(`
-            <div style="display:inline-block;position:relative;margin:5px;">
-            <img src="data:image/png;base64,${img}" width="80"/>
-            </div>
-            `);
-        });
+               personImages.forEach(img => {
+
+        let src = "";
+
+        if (typeof img === "string") {
+            src = img;
+        }
+        else if (img instanceof File) {
+            src = URL.createObjectURL(img);
+        }
+
+        $("#personImagePreview").append(`
+            <img src="${src}" width="80"/>
+        `);
+    });
 
         $("#commContainer").empty();
 
@@ -692,10 +918,12 @@
 
 <script>
         // IMAGE LIST
+    
     var imageList = @Html.Raw(JsonSerializer.Serialize(Model.DealerImages ?? new List<string>()));
 
     // OPEN MODAL
     function openImageModal(){
+            isMainOfficeMode = false;
         $("#multiImageInput").val("");
         $("#imageModal").modal('show');
     }
@@ -705,56 +933,80 @@
 
         let files = $("#multiImageInput")[0].files;
 
-        if(files.length === 0){
-            alert("Select image");
-            return;
+        if(files.length === 0) return;
+
+        // ================= MAIN OFFICE =================
+        if(isMainOfficeMode){
+
+            let file = files[0]; // only one
+
+            newMainOfficeFile = file;
+            isMainRemoved = false;
+
+            mainOfficeImage = URL.createObjectURL(file);
+
+            renderMainOffice();
+
+            $("#imageModal").modal('hide');
+            return; // 🔥 IMPORTANT
         }
 
+        // ================= NORMAL DEALER IMAGES =================
         for(let i=0;i<files.length;i++){
+
+            let file = files[i];
+            dealerImages.push(file);
 
             let reader = new FileReader();
 
             reader.onload = function(e){
 
-                imageList.push(e.target.result.split(',')[1]); // base64 only
+                $("#imageGrid").append(`
+                    <div class="col-md-2 mb-2">
+                        <div class="position-relative">
 
-                renderImages();
+                            <img src="${e.target.result}"
+                                 style="width:120px;height:120px;object-fit:cover" />
+
+                            <i class="bi bi-x-circle text-danger"
+                               style="position:absolute;top:5px;right:5px;cursor:pointer;">
+                            </i>
+
+                        </div>
+                    </div>
+                `);
+
             };
 
-            reader.readAsDataURL(files[i]);
+            reader.readAsDataURL(file);
         }
 
         $("#imageModal").modal('hide');
-    }
-
-    // RENDER IMAGE
+    }    // RENDER IMAGE
     function renderImages(){
 
         $("#imageGrid").empty();
-        $("#hiddenImages").empty();
 
+        // EXISTING IMAGES
         imageList.forEach((img,i)=>{
 
-    $("#imageGrid").append(`
-    <div class="col-md-2 mb-2">
-        <div class="position-relative">
-            <img src="data:image/png;base64,${img}"
-                 class="rounded border"
-                 style="width:120px;height:120px;object-fit:cover;cursor:pointer"
-                 onclick="showImage('data:image/png;base64,${img}')"/>
+            $("#imageGrid").append(`
+            <div class="col-md-2 mb-2">
+                <div class="position-relative">
 
-            <i class="bi bi-x-circle text-danger"
-               style="position:absolute;top:5px;right:5px;cursor:pointer;"
-               onclick="removeImage(${i})">
-            </i>
-        </div>
-    </div>
-    `);
-            // 🔥 hidden input for POST
-            $("#hiddenImages").append(`
-                <input type="hidden" name="DealerImages[${i}]" value="${img}" />
+                    <img src="${img}"
+                         style="width:120px;height:120px;object-fit:cover" />
+
+                    <i class="bi bi-x-circle text-danger"
+                       style="position:absolute;top:5px;right:5px;cursor:pointer;"
+                       onclick="removeImage(${i})"></i>
+
+                </div>
+            </div>
             `);
+
         });
+
     }
 
     // REMOVE IMAGE
@@ -784,29 +1036,91 @@
         dealerAddressIndex++;
     }
 
-        var noteIndex = @Model.DealerNotes.Count;
+
+    var noteIndex = @Model.DealerNotes.Count;
 
     function addNote(){
 
+        if($("#notesContainer .box").length >= 30){
+            alert("Max 30 Notes allowed");
+            return;
+        }
+
         $("#notesContainer").append(`
+
         <div class="box">
-            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
-            <select name="DealerNotes[${noteIndex}].CategoryId" class="form-control mb-1">
-                <option value="">Select</option>
-                @foreach (var c in ViewBag.CategoryList)
-                {
-                            <text><option value="@c.ID">@c.CategoryName</option></text>
-                }
-            </select>
+            <i class="bi bi-x-circle text-danger remove"
+               onclick="$(this).parent().remove()"></i>
 
-            <textarea name="DealerNotes[${noteIndex}].NoteText" class="form-control"></textarea>
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <label>Category</label>
+
+                    <div class="d-flex">
+
+                        <select name="DealerNotes[${noteIndex}].CategoryId"
+                                class="form-control">
+
+                            <option value="">Select Notes Category</option>
+                            ${getCategoryOptions()}
+
+                        </select>
+
+                        <i class="bi bi-plus-circle text-primary ms-2 mt-2"
+                           onclick="openCategoryModal()"
+                           style="cursor:pointer"></i>
+
+                        <i class="bi bi-arrow-clockwise text-success ms-2 mt-2"
+                           onclick="refreshCategory(this)"
+                           style="cursor:pointer"></i>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+                    <label>Note For</label>
+                    <input type="text"
+                           name="DealerNotes[${noteIndex}].NoteFor"
+                           class="form-control"/>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Date</label>
+                    <input type="date"
+                           name="DealerNotes[${noteIndex}].NoteDate"
+                           class="form-control"/>
+                </div>
+
+            </div>
+
+            <div class="row mt-2">
+
+                <div class="col-md-12">
+
+                    <label>Note</label>
+
+                    <textarea name="DealerNotes[${noteIndex}].NoteText"
+                              class="form-control"></textarea>
+
+                </div>
+
+            </div>
+
         </div>
+
         `);
 
         noteIndex++;
     }
-</script>
+           function openCategoryModal(){
+           $("#categoryModal").modal('show');
+       }
+       
+       </script>
 
 <div class="modal fade" id="previewImageModal">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -827,9 +1141,132 @@
     </div>
 </div>
 <script>
+    var mainOfficeImage = '@Model.MainOfficeImage';
+    var newMainOfficeFile = null;
+    var isMainRemoved = false; // 🔥 IMPORTANT
+
+        $(document).ready(function(){
+        renderMainOffice(); // 🔥 IMPORTANT
+    });
+
+        function openMainOfficePopup(){
+             isMainOfficeMode = true;
+        $("#multiImageInput").val("");
+        $("#imageModal").modal('show');
+    }
+
+        function removeMainOffice(){
+
+        mainOfficeImage = null;
+        newMainOfficeFile = null;
+        isMainRemoved = true; // 🔥 mark delete
+
+        renderMainOffice();
+    }
+
+    function renderMainOffice(){
+
+        $("#companyPreview").empty();
+
+        if(mainOfficeImage){
+
+            $("#companyPreview").html(`
+                <div style="position:relative;display:inline-block;">
+
+                    <span class="badge bg-primary"
+                          style="position:absolute;top:5px;left:5px;">
+                        Main
+                    </span>
+
+                    <img src="${mainOfficeImage}"
+                         style="width:80px;height:80px;object-fit:cover"/>
+
+                    <i class="bi bi-x-circle text-danger"
+                       style="position:absolute;top:5px;right:5px;cursor:pointer;"
+                       onclick="removeMainOffice()"></i>
+
+                </div>
+            `);
+
+        } else {
+
+               $("#companyPreview").html(`
+        <button type="button" class="btn btn-info w-100" onclick="openMainOfficePopup()">
+            + Add
+        </button>
+    `);
+        }
+    }
         function showImage(img){
         $("#previewImage").attr("src", img);
         $("#previewImageModal").modal("show");
     }
+
+        $("form").submit(function (e) {
+
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        // 👉 PERSON IMAGES
+        personList.forEach((p, i) => {
+
+                let imgs = p.Images || p.images || [];
+
+                for (let j = 0; j < imgs.length; j++) {
+
+                    if (imgs[j] instanceof File) {
+                        formData.append(`Persons[${i}].NewImages`, imgs[j]);
+                    }
+                    else {
+                        formData.append(`Persons[${i}].Images[${j}]`, imgs[j]);
+                    }
+                }
+        });
+
+    imageList.forEach((img, i) => {
+        formData.append(`DealerImages[${i}]`, img);
+    });
+
+    dealerImages.forEach(file => {
+        formData.append("NewDealerImages", file);
+    });
+
+        // MAIN OFFICE EXISTING
+    if(mainOfficeImage && typeof mainOfficeImage === "string" && !isMainRemoved){
+        formData.append("MainOfficeImagePath", mainOfficeImage);
+    }
+
+    // MAIN OFFICE NEW
+    if(newMainOfficeFile){
+        formData.append("MainOfficeImageFile", newMainOfficeFile);
+    }
+
+    // REMOVE
+    if(isMainRemoved){
+        formData.append("IsMainRemoved", true);
+    }
+
+        $.ajax({
+            url: '/Dealer/EditDealer',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                 Swal.fire({
+            title: "Success",
+            text: "Dealer Updated Successfully",
+            icon: "success",
+            confirmButtonText: "OK"
+        }).then(() => {
+
+            window.location.href = '@Url.Action("Index", "Dealer")';
+
+        });
+            }
+        });
+
+    });
 </script>
 
