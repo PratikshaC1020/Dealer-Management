@@ -5,8 +5,8 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <title>Bespoke Software</title>
-
+    <title>KCRM</title>
+    <link rel="icon" type="image/jpeg" href="@Url.Content("~/content/img/kcrmlogo.jpeg")" />
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Nunito:300,400,600,700|Poppins:300,400,500,600,700" rel="stylesheet">
@@ -25,8 +25,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" />
 
-
-
     <!-- Main CSS -->
     <link rel="stylesheet" href="~/Content/css/style.css" />
 
@@ -36,6 +34,13 @@
             padding: 0px 5px;
             transition: all 0.3s;
         }
+
+        .logo img {
+            height: 50px !important;
+            width: auto !important;
+            max-height: none !important;
+        }
+
     </style>
 
     <script>
@@ -54,9 +59,9 @@
         <header id="header" class="header fixed-top d-flex align-items-center">
 
             <div class="d-flex align-items-center w-100">
-
-                <a href="javascript:void(0)" class="logo d-flex align-items-center">
-                    <span class="d-none d-lg-block me-5">Bespoke Software</span>
+                <a class="logo d-flex align-items-center">
+                    <img src="@Url.Content("~/content/img/kcrmlogo.jpeg")" class="me-2" />
+                    <span>KCRM</span>
                 </a>
 
                 <i class="bi bi-list toggle-sidebar-btn m-3"></i>
@@ -214,8 +219,6 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
