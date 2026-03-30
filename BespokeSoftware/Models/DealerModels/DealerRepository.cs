@@ -1383,6 +1383,10 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         model.Notes.Add(new DealerNotesVM
                         {
                             NoteText = rdr["NoteText"]?.ToString(),
+                            NoteFor = rdr["NoteFor"]?.ToString(),
+                            NoteDate = rdr["NoteDate"] == DBNull.Value
+                                        ? (DateTime?)null
+                                        : Convert.ToDateTime(rdr["NoteDate"]),
                             CategoryId = Convert.ToInt32(rdr["CategoryId"]),
                             CategoryName = rdr["CategoryName"]?.ToString() // ✅ FIX
                         });
