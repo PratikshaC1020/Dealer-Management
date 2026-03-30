@@ -228,9 +228,15 @@
                 </div>
             </div>
             <div class="text-center">
-                <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
+              @*   <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
                     Save Dealer
-                </button>
+                </button> *@
+                @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+{
+    <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
+        Save Dealer
+    </button>
+}
                 <button type="button"
                         class="btn btn-secondary px-4 fw-bold"
                         onclick="window.location.href='@Url.Action("Index", "Dealer")'">
