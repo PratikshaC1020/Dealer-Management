@@ -1,0 +1,93 @@
+﻿@model BespokeSoftware.Models.DealerModels.DealerFullViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Print Notes</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 80px;
+        }
+
+        .title {
+            flex: 1;
+            text-align: center;
+        }
+
+        h3 {
+            margin: 0;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ✅ HEADER WITH LOGO -->
+    <div class="header">
+        <img src="~/content/img/kmpllogo.jpeg" class="logo" />
+
+        <div class="title">
+            <h3>Dealer Notes</h3>
+        </div>
+    </div>
+    @{
+        var categories = Model.Notes
+        .GroupBy(x => new { x.CategoryId, x.CategoryName })
+        .ToList();
+    }
+
+    @foreach (var cat in categories)
+    {
+        <h4>@cat.Key.CategoryName</h4>
+
+        @foreach (var note in cat)
+        {
+            <div class="box">
+                <div><label>Date:</label> @note.NoteDate?.ToString("dd-MM-yyyy")</div>
+                <div><label>Note For:</label> @note.NoteFor</div>
+                <div><label>Note:</label> @note.NoteText</div>
+            </div>
+        }
+    }
+
+</body>
+</html>
+
+<script>
+    window.onload = function () {
+        window.print();
+
+        window.onafterprint = function () {
+            window.close();
+        };
+    };
+</script>
