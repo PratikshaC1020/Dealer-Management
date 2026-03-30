@@ -1153,11 +1153,11 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                         }
 
                         using (SqlCommand cmd = new SqlCommand(
-                            "INSERT INTO T_Image(Type, IdentityID, ImagePath, CreatedDate, FileName) VALUES(@Type,@DealerId,@Path,GETDATE(),@FileName)",
+                            "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@ImageBase64,GETDATE(),@FileName)",
                             con, tran))
                         {
                             cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                            cmd.Parameters.AddWithValue("@Path", dbPath);
+                            cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
                             cmd.Parameters.AddWithValue("@Type", firstType);
                             cmd.Parameters.AddWithValue("@FileName", fileName);
 
@@ -1193,11 +1193,11 @@ VALUES ('Person', @Pid, @Img, GETDATE())",
                             }
 
                             using (SqlCommand cmd = new SqlCommand(
-                                "INSERT INTO T_Image(Type, IdentityID, ImagePath, CreatedDate, FileName) VALUES(@Type,@DealerId,@Path,GETDATE(),@FileName)",
+                                "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES(@Type,@DealerId,@ImageBase64,GETDATE(),@FileName)",
                                 con, tran))
                             {
                                 cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                                cmd.Parameters.AddWithValue("@Path", dbPath);
+                                cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
                                 cmd.Parameters.AddWithValue("@Type", type);
                                 cmd.Parameters.AddWithValue("@FileName", fileName);
 
