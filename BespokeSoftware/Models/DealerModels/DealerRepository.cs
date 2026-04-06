@@ -1468,7 +1468,8 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                         GSTNo = rdr["GSTNo"]?.ToString(),
                         PANNo = rdr["PANNo"]?.ToString(),
                         PaymentMode = rdr["PaymentMode"]?.ToString(),
-                        WeeklyOff = rdr["WeeklyOff"]?.ToString()
+                        WeeklyOff = rdr["WeeklyOff"]?.ToString(),
+                        IsActive = Convert.ToBoolean(rdr["IsActive"])
                     };
                 }
 

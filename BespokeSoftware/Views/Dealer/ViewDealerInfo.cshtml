@@ -1,5 +1,6 @@
 ﻿@model BespokeSoftware.Models.DealerModels.DealerFullViewModel
 
+
 <style>
     .section-title {
         color: #0dcaf0;
@@ -91,7 +92,11 @@
         border: 2px solid #dc3545 !important;
         box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
         background-color: #fff5f5;
+    }
 </style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="card @(Model.Dealer != null && !Model.Dealer.IsActive ? "border-danger blacklist-card" : "border-info")">
     <div class="card-header text-center fw-bold bg-info text-white">
@@ -718,4 +723,38 @@
 
         });
     }
+
+
+      var audio;   // ✅ global variable
+
+      $(document).ready(function () {
+
+          var isBlacklisted = '@(!Model.Dealer.IsActive)';
+
+          if (isBlacklisted === 'True') {
+
+              // 🔊 siren sound
+              audio = new Audio('/Content/img/siren-alert-96052.mp3');
+              audio.loop = true;   // ✅ continuous sound
+              audio.play();
+
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Blacklisted Dealer',
+                  text: 'This dealer is currently blacklisted',
+                  confirmButtonColor: '#d33'
+              }).then(() => {
+
+                  // 🔇 stop sound when OK clicked
+                  audio.pause();
+                  audio.currentTime = 0;
+
+              });
+
+          }
+
+      });
+
+    
 </script>
+
