@@ -119,7 +119,6 @@
                 <thead class="bg-info text-black">
 
                     <tr>
-                        <th class="text-center">ID</th>
                         <th class="text-center">Role</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Action</th>
@@ -133,7 +132,6 @@
                     {
                         <tr>
 
-                            <td>@item.RoleID</td>
 
                             <td>@item.RoleName</td>
 
@@ -183,7 +181,7 @@
     ordering: true,
     searching: true,
     columnDefs: [
-    { orderable: false, targets: 3 }
+    { orderable: false, targets: 2 }
     ]
     });
 

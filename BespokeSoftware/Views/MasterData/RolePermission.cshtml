@@ -36,6 +36,7 @@
                     <th>Update</th>
                     <th>Delete</th>
                     <th>List</th>
+                    <th>View</th>
                 </tr>
             </thead>
 
@@ -45,6 +46,7 @@
                     <td><input type="checkbox" id="chkUpdate" /></td>
                     <td><input type="checkbox" id="chkDelete" /></td>
                     <td><input type="checkbox" id="chkList" /></td>
+                    <td><input type="checkbox" id="chkView" /></td>
                 </tr>
             </tbody>
         </table>
@@ -67,6 +69,7 @@
                     <th>Update</th>
                     <th>Delete</th>
                     <th>List</th>
+                    <th>View</th>
                 </tr>
             </thead>
 
@@ -81,6 +84,8 @@
                             <td>@(item.Update ? "✔️" : "❌")</td>
                             <td>@(item.Delete ? "✔️" : "❌")</td>
                             <td>@(item.List ? "✔️" : "❌")</td>
+                            <td>@(item.View ? "✔️" : "❌")</td>
+
                         </tr>
                     }
                 }
@@ -120,7 +125,12 @@
 
     if (item.permissionName == "List")
     $('#chkList').prop('checked', item.isAllowed);
+
+    if (item.permissionName == "View")
+    $('#chkView').prop('checked', item.isAllowed);
+
     });
+
 
     });
 
@@ -140,13 +150,15 @@
     Add: $('#chkAdd').is(':checked'),
     Update: $('#chkUpdate').is(':checked'),
     Delete: $('#chkDelete').is(':checked'),
-    List: $('#chkList').is(':checked')
+    List: $('#chkList').is(':checked'),
+    View: $('#chkView').is(':checked')
     };
 
     $.post('/MasterData/SaveRolePermissions', data, function (res) {
 
+
     Swal.fire(res.message, '', res.type);
-   
+    window.location.href = '/MasterData/RolePermission';
 
     }).fail(function () {
 

@@ -113,7 +113,7 @@
 
                 <div class="row">
 
-                    <div class="col-md-4">
+                   @*  <div class="col-md-4">
 
                         <label class="fw-bold">Department :</label>
 
@@ -125,7 +125,7 @@
                     @Html.ValidationMessageFor(m => m.DepID, "", new { @class = "text-danger" })
 
                 </div>
-
+ *@
 
                 <div class="col-md-4">
 
@@ -174,11 +174,9 @@
             <thead class="bg-info text-black">
 
                 <tr>
-                    <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Mobile</th>
-                    <th>Department</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -193,11 +191,9 @@
 
                         <tr>
 
-                            <td>@item.UserID</td>
                             <td>@item.Name</td>
                             <td>@item.Email</td>
                             <td>@item.MobileNo</td>
-                            <td>@item.Department</td>
                             <td>@item.Role</td>
                             <td>@(item.IsActive ? "Active" : "Inactive")</td>
 
@@ -364,7 +360,7 @@
     searching:true,
 
     columnDefs:[
-    {orderable:false,targets:7}
+    {orderable:false,targets:5}
     ]
 
     });
