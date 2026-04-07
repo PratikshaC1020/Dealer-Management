@@ -242,20 +242,48 @@ namespace BespokeSoftware.Controllers
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
-                SqlCommand checkCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM T_Category WHERE LOWER(LTRIM(RTRIM(Category))) = LOWER(LTRIM(RTRIM(@Category))) AND ID != @CategoryID", con);
+                SqlCommand checkCmd = new SqlCommand(@"
+                    SELECT TOP 1 ID, IsDelete 
+                    FROM T_Category 
+                    WHERE LOWER(LTRIM(RTRIM(Category))) = LOWER(LTRIM(RTRIM(@Category)))", con);
 
                 checkCmd.Parameters.AddWithValue("@Category", model.CategoryName.Trim());
-                checkCmd.Parameters.AddWithValue("@CategoryID", model.CategoryID);
 
-                int exists = (int)checkCmd.ExecuteScalar();
+                SqlDataReader dr = checkCmd.ExecuteReader();
 
-                if (exists > 0)
+                if (dr.Read())
                 {
-                    TempData["SweetAlertMessage"] = "Category already exists";
-                    TempData["SweetAlertOptions"] = "error";
-                    return RedirectToAction("Category");
+                    int existingId = Convert.ToInt32(dr["ID"]);
+                    bool isDeleted = Convert.ToBoolean(dr["IsDelete"]);
+
+                    dr.Close();
+
+                    if (isDeleted)
+                    {
+                        // 🔥 Restore (IsDelete = 0)
+                        SqlCommand updateCmd = new SqlCommand(@"
+                            UPDATE T_Category 
+                            SET IsDelete = 0 
+                            WHERE ID = @ID", con);
+
+                        updateCmd.Parameters.AddWithValue("@ID", existingId);
+                        updateCmd.ExecuteNonQuery();
+
+                        TempData["SweetAlertMessage"] = "Category Restored Successfully";
+                        TempData["SweetAlertOptions"] = "success";
+
+                        return RedirectToAction("Category");
+                    }
+                    else
+                    {
+                        // ❌ Already exists (active)
+                        TempData["SweetAlertMessage"] = "Category already exists";
+                        TempData["SweetAlertOptions"] = "error";
+
+                        return RedirectToAction("Category");
+                    }
                 }
+                dr.Close();
                 if (model.CategoryID == 0)
                 {
                     SqlCommand cmd = new SqlCommand("INSERT INTO T_Category(Category,IsDelete) VALUES(@Category,@IsDelete)", con);
@@ -384,20 +412,48 @@ namespace BespokeSoftware.Controllers
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
                 con.Open();
-                SqlCommand checkCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM T_PaymentMode WHERE LOWER(LTRIM(RTRIM(PaymentMode))) = LOWER(LTRIM(RTRIM(@PaymentMode))) AND ID != @PaymentModeID", con);
+                SqlCommand checkCmd = new SqlCommand(@"
+                    SELECT TOP 1 ID, IsDelete 
+                    FROM T_PaymentMode 
+                    WHERE LOWER(LTRIM(RTRIM(PaymentMode))) = LOWER(LTRIM(RTRIM(@PaymentMode)))", con);
 
                 checkCmd.Parameters.AddWithValue("@PaymentMode", model.Payment.Trim());
-                checkCmd.Parameters.AddWithValue("@PaymentModeID", model.PaymentModeID);
 
-                int exists = (int)checkCmd.ExecuteScalar();
+                SqlDataReader dr = checkCmd.ExecuteReader();
 
-                if (exists > 0)
+                if (dr.Read())
                 {
-                    TempData["SweetAlertMessage"] = "Payment Mode already exists";
-                    TempData["SweetAlertOptions"] = "error";
-                    return RedirectToAction("Payment");
+                    int existingId = Convert.ToInt32(dr["ID"]);
+                    bool isDeleted = Convert.ToBoolean(dr["IsDelete"]);
+
+                    dr.Close();
+
+                    if (isDeleted)
+                    {
+                        // 🔥 Restore (IsDelete = 0)
+                        SqlCommand updateCmd = new SqlCommand(@"
+                    UPDATE T_PaymentMode 
+                    SET IsDelete = 0 
+                    WHERE ID = @ID", con);
+
+                        updateCmd.Parameters.AddWithValue("@ID", existingId);
+                        updateCmd.ExecuteNonQuery();
+
+                        TempData["SweetAlertMessage"] = "Payment Mode Restored Successfully";
+                        TempData["SweetAlertOptions"] = "success";
+
+                        return RedirectToAction("Payment");
+                    }
+                    else
+                    {
+                        // ❌ Already exists
+                        TempData["SweetAlertMessage"] = "Payment Mode already exists";
+                        TempData["SweetAlertOptions"] = "error";
+
+                        return RedirectToAction("Payment");
+                    }
                 }
+                dr.Close();
                 if (model.PaymentModeID == 0)
                 {
                     SqlCommand cmd = new SqlCommand("INSERT INTO T_PaymentMode(PaymentMode,IsDelete) VALUES(@PaymentMode,@IsDelete)", con);
@@ -446,6 +502,7 @@ namespace BespokeSoftware.Controllers
 
             return RedirectToAction("Payment");
         }
+
         [HttpGet]
         public IActionResult User(int? id)
         {
@@ -476,9 +533,9 @@ namespace BespokeSoftware.Controllers
                         model.Email = dr["Email"].ToString();
                         model.MobileNo = dr["MobileNo"].ToString();
                         model.Password = dr["Password"].ToString();
-                        model.RoleId = Convert.ToInt32(dr["RoleId"]);
-                        model.DepID = Convert.ToInt32(dr["DepID"]);
-                        model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                        model.RoleId = dr["RoleId"] == DBNull.Value ? 0 : Convert.ToInt32(dr["RoleId"]);
+                        model.DepID = dr["DepID"] == DBNull.Value ? 0 : Convert.ToInt32(dr["DepID"]);
+                        model.IsActive = dr["IsActive"] == DBNull.Value ? false : Convert.ToBoolean(dr["IsActive"]);
                     }
 
                     dr.Close();
@@ -518,11 +575,11 @@ namespace BespokeSoftware.Controllers
                         Email = dr2["Email"].ToString(),
                         MobileNo = dr2["MobileNo"].ToString(),
                         Password = dr2["Password"].ToString(),
-                        RoleId = Convert.ToInt32(dr2["RoleId"]),
                         Role = dr2["RoleName"].ToString(),
-                        DepID = Convert.ToInt32(dr2["DepID"]),
                         Department = dr2["Department"].ToString(),
-                        IsActive = Convert.ToBoolean(dr2["IsActive"])
+                        RoleId = dr2["RoleId"] == DBNull.Value ? 0 : Convert.ToInt32(dr2["RoleId"]),
+                        DepID = dr2["DepID"] == DBNull.Value ? 0 : Convert.ToInt32(dr2["DepID"]),
+                        IsActive = dr2["IsActive"] == DBNull.Value ? false : Convert.ToBoolean(dr2["IsActive"])
                     });
                 }
             }
@@ -549,7 +606,7 @@ namespace BespokeSoftware.Controllers
                     cmd.Parameters.AddWithValue("@Email", model.Email);
                     cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
                     cmd.Parameters.AddWithValue("@Password", generatedPassword);
-                    cmd.Parameters.AddWithValue("@DepID", model.DepID);
+                    cmd.Parameters.AddWithValue("@DepID",  0);
                     cmd.Parameters.AddWithValue("@RoleId", model.RoleId);
                     cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
 
@@ -627,7 +684,7 @@ namespace BespokeSoftware.Controllers
 
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand("SELECT RoleId,RoleName FROM T_Role", con);
+                SqlCommand cmd = new SqlCommand("SELECT RoleId,RoleName FROM T_Role where IsDelete=0", con);
 
                 con.Open();
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -1324,20 +1381,48 @@ namespace BespokeSoftware.Controllers
                 con.Open();
 
 
-                SqlCommand checkCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM T_Role WHERE LOWER(LTRIM(RTRIM(RoleName))) = LOWER(LTRIM(RTRIM(@RoleName))) AND RoleID != @RoleID", con);
+                SqlCommand checkCmd = new SqlCommand(@"
+                    SELECT TOP 1 RoleID, IsDelete 
+                    FROM T_Role 
+                    WHERE LOWER(LTRIM(RTRIM(RoleName))) = LOWER(LTRIM(RTRIM(@RoleName)))", con);
 
                 checkCmd.Parameters.AddWithValue("@RoleName", model.RoleName.Trim());
-                checkCmd.Parameters.AddWithValue("@RoleID", model.RoleID);
 
-                int exists = (int)checkCmd.ExecuteScalar();
+                SqlDataReader dr = checkCmd.ExecuteReader();
 
-                if (exists > 0)
+                if (dr.Read())
                 {
-                    TempData["SweetAlertMessage"] = "Role already exists";
-                    TempData["SweetAlertOptions"] = "error";
-                    return RedirectToAction("Role");
+                    int existingId = Convert.ToInt32(dr["RoleID"]);
+                    bool isDeleted = Convert.ToBoolean(dr["IsDelete"]);
+
+                    dr.Close();
+
+                    if (isDeleted)
+                    {
+                        // 🔥 Reactivate (IsDelete = 0)
+                        SqlCommand updateCmd = new SqlCommand(@"
+                            UPDATE T_Role 
+                            SET IsDelete = 0 
+                            WHERE RoleID = @RoleID", con);
+
+                        updateCmd.Parameters.AddWithValue("@RoleID", existingId);
+                        updateCmd.ExecuteNonQuery();
+
+                        TempData["SweetAlertMessage"] = "Role Restored Successfully";
+                        TempData["SweetAlertOptions"] = "success";
+
+                        return RedirectToAction("Role");
+                    }
+                    else
+                    {
+                        // ❌ Already active
+                        TempData["SweetAlertMessage"] = "Role already exists";
+                        TempData["SweetAlertOptions"] = "error";
+
+                        return RedirectToAction("Role");
+                    }
                 }
+                dr.Close();
 
                 if (model.RoleID == 0)
                 {
@@ -1391,7 +1476,6 @@ namespace BespokeSoftware.Controllers
         //===Role permission==
 
         [HttpGet]
-        [HttpGet]
         public IActionResult RolePermission()
         {
             PermissionVM model = new PermissionVM();
@@ -1400,7 +1484,7 @@ namespace BespokeSoftware.Controllers
             {
                 con.Open();
 
-            
+
                 SqlCommand cmd = new SqlCommand("SELECT RoleID,RoleName FROM T_Role WHERE IsDelete=0", con);
                 SqlDataReader dr = cmd.ExecuteReader();
 
@@ -1419,16 +1503,20 @@ namespace BespokeSoftware.Controllers
 
                 // 🔥 LIST LOGIC ADD
                 SqlCommand cmd2 = new SqlCommand(@"
-        SELECT r.RoleName,
-               ISNULL(MAX(CASE WHEN p.PermissionName='Add' THEN CAST(rp.IsAllowed AS INT) END),0) AS AddPermission,
-               ISNULL(MAX(CASE WHEN p.PermissionName='Update' THEN CAST(rp.IsAllowed AS INT) END),0) AS UpdatePermission,
-               ISNULL(MAX(CASE WHEN p.PermissionName='Delete' THEN CAST(rp.IsAllowed AS INT) END),0) AS DeletePermission,
-               ISNULL(MAX(CASE WHEN p.PermissionName='List' THEN CAST(rp.IsAllowed AS INT) END),0) AS ListPermission
-        FROM T_Role r
-        LEFT JOIN T_RolePermissions rp ON r.RoleID = rp.RoleId
-        LEFT JOIN T_Permissions p ON p.PermissionId = rp.PermissionId
-        GROUP BY r.RoleName
-        ", con);
+                SELECT r.RoleName,
+                       MAX(CASE WHEN p.PermissionName='Add' THEN CAST(ISNULL(rp.IsAllowed,0) AS INT) END) AS AddPermission,
+                       MAX(CASE WHEN p.PermissionName='Update' THEN CAST(ISNULL(rp.IsAllowed,0) AS INT) END) AS UpdatePermission,
+                       MAX(CASE WHEN p.PermissionName='Delete' THEN CAST(ISNULL(rp.IsAllowed,0) AS INT) END) AS DeletePermission,
+                       MAX(CASE WHEN p.PermissionName='List' THEN CAST(ISNULL(rp.IsAllowed,0) AS INT) END) AS ListPermission,
+                       MAX(CASE WHEN p.PermissionName='View' THEN CAST(ISNULL(rp.IsAllowed,0) AS INT) END) AS ViewPermission
+                FROM T_Role r
+                CROSS JOIN T_Permissions p
+                LEFT JOIN T_RolePermissions rp 
+                    ON rp.RoleId = r.RoleID 
+                    AND rp.PermissionId = p.PermissionId
+                WHERE r.IsDelete = 0
+                GROUP BY r.RoleName
+                ", con);
 
                 SqlDataReader dr2 = cmd2.ExecuteReader();
 
@@ -1439,16 +1527,18 @@ namespace BespokeSoftware.Controllers
                     model.RolePermissionList.Add(new
                     {
                         RoleName = dr2["RoleName"].ToString(),
-                        Add = Convert.ToBoolean(dr2["AddPermission"]),
-                        Update = Convert.ToBoolean(dr2["UpdatePermission"]),
-                        Delete = Convert.ToBoolean(dr2["DeletePermission"]),
-                        List = Convert.ToBoolean(dr2["ListPermission"])
+                        Add = Convert.ToInt32(dr2["AddPermission"]) == 1,
+                        Update = Convert.ToInt32(dr2["UpdatePermission"]) == 1,
+                        Delete = Convert.ToInt32(dr2["DeletePermission"]) == 1,
+                        List = Convert.ToInt32(dr2["ListPermission"]) == 1,
+                        View = Convert.ToInt32(dr2["ViewPermission"]) == 1
                     });
                 }
             }
 
             return View(model);
         }
+
         public JsonResult GetRolePermissions(int roleId)
         {
             List<object> list = new List<object>();
@@ -1512,6 +1602,7 @@ namespace BespokeSoftware.Controllers
                         if (p.name == "Update") value = model.Update;
                         if (p.name == "Delete") value = model.Delete;
                         if (p.name == "List") value = model.List;
+                        if (p.name == "View") value = model.View;
 
                         SqlCommand checkCmd = new SqlCommand(
                             "SELECT COUNT(*) FROM T_RolePermissions WHERE RoleId=@RoleId AND PermissionId=@PermissionId",

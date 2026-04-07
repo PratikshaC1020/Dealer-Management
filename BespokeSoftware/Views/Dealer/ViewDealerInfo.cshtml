@@ -149,13 +149,23 @@
 
                             @{
                                 var dealerImg = Model.Images
-                                .FirstOrDefault(x => x.Type == "Dealer")?.ImageBase64;
+                                .FirstOrDefault(x => x.Type == "MainOffice")
+                                ?.ImageBase64;
                             }
 
-                            <img src="@(string.IsNullOrEmpty(dealerImg) ? "/images/no-image.png" : dealerImg)"
-                                 class="img-thumb"
-                                 style="height:70px;"
-                                 onclick="openImagePreview(this.src)" />
+                            @if (!string.IsNullOrEmpty(dealerImg))
+                            {
+                                <img src="@dealerImg"
+                                     class="img-thumb"
+                                     style="height:70px;"
+                                     onclick="openImagePreview(this.src)" />
+                            }
+                            else
+                            {
+                                <div style="height:70px; display:flex; align-items:center; justify-content:center; border:1px dashed #ccc; border-radius:6px;">
+                                    <span class="text-muted small">Image Not Found</span>
+                                </div>
+                            }
                         </div>
 
                         <!-- OWNER -->
@@ -202,7 +212,12 @@
                             </div>
                         </div>
 
-                        <!-- DEALER ADDRESS -->
+                    <!-- DEALER ADDRESS -->
+                    <div class="mt-1">
+
+                        <!-- 🔹 LABEL -->
+                        <label class="fw-bold text-info">Dealer Address</label>
+
                         <div class="scroll-box mt-1">
                             @foreach (var addr in Model.Addresses)
                             {
@@ -221,6 +236,8 @@
                                 </div>
                             }
                         </div>
+
+                    </div>
 
                     </div>
                 </div>
@@ -412,7 +429,7 @@
                         <div class="box">
 
                             <h6 class="fw-bold text-info mb-2">
-                                @p.Title @p.FirstName @p.MiddleName @p.LastName
+                                @p.Title @p.FirstName @p.LastName
                             </h6>
 
                             <div class="row">

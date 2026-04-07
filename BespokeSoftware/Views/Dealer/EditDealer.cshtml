@@ -201,7 +201,7 @@
 
                             <!-- NOTE FOR -->
                             <div class="col-md-4">
-                                <label>Note For</label>
+                                <label>Note By</label>
                                 <input type="text"
                                        name="DealerNotes[@i].NoteFor"
                                        value="@Model.DealerNotes[i].NoteFor"
@@ -355,7 +355,6 @@
                             <option>Ms</option>
                         </select>
                     </div>
-
                     <div class="col-md-3"><label>First</label><input id="pFirst" class="form-control" /></div>
                     <div class="col-md-3"><label>Middle</label><input id="pMiddle" class="form-control" /></div>
                     <div class="col-md-3"><label>Last</label><input id="pLast" class="form-control" /></div>
@@ -859,29 +858,41 @@
         let label = c.Label || c.label || '';
         let value = c.Value || c.value || '';
 
-        $("#commContainer").append(`
-        <div class="box">
+    $("#commContainer").append(`
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
         <select class="form-control mb-1">
-         <option ${type=="Select"?"selected":""}>Select</option>
-        <option ${type=="Mobile"?"selected":""}>Mobile</option>
-        <option ${type=="Email"?"selected":""}>Email</option>
-        <option ${type=="LandLine"?"selected":""}>Landline</option>
+            <option ${type=="Select"?"selected":""}>Select</option>
+            <option ${type=="Mobile"?"selected":""}>Mobile</option>
+            <option ${type=="Email"?"selected":""}>Email</option>
+            <option ${type=="LandLine"?"selected":""}>Landline</option>
         </select>
+
         <input class="form-control mb-1" value="${label}"/>
         <input class="form-control" value="${value}"/>
-        </div>
-        `);
-    });
+
+    </div>
+    `);
+});
 
         $("#personAddressContainer").empty();
 
         (p.Addresses || p.addresses || []).forEach(a=>{
-            $("#personAddressContainer").append(`
-            <div class="box">
-            <input class="form-control mb-1" value="${a.AddressType || a.addressType || ''}"/>
-            <input class="form-control" value="${a.AddressLine || a.addressLine || ''}"/>
-            </div>
-            `);
+       $("#personAddressContainer").append(`
+    <div class="box">
+
+        <i class="bi bi-x-circle text-danger remove"
+           onclick="$(this).parent().remove()"></i>
+
+        <input class="form-control mb-1" value="${a.AddressType || a.addressType || ''}"/>
+        <input class="form-control" value="${a.AddressLine || a.addressLine || ''}"/>
+
+    </div>
+    
+    `);   
         });
 
         $("#personModal").modal("show");
@@ -895,20 +906,36 @@
     function addComm(){
         $("#commContainer").append(`
         <div class="box">
-        <select class="form-control mb-1">
-        <option>Mobile</option><option>Email</option>
-        </select>
-        <input class="form-control mb-1" placeholder="Label"/>
-        <input class="form-control" placeholder="Value"/>
+
+            <i class="bi bi-x-circle text-danger remove"
+               onclick="$(this).parent().remove()"></i>
+
+            <select class="form-control mb-1">
+                <option>Select</option>
+                <option>Mobile</option>
+                <option>Email</option>
+                <option>Landline</option>
+            </select>
+
+            <input class="form-control mb-1" placeholder="Label"/>
+            <input class="form-control" placeholder="Value"/>
+
         </div>`);
     }
+
 
     function addPersonAddress(){
         $("#personAddressContainer").append(`
         <div class="box">
-        <input class="form-control mb-1" placeholder="Type"/>
-        <input class="form-control" placeholder="Address"/>
-        </div>`);
+
+            <i class="bi bi-x-circle text-danger remove"
+               onclick="$(this).parent().remove()"></i>
+
+            <input class="form-control mb-1" placeholder="Type"/>
+            <input class="form-control" placeholder="Address"/>
+
+        </div>
+        `);
     }
 
     $(document).ready(function(){
@@ -1082,7 +1109,7 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label>Note For</label>
+                    <label>Note By</label>
                     <input type="text"
                            name="DealerNotes[${noteIndex}].NoteFor"
                            class="form-control"/>
