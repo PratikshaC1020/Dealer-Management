@@ -512,7 +512,6 @@ namespace BespokeSoftware.Controllers
                 model.IsActive = true;   // default Active
             }
             // dropdown load
-            ViewBag.DepartmentList = GetDepartmentList();
             ViewBag.RoleList = GetRoleList();
 
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -534,7 +533,6 @@ namespace BespokeSoftware.Controllers
                         model.MobileNo = dr["MobileNo"].ToString();
                         model.Password = dr["Password"].ToString();
                         model.RoleId = dr["RoleId"] == DBNull.Value ? 0 : Convert.ToInt32(dr["RoleId"]);
-                        model.DepID = dr["DepID"] == DBNull.Value ? 0 : Convert.ToInt32(dr["DepID"]);
                         model.IsActive = dr["IsActive"] == DBNull.Value ? false : Convert.ToBoolean(dr["IsActive"]);
                     }
 
@@ -550,7 +548,6 @@ namespace BespokeSoftware.Controllers
                             SELECT * 
                             FROM T_User u 
                             LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
-                            LEFT JOIN T_Department d ON d.DepID = u.DepID
                             WHERE u.UserID=@id", con);
 
                     cmd2.Parameters.AddWithValue("@id", id);
@@ -561,7 +558,7 @@ namespace BespokeSoftware.Controllers
                         SELECT * 
                         FROM T_User u 
                         LEFT JOIN T_Role r ON r.RoleID = u.RoleId 
-                        LEFT JOIN T_Department d ON d.DepID = u.DepID", con);
+                       ", con);
                 }
 
                 SqlDataReader dr2 = cmd2.ExecuteReader();
@@ -576,9 +573,7 @@ namespace BespokeSoftware.Controllers
                         MobileNo = dr2["MobileNo"].ToString(),
                         Password = dr2["Password"].ToString(),
                         Role = dr2["RoleName"].ToString(),
-                        Department = dr2["Department"].ToString(),
                         RoleId = dr2["RoleId"] == DBNull.Value ? 0 : Convert.ToInt32(dr2["RoleId"]),
-                        DepID = dr2["DepID"] == DBNull.Value ? 0 : Convert.ToInt32(dr2["DepID"]),
                         IsActive = dr2["IsActive"] == DBNull.Value ? false : Convert.ToBoolean(dr2["IsActive"])
                     });
                 }
@@ -600,13 +595,12 @@ namespace BespokeSoftware.Controllers
                     string generatedPassword = GeneratePassword();
 
                     SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO T_User(Name,Email,MobileNo,DepID,Password,RoleId,IsActive) VALUES(@Name,@Email,@MobileNo,@DepID,@Password,@RoleId,@IsActive)", con);
+                    "INSERT INTO T_User(Name,Email,MobileNo,Password,RoleId,IsActive) VALUES(@Name,@Email,@MobileNo,@Password,@RoleId,@IsActive)", con);
 
                     cmd.Parameters.AddWithValue("@Name", model.Name);
                     cmd.Parameters.AddWithValue("@Email", model.Email);
                     cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
                     cmd.Parameters.AddWithValue("@Password", generatedPassword);
-                    cmd.Parameters.AddWithValue("@DepID",  0);
                     cmd.Parameters.AddWithValue("@RoleId", model.RoleId);
                     cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
 
@@ -617,12 +611,11 @@ namespace BespokeSoftware.Controllers
                 else
                 {
                     SqlCommand cmd = new SqlCommand(
-                    "UPDATE T_User SET Name=@Name,Email=@Email,MobileNo=@MobileNo,DepID=@DepID ,RoleId=@RoleId,IsActive=@IsActive WHERE UserID=@UserID", con);
+                    "UPDATE T_User SET Name=@Name,Email=@Email,MobileNo=@MobileNo ,RoleId=@RoleId,IsActive=@IsActive WHERE UserID=@UserID", con);
 
                     cmd.Parameters.AddWithValue("@Name", model.Name.Trim());
                     cmd.Parameters.AddWithValue("@Email", model.Email.Trim());
                     cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo.Trim());
-                    cmd.Parameters.AddWithValue("@DepID", (object?)model.DepID ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@RoleId", (object?)model.RoleId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
                     cmd.Parameters.AddWithValue("@UserID", model.UserID);
