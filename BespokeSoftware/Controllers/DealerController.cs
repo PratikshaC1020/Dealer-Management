@@ -199,7 +199,7 @@ public class DealerController : Controller
     }
 
 
-    [Authorize(Roles = "Admin,Supervisor")]
+    [Authorize(Roles = "Admin")]
     public IActionResult EditDealer(int id)
     {
         DealerEditVM model = repo.GetDealerFullById(id);
@@ -212,7 +212,7 @@ public class DealerController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Supervisor")]
+    [Authorize(Roles = "Admin")]
     public IActionResult EditDealer(DealerEditVM model)
     {
         if (model == null || model.Dealer == null)
