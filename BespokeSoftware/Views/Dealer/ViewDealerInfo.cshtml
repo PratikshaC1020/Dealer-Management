@@ -692,8 +692,7 @@
             return;
         }
 
-        $.post('/Dealer/AddCategoryView', { name: name }, function (res) {
-
+$.post('@Url.Action("AddCategoryView", "Dealer")', { name: name }, function (res) {
             // dropdown update without refresh
             $("#noteCategory").append(
                 `<option value="${res.id}" selected>${res.name}</option>`
@@ -720,8 +719,8 @@
             return;
         }
 
-        $.post('/Dealer/AddNote', data, function (res) {
-            location.reload();
+$.post('@Url.Action("AddNote", "Dealer")', data, function (res) {
+    location.reload();
         });
     }
 
