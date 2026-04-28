@@ -1640,7 +1640,6 @@ VALUES('Person',@Pid,@Img,GETDATE())",
             }
         }
 
-
         public bool UpdateDealerStatus(int dealerId, bool isActive)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
