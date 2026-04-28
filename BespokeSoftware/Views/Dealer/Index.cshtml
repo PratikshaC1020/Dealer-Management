@@ -92,7 +92,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
             Add Dealer <i class="bi bi-plus"></i>
         </a> *@
 
-            @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+            @if (ViewBag.CanAdd)
             {
                 <a href="/Dealer/_AddEditDealer" target="_blank" class="btn btn-info fw-bold">
                     Add Dealer<i class="bi bi-plus"></i>
@@ -154,7 +154,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                            @*  <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
                                 <i class="bi bi-pencil-square"></i>
                             </a> *@
-                                @if (User.IsInRole("Admin"))
+                                @if (ViewBag.CanUpdate)
                                 {
                                     <a href="/Dealer/EditDealer/@item.DealerId" class="btn btn-info btn-sm">
                                         <i class="bi bi-pencil-square"></i>
@@ -170,7 +170,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
     
                                     <i class="bi bi-trash"></i>
                                 </a> *@
-                                @if (User.IsInRole("Admin"))
+                                @if (ViewBag.CanDelete)
                                 {
                                     <a href="javascript:void(0);"
                                            onclick="DeleteDealer(@item.DealerId)"
@@ -202,14 +202,23 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                                     onclick="ViewNotes(@item.DealerId)">
                                 <i class="bi bi-stickies"></i>
                             </button> *@
-                                <button class="btn btn-info btn-sm"
+                              @*   <button class="btn btn-info btn-sm"
                                         onclick="viewDealer(@item.DealerId)"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
                                         title="View Dealer Information">
                                     <i class="bi bi-eye"></i>
-                                </button>
-
+                                </button> *@
+                                @if (ViewBag.CanView)
+                                {
+                                    <button class="btn btn-info btn-sm"
+                                            onclick="viewDealer(@item.DealerId)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="View Dealer Information">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                }
                         </td>
                     </tr>
                 }

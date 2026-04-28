@@ -23,8 +23,8 @@
         public string OwnerName { get; set; }
         public string GSTNo { get; set; }
         public string PANNo { get; set; }
-        public int DefaultPaymentModeId { get; set; }
-        public int WeeklyOffDayId { get; set; }
+        public int? DefaultPaymentModeId { get; set; }
+        public int? WeeklyOffDayId { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -38,7 +38,7 @@
     public class DealerNoteVM
     {
         public int NoteId { get; set; }
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
         public string CategoryName { get; set; }
         public string NoteText { get; set; }
         public string NoteFor { get; set; }

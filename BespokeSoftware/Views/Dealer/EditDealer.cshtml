@@ -46,8 +46,10 @@
     </div>
 
     <div class="card-body">
-        <form method="post">
+@*         <form method="post">
+ *@
 
+        <form method="post" asp-action="EditDealer" asp-controller="Dealer">
             <input type="hidden" name="Dealer.DealerId" value="@Model.Dealer.DealerId" />
 
             <!-- ================= DEALER INFO ================= -->
@@ -282,9 +284,11 @@
 @*                 <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
 
  *@                
-                @if (User.IsInRole("Admin"))
+                @if (ViewBag.CanUpdate)
                 {
-                    <button class="btn btn-info px-4 fw-bold">Update Dealer</button>
+                    <button type="submit" class="btn btn-info px-4 fw-bold">
+                        Update Dealer
+                    </button>
                 }
  <button type="button"
                         class="btn btn-secondary px-4 fw-bold"

@@ -16,28 +16,31 @@ namespace BespokeSoftware.Models
         [StringLength(200)]
         public string? DealerName { get; set; }
 
-        [Required(ErrorMessage = "Owner Name is required")]
+        //[Required(ErrorMessage = "Owner Name is required")]
         public string? OwnerName { get; set; }
 
-        [Required(ErrorMessage = "GST No required")]
-        [RegularExpression(@"^[0-9A-Z]{15}$", ErrorMessage = "Invalid GST")]
+        //[Required(ErrorMessage = "GST No required")]
+        //[RegularExpression(@"^[0-9A-Z]{15}$", ErrorMessage = "Invalid GST")]
+        //public string? GSTNo { get; set; }
+
+        ////[Required(ErrorMessage = "PAN required")]
+        //[RegularExpression(@"[A-Z]{5}[0-9]{4}[A-Z]{1}", ErrorMessage = "Invalid PAN")]
+        //public string? PANNo { get; set; }
+
+
+        [RegularExpression(@"^$|^[0-9A-Z]{15}$", ErrorMessage = "Invalid GST")]
         public string? GSTNo { get; set; }
 
-        [Required(ErrorMessage = "PAN required")]
-        [RegularExpression(@"[A-Z]{5}[0-9]{4}[A-Z]{1}", ErrorMessage = "Invalid PAN")]
+        [RegularExpression(@"^$|[A-Z]{5}[0-9]{4}[A-Z]{1}", ErrorMessage = "Invalid PAN")]
         public string? PANNo { get; set; }
+        public int? DepartmentId { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        public int DepartmentId { get; set; }
+        public int? WeeklyOffDayId { get; set; }
 
-        [Required(ErrorMessage = "WeeklyOffDay is required")]
-        public int WeeklyOffDayId { get; set; }
+        //[Required(ErrorMessage = "Category is required")]
+        public int? CategoryId { get; set; }
 
-        [Required(ErrorMessage = "Category is required")]
-        public int CategoryId { get; set; }
-
-        [Required(ErrorMessage = "Payment Mode is required")]
-        public int DefaultPaymentModeId { get; set; }
+        public int? DefaultPaymentModeId { get; set; }
 
         public string? PhotoType { get; set; }
 
@@ -64,7 +67,7 @@ namespace BespokeSoftware.Models
 
         public class NoteVM
         {
-            public int CategoryId { get; set; }
+            public int? CategoryId { get; set; }
             public string NoteText { get; set; }
             public string CategoryName { get; set; }
         }
@@ -185,7 +188,7 @@ namespace BespokeSoftware.Models
 
             public class DealerNoteAdd
             {
-                public int CategoryId { get; set; }
+                public int? CategoryId { get; set; }
                 public string NoteText { get; set; }
                 public string NoteFor { get; set; }
                 public DateTime? NoteDate { get; set; }

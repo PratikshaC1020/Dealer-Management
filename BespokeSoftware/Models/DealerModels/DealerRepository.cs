@@ -171,7 +171,7 @@ namespace BespokeSoftware.Repository
             OUTPUT INSERTED.DealerId
             VALUES
             (@DealerCode, @DealerName, @OwnerName, @GSTNo, @PANNo,
-             @PaymentMode, @WeeklyOff, 1, GETDATE())";
+             @DefaultPaymentModeId, @WeeklyOffDayId, 1, GETDATE())";
 
                     SqlCommand cmd = new SqlCommand(dealerQuery, con, trans);
 
@@ -180,8 +180,13 @@ namespace BespokeSoftware.Repository
                     cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName ?? "");
                     cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? "");
                     cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? "");
-                    cmd.Parameters.AddWithValue("@PaymentMode", model.Dealer.DefaultPaymentModeId);
-                    cmd.Parameters.AddWithValue("@WeeklyOff", model.Dealer.WeeklyOffDayId);
+                    //cmd.Parameters.AddWithValue("@PaymentMode", model.Dealer.DefaultPaymentModeId);
+                    //cmd.Parameters.AddWithValue("@WeeklyOff", model.Dealer.WeeklyOffDayId);
+                    cmd.Parameters.AddWithValue("@DefaultPaymentModeId",
+     model.Dealer.DefaultPaymentModeId ?? (object)DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@WeeklyOffDayId",
+                        model.Dealer.WeeklyOffDayId ?? (object)DBNull.Value);
 
                     int dealerId = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -206,9 +211,9 @@ namespace BespokeSoftware.Repository
                     }
 
                     // ================= 3. INSERT NOTES =================
-                    if (model.NotesA != null)
+                    if (model.DealerNotes != null)
                     {
-                        foreach (var note in model.NotesA)
+                        foreach (var note in model.DealerNotes)
                         {
                             string noteQuery = @"
                     INSERT INTO T_DealerNotes
@@ -218,7 +223,9 @@ namespace BespokeSoftware.Repository
                             SqlCommand noteCmd = new SqlCommand(noteQuery, con, trans);
 
                             noteCmd.Parameters.AddWithValue("@DealerId", dealerId);
-                            noteCmd.Parameters.AddWithValue("@Cat", note.CategoryId);
+                            //noteCmd.Parameters.AddWithValue("@Cat", note.CategoryId);
+                            noteCmd.Parameters.AddWithValue("@Cat",
+    note.CategoryId ?? (object)DBNull.Value);
                             noteCmd.Parameters.AddWithValue("@Text", note.NoteText ?? "");
 
                             noteCmd.ExecuteNonQuery();
@@ -403,8 +410,15 @@ namespace BespokeSoftware.Repository
                         OwnerName = dr["OwnerName"]?.ToString(),
                         GSTNo = dr["GSTNo"]?.ToString(),
                         PANNo = dr["PANNo"]?.ToString(),
-                        DefaultPaymentModeId = (int)dr["DefaultPaymentModeId"],
-                        WeeklyOffDayId = (int)dr["WeeklyOffDayId"],
+                        //DefaultPaymentModeId = (int)dr["DefaultPaymentModeId"],
+                        //WeeklyOffDayId = (int)dr["WeeklyOffDayId"],
+                        DefaultPaymentModeId = dr["DefaultPaymentModeId"] == DBNull.Value
+    ? (int?)null
+    : Convert.ToInt32(dr["DefaultPaymentModeId"]),
+
+                        WeeklyOffDayId = dr["WeeklyOffDayId"] == DBNull.Value
+    ? (int?)null
+    : Convert.ToInt32(dr["WeeklyOffDayId"]),
                         IsActive = (bool)dr["IsActive"]
                     };
                 }
@@ -436,7 +450,10 @@ namespace BespokeSoftware.Repository
                     model.DealerNotes.Add(new DealerNoteVM
                     {
                         NoteId = (int)dr["NoteId"],
-                        CategoryId = (int)dr["CategoryId"],
+                        //CategoryId = (int)dr["CategoryId"],
+                        CategoryId = dr["CategoryId"] == DBNull.Value
+    ? (int?)null
+    : Convert.ToInt32(dr["CategoryId"]),
                         NoteText = dr["NoteText"]?.ToString(),
                         NoteFor = dr["NoteFor"]?.ToString(),
                         Notedate = dr["NoteDate"] == DBNull.Value
@@ -590,9 +607,12 @@ WHERE DealerId=@DealerId", con, tran);
                         cmd.Parameters.AddWithValue("@OwnerName", model.Dealer.OwnerName ?? "");
                         cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? "");
                         cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? "");
-                        cmd.Parameters.AddWithValue("@PaymentMode", model.Dealer.DefaultPaymentModeId);
-                        cmd.Parameters.AddWithValue("@WeeklyOff", model.Dealer.WeeklyOffDayId);
-
+                        //cmd.Parameters.AddWithValue("@PaymentMode", model.Dealer.DefaultPaymentModeId);
+                        cmd.Parameters.AddWithValue("@PaymentMode",
+    model.Dealer.DefaultPaymentModeId ?? (object)DBNull.Value);
+                        //cmd.Parameters.AddWithValue("@WeeklyOff", model.Dealer.WeeklyOffDayId);
+                        cmd.Parameters.AddWithValue("@WeeklyOff",
+    model.Dealer.WeeklyOffDayId ?? (object)DBNull.Value);
                         cmd.ExecuteNonQuery();
 
                         // ================= DELETE OLD =================
@@ -1218,8 +1238,13 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                         cmd.Parameters.AddWithValue("@OwnerName", ownerName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@GSTNo", model.Dealer.GSTNo ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@PANNo", model.Dealer.PANNo ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
-                        cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
+                        //cmd.Parameters.AddWithValue("@DefaultPaymentModeId", model.Dealer.DefaultPaymentModeId);
+                        //cmd.Parameters.AddWithValue("@WeeklyOffDayId", model.Dealer.WeeklyOffDayId);
+                        cmd.Parameters.AddWithValue("@DefaultPaymentModeId",
+     model.Dealer.DefaultPaymentModeId ?? (object)DBNull.Value);
+
+                        cmd.Parameters.AddWithValue("@WeeklyOffDayId",
+                            model.Dealer.WeeklyOffDayId ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@CreatedBy", 1);
 
                         cmd.Parameters.AddWithValue("@ImageBase64", dealerFilePath ?? (object)DBNull.Value);
@@ -1315,126 +1340,139 @@ VALUES('Person',@Pid,@Img,GETDATE())",
                             }
                         }
                     }                    // ================= DEALER ADDRESS =================
-                    foreach (var addr in model.DealerAddresses)
+
+                    if (model.DealerAddresses != null)
                     {
-                        using (SqlCommand cmd = new SqlCommand("sp_InsertDealerAddress", con, tran))
+                        
+                        foreach (var addr in model.DealerAddresses)
                         {
-                            cmd.CommandType = CommandType.StoredProcedure;
+                            using (SqlCommand cmd = new SqlCommand("sp_InsertDealerAddress", con, tran))
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
 
-                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                            cmd.Parameters.AddWithValue("@AddressType", addr.AddressType ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@AddressLine", addr.AddressLine ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                                cmd.Parameters.AddWithValue("@AddressType", addr.AddressType ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@AddressLine", addr.AddressLine ?? (object)DBNull.Value);
 
-                            await cmd.ExecuteNonQueryAsync();
+                                await cmd.ExecuteNonQueryAsync();
+                            }
                         }
                     }
 
                     // ================= DEALER NOTES =================
-                    foreach (var note in model.DealerNotes)
+                    if (model.DealerNotes != null)
                     {
-                        using (SqlCommand cmd = new SqlCommand("sp_InsertDealerNote", con, tran))
+                        foreach (var note in model.DealerNotes)
                         {
-                            cmd.CommandType = CommandType.StoredProcedure;
+                            using (SqlCommand cmd = new SqlCommand("sp_InsertDealerNote", con, tran))
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
 
-                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
-                            cmd.Parameters.AddWithValue("@CategoryId", note.CategoryId);
-                            cmd.Parameters.AddWithValue("@NoteText", note.NoteText ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@NoteFor", note.NoteFor ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@NoteDate", note.NoteDate ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+                                //cmd.Parameters.AddWithValue("@CategoryId", note.CategoryId);
+                                cmd.Parameters.AddWithValue("@CategoryId",
+        note.CategoryId ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@NoteText", note.NoteText ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@NoteFor", note.NoteFor ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@NoteDate", note.NoteDate ?? (object)DBNull.Value);
 
-                            await cmd.ExecuteNonQueryAsync();
+                                await cmd.ExecuteNonQueryAsync();
+                            }
                         }
                     }
 
                     // ================= PERSON =================
-                    foreach (var p in model.Persons)
+                    if (model.Persons != null)
                     {
-                        int personId = 0;
-
-                        var firstComm = p.Communications?.FirstOrDefault();
-                        var firstAddr = p.Addresses?.FirstOrDefault();
-                        var firstImg = p.Images?.FirstOrDefault();
-
-                        string personFileName = null;
-                        string personFilePath = null;
-
-                        // 🔥 PERSON IMAGE SAVE (PATH)
-                        if (firstImg != null)
+                        foreach (var p in model.Persons)
                         {
-                            personFileName = Guid.NewGuid() + Path.GetExtension(firstImg.FileName);
-                            string fullPath = Path.Combine(personFolder, personFileName);
+                            int personId = 0;
 
-                            using (var stream = new FileStream(fullPath, FileMode.Create))
+                            var firstComm = p.Communications?.FirstOrDefault();
+                            var firstAddr = p.Addresses?.FirstOrDefault();
+                            var firstImg = p.Images?.FirstOrDefault();
+
+                            string personFileName = null;
+                            string personFilePath = null;
+
+                            // 🔥 PERSON IMAGE SAVE (PATH)
+                            if (firstImg != null)
                             {
-                                await firstImg.CopyToAsync(stream);
-                            }
-
-                            personFilePath = "/uploads/person/" + personFileName;
-                        }
-
-                        // ===== INSERT PERSON =====
-                        using (SqlCommand cmd = new SqlCommand("sp_InsertPersonFull", con, tran))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-
-                            cmd.Parameters.AddWithValue("@Title", p.Title ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@FirstName", p.First);
-                            cmd.Parameters.AddWithValue("@MiddleName", p.Middle ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@LastName", p.Last ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Gender", p.Gender ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@DOB", p.Dob ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@AnniversaryDate", p.Anniversary ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@PANNo", p.Pan ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@PersonType", p.Type ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Remark", p.Remark ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@DealerId", dealerId);
-
-                            cmd.Parameters.AddWithValue("@CommunicationType", firstComm?.Type ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Value", firstComm?.Value ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@CommunicationLabel", firstComm?.Label ?? (object)DBNull.Value);
-
-                            cmd.Parameters.AddWithValue("@AddressType", firstAddr?.Type ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@AddressLine", firstAddr?.Address ?? (object)DBNull.Value);
-
-                            // 🔥 CHANGE HERE
-                            cmd.Parameters.AddWithValue("@ImageBase64", personFilePath ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@FileName", personFileName ?? (object)DBNull.Value);
-
-                            personId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                        }
-
-                        // ================= EXTRA PERSON IMAGES =================
-                        if (p.Images != null && p.Images.Count > 1)
-                        {
-                            foreach (var img in p.Images.Skip(1))
-                            {
-                                string fileName = Guid.NewGuid() + Path.GetExtension(img.FileName);
-                                string fullPath = Path.Combine(personFolder, fileName);
+                                personFileName = Guid.NewGuid() + Path.GetExtension(firstImg.FileName);
+                                string fullPath = Path.Combine(personFolder, personFileName);
 
                                 using (var stream = new FileStream(fullPath, FileMode.Create))
                                 {
-                                    await img.CopyToAsync(stream);
+                                    await firstImg.CopyToAsync(stream);
                                 }
 
-                                string dbPath = "/uploads/person/" + fileName;
+                                personFilePath = "/uploads/person/" + personFileName;
+                            }
 
-                                using (SqlCommand cmd = new SqlCommand(
-                                    "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@ImageBase64,GETDATE(),@FileName)",
-                                    con, tran))
+                            // ===== INSERT PERSON =====
+                            using (SqlCommand cmd = new SqlCommand("sp_InsertPersonFull", con, tran))
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
+
+                                cmd.Parameters.AddWithValue("@Title", p.Title ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@FirstName", p.First);
+                                cmd.Parameters.AddWithValue("@MiddleName", p.Middle ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@LastName", p.Last ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Gender", p.Gender ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@DOB", p.Dob ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@AnniversaryDate", p.Anniversary ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@PANNo", p.Pan ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@PersonType", p.Type ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Remark", p.Remark ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@DealerId", dealerId);
+
+                                cmd.Parameters.AddWithValue("@CommunicationType", firstComm?.Type ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Value", firstComm?.Value ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@CommunicationLabel", firstComm?.Label ?? (object)DBNull.Value);
+
+                                cmd.Parameters.AddWithValue("@AddressType", firstAddr?.Type ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@AddressLine", firstAddr?.Address ?? (object)DBNull.Value);
+
+                                // 🔥 CHANGE HERE
+                                cmd.Parameters.AddWithValue("@ImageBase64", personFilePath ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@FileName", personFileName ?? (object)DBNull.Value);
+
+                                personId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                            }
+
+                            // ================= EXTRA PERSON IMAGES =================
+                            if (p.Images != null && p.Images.Count > 1)
+                            {
+                                foreach (var img in p.Images.Skip(1))
                                 {
-                                    cmd.Parameters.AddWithValue("@PersonId", personId);
-                                    cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
-                                    cmd.Parameters.AddWithValue("@FileName", fileName);
+                                    string fileName = Guid.NewGuid() + Path.GetExtension(img.FileName);
+                                    string fullPath = Path.Combine(personFolder, fileName);
 
-                                    await cmd.ExecuteNonQueryAsync();
+                                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                                    {
+                                        await img.CopyToAsync(stream);
+                                    }
+
+                                    string dbPath = "/uploads/person/" + fileName;
+
+                                    using (SqlCommand cmd = new SqlCommand(
+                                        "INSERT INTO T_Image(Type, IdentityID, ImageBase64, CreatedDate, FileName) VALUES('Person',@PersonId,@ImageBase64,GETDATE(),@FileName)",
+                                        con, tran))
+                                    {
+                                        cmd.Parameters.AddWithValue("@PersonId", personId);
+                                        cmd.Parameters.AddWithValue("@ImageBase64", dbPath);
+                                        cmd.Parameters.AddWithValue("@FileName", fileName);
+
+                                        await cmd.ExecuteNonQueryAsync();
+                                    }
                                 }
                             }
                         }
                     }
-
-                    tran.Commit();
-                    return true;
-                }
+                        tran.Commit();
+                        return true;
+                    }
+                
                 catch (Exception)
                 {
                     tran.Rollback();
@@ -1627,5 +1665,30 @@ VALUES('Person',@Pid,@Img,GETDATE())",
             }
         }
 
+
+        public bool HasPermission(string role, string module, string action)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"SELECT COUNT(1)
+                         FROM T_RolePermissions rp
+                         JOIN T_Role r ON r.RoleID = rp.RoleId
+                         JOIN T_Permissions p ON p.PermissionId = rp.PermissionId
+                         WHERE r.RoleName = @role
+                         AND rp.ModuleName = @module
+                         AND p.PermissionName = @action
+                         AND rp.IsAllowed = 1";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@role", role);
+                cmd.Parameters.AddWithValue("@module", module);
+                cmd.Parameters.AddWithValue("@action", action);
+
+                con.Open();
+                int count = (int)cmd.ExecuteScalar();
+
+                return count > 0;
+            }
+        }
     }
 }

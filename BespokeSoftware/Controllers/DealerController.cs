@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Reflection;
+using System.Security.Claims;
 using static BespokeSoftware.Models.Dealer;
 
 [Authorize(AuthenticationSchemes = "MyCookieAuth")]
@@ -21,11 +22,31 @@ public class DealerController : Controller
 
 
 
-    [Authorize(Roles = "Admin,Supervisor,Executive")]
+    //[Authorize(Roles = "Admin,Supervisor,Executive")]
+
+    //public IActionResult Index()
+    //{
+    //    var dealers = repo.GetDealerList();
+    //    return View(dealers);
+    //}
 
     public IActionResult Index()
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        // 🔥 LIST PERMISSION
+        if (!repo.HasPermission(role, "Dealer", "List"))
+        {
+            return Unauthorized();
+        }
+
         var dealers = repo.GetDealerList();
+
+        ViewBag.CanAdd = repo.HasPermission(role, "Dealer", "Add");
+        ViewBag.CanUpdate = repo.HasPermission(role, "Dealer", "Update");
+        ViewBag.CanDelete = repo.HasPermission(role, "Dealer", "Delete");
+        ViewBag.CanView = repo.HasPermission(role, "Dealer", "View");
+
         return View(dealers);
     }
     public IActionResult GetDealerAddress(int dealerId)
@@ -47,6 +68,11 @@ public class DealerController : Controller
     }
     public IActionResult _AddEditDealer()
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        // 🔥 ADD THIS (IMPORTANT)
+        ViewBag.CanAdd = repo.HasPermission(role, "Dealer", "Add");
+        ViewBag.CanUpdate = repo.HasPermission(role, "Dealer", "Update");
         DealerViewModel model = new DealerViewModel();
         model.Dealer = new Dealer();
         model.Dealer.DealerCode = repo.GetDealerCode();
@@ -98,12 +124,37 @@ public class DealerController : Controller
     }
 
 
+    //[HttpPost]
+    //public async Task<IActionResult> SaveDealerFull([FromForm] DealerViewModel model)
+    //{
+    //    try
+    //    {
+    //        // DEBUG
+    //        if (model == null)
+    //        {
+    //            return Json(new { success = false, message = "Model is null" });
+    //        }
+
+    //        if (model.Dealer == null)
+    //        {
+    //            return Json(new { success = false, message = "Dealer data missing" });
+    //        }
+    //        model.Dealer.DealerCode = repo.GetDealerCode();
+    //        //  CALL REPOSITORY
+    //        var result = await repo.SaveDealerFull(model);
+
+    //        return Json(new { success = true });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return Json(new { success = false, message = ex.Message });
+    //    }
+    //}
     [HttpPost]
     public async Task<IActionResult> SaveDealerFull([FromForm] DealerViewModel model)
     {
         try
         {
-            // DEBUG
             if (model == null)
             {
                 return Json(new { success = false, message = "Model is null" });
@@ -113,18 +164,25 @@ public class DealerController : Controller
             {
                 return Json(new { success = false, message = "Dealer data missing" });
             }
+
+            // 🔥 ONLY REQUIRED FIELD
+            if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
+            {
+                return Json(new { success = false, message = "Dealer Name is required" });
+            }
+
+            // 🔥 AUTO GENERATE CODE
             model.Dealer.DealerCode = repo.GetDealerCode();
-            //  CALL REPOSITORY
+
             var result = await repo.SaveDealerFull(model);
 
-            return Json(new { success = true });
+            return Json(new { success = result });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = ex.Message });
+            return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
         }
     }
-
     public JsonResult GetCategories()
     {
         var list = repo.GetCategories();
@@ -177,10 +235,16 @@ public class DealerController : Controller
 
     //    return View("_AddEditDealer", model);
     //}
-    [Authorize(Roles = "Admin,Supervisor")]
+    //[Authorize(Roles = "Admin,Supervisor")]
     [HttpPost]
     public IActionResult InsertDealer(DealerViewModel model)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (!repo.HasPermission(role, "Dealer", "Add"))
+        {
+            return Unauthorized();
+        }
         var files = Request.Form.Files;
 
         model.Dealer.DealerCode = repo.GetDealerCode();
@@ -199,9 +263,17 @@ public class DealerController : Controller
     }
 
 
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public IActionResult EditDealer(int id)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        ViewBag.CanUpdate = repo.HasPermission(role, "Dealer", "Update");
+
+        if (!(bool)ViewBag.CanUpdate)
+        {
+            return Unauthorized();
+        }
         DealerEditVM model = repo.GetDealerFullById(id);
 
         ViewBag.CategoryList = repo.GetCategories();
@@ -212,7 +284,7 @@ public class DealerController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public IActionResult EditDealer(DealerEditVM model)
     {
         if (model == null || model.Dealer == null)
@@ -245,9 +317,15 @@ public class DealerController : Controller
     //    repo.DeleteDealer(id);
     //    return RedirectToAction("Index");
     //}
-    [Authorize(Roles = "Admin,Supervisor,Executive")]
+    //[Authorize(Roles = "Admin,Supervisor,Executive")]
     public IActionResult ViewDealerDetails(int dealerId)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (!repo.HasPermission(role, "Dealer", "View"))
+        {
+            return Unauthorized();
+        }
         // ViewBag.CategoryList = repo.GetCategories();
         var data = repo.GetDealerFullDetails(dealerId);
         var categories = repo.GetCategories();
@@ -274,9 +352,15 @@ public class DealerController : Controller
     //}
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public IActionResult Delete(int dealerId)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (!repo.HasPermission(role, "Dealer", "Delete"))
+        {
+            return Json(new { success = false, message = "No permission" });
+        }
         if (dealerId <= 0)
         {
             return Json(new { success = false, message = "Invalid Dealer Id" });

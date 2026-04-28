@@ -231,8 +231,8 @@
               @*   <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
                     Save Dealer
                 </button> *@
-                @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
-{
+                @if (ViewBag.CanAdd)
+                {
     <button type="button" onclick="saveDealer()" class="btn btn-info px-4 fw-bold">
         Save Dealer
     </button>
@@ -790,7 +790,7 @@
     formData.append(`DealerNotes[${i}].NoteFor`,
         $(this).find("input[type='text']").val());
 
-    formData.append(`DealerNotes[${i}].Notedate`,
+    formData.append(`DealerNotes[${i}].NoteDate`,
         $(this).find("input[type='date']").val());
 
     });
@@ -852,19 +852,30 @@
     processData: false,
     contentType: false,
 
-       success: function (res) {
+    success: function (res) {
 
-        Swal.fire({
-            title: "Success",
-            text: "Dealer Saved Successfully",
-            icon: "success",
-            confirmButtonText: "OK"
-        }).then(() => {
+    if (res.success) {
 
-            window.location.href = '@Url.Action("Index", "Dealer")';
+    Swal.fire({
+    title: "Success",
+    text: "Dealer Saved Successfully",
+    icon: "success",
+    confirmButtonText: "OK"
+    }).then(() => {
 
-        });
+    window.location.href = '@Url.Action("Index", "Dealer")';
 
+    });
+
+    } else {
+
+    Swal.fire({
+    title: "Error",
+    text: res.message || "Save failed",
+    icon: "error"
+    });
+
+    }
     },
 
     error:function(){
