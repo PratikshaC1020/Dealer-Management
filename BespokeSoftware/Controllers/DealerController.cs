@@ -22,19 +22,12 @@ public class DealerController : Controller
 
 
 
-    //[Authorize(Roles = "Admin,Supervisor,Executive")]
-
-    //public IActionResult Index()
-    //{
-    //    var dealers = repo.GetDealerList();
-    //    return View(dealers);
-    //}
+   
 
     public IActionResult Index()
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        // 🔥 LIST PERMISSION
         if (!repo.HasPermission(role, "Dealer", "List"))
         {
             return Unauthorized();
@@ -70,7 +63,6 @@ public class DealerController : Controller
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        // 🔥 ADD THIS (IMPORTANT)
         ViewBag.CanAdd = repo.HasPermission(role, "Dealer", "Add");
         ViewBag.CanUpdate = repo.HasPermission(role, "Dealer", "Update");
         DealerViewModel model = new DealerViewModel();
@@ -165,13 +157,11 @@ public class DealerController : Controller
                 return Json(new { success = false, message = "Dealer data missing" });
             }
 
-            // 🔥 ONLY REQUIRED FIELD
             if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
             {
                 return Json(new { success = false, message = "Dealer Name is required" });
             }
 
-            // 🔥 AUTO GENERATE CODE
             model.Dealer.DealerCode = repo.GetDealerCode();
 
             var result = await repo.SaveDealerFull(model);
@@ -235,7 +225,6 @@ public class DealerController : Controller
 
     //    return View("_AddEditDealer", model);
     //}
-    //[Authorize(Roles = "Admin,Supervisor")]
     [HttpPost]
     public IActionResult InsertDealer(DealerViewModel model)
     {
@@ -263,7 +252,6 @@ public class DealerController : Controller
     }
 
 
-    //[Authorize(Roles = "Admin")]
     public IActionResult EditDealer(int id)
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -284,7 +272,6 @@ public class DealerController : Controller
     }
 
     [HttpPost]
-    //[Authorize(Roles = "Admin")]
     public IActionResult EditDealer(DealerEditVM model)
     {
         if (model == null || model.Dealer == null)
@@ -352,7 +339,6 @@ public class DealerController : Controller
     //}
 
     [HttpPost]
-    //[Authorize(Roles = "Admin")]
     public IActionResult Delete(int dealerId)
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -399,7 +385,7 @@ public class DealerController : Controller
                 {
                     model.Notes.Add(new DealerNotesVM
                     {
-                        CategoryId = Convert.ToInt32(dr["CategoryId"]), // ✅ FIX
+                        CategoryId = Convert.ToInt32(dr["CategoryId"]), 
                         CategoryName = dr["Category"].ToString(),
                         NoteFor = dr["NoteFor"].ToString(),
                         NoteText = dr["NoteText"].ToString(),
