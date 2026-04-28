@@ -1665,7 +1665,6 @@ VALUES('Person',@Pid,@Img,GETDATE())",
             }
         }
 
-
         public bool HasPermission(string role, string module, string action)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
