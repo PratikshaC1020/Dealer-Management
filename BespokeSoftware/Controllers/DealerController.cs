@@ -271,21 +271,43 @@ public class DealerController : Controller
         return View(model);
     }
 
+    //[HttpPost]
+    //public IActionResult EditDealer(DealerEditVM model)
+    //{
+    //    if (model == null || model.Dealer == null)
+    //        return View(model);
+    //    if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
+    //    {
+    //        ModelState.AddModelError("Dealer.DealerName", "Dealer Name is required");
+    //        return View(model);
+    //    }
+    //    repo.UpdateDealerFull(model);
+
+    //    return RedirectToAction("Index");
+    //}
     [HttpPost]
     public IActionResult EditDealer(DealerEditVM model)
     {
-        if (model == null || model.Dealer == null)
-            return View(model);
-        if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
+        try
         {
-            ModelState.AddModelError("Dealer.DealerName", "Dealer Name is required");
-            return View(model);
+            if (model == null)
+                return Json(new { success = false, message = "Model is null" });
+
+            if (model.Dealer == null)
+                return Json(new { success = false, message = "Dealer data missing" });
+
+            if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
+                return Json(new { success = false, message = "Dealer Name is required" });
+
+            repo.UpdateDealerFull(model);
+
+            return Json(new { success = true });
         }
-        repo.UpdateDealerFull(model);
-
-        return RedirectToAction("Index");
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
+        }
     }
-
     //[HttpPost]
     //public IActionResult UpdateDealer(DealerViewModel model)
     //{
