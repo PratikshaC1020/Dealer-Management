@@ -296,7 +296,7 @@ public class DealerController : Controller
         var cities = repo.GetCitiesByState(stateId);
 
         return Json(cities);
-    }
+    }  
 
 
     //public IActionResult DeleteDealer(int id)
