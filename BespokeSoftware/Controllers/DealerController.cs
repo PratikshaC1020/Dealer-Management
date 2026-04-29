@@ -276,7 +276,11 @@ public class DealerController : Controller
     {
         if (model == null || model.Dealer == null)
             return View(model);
-
+        if (string.IsNullOrWhiteSpace(model.Dealer.DealerName))
+        {
+            ModelState.AddModelError("Dealer.DealerName", "Dealer Name is required");
+            return View(model);
+        }
         repo.UpdateDealerFull(model);
 
         return RedirectToAction("Index");

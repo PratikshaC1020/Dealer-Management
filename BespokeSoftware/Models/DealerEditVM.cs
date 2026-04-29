@@ -1,4 +1,6 @@
-﻿namespace BespokeSoftware.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BespokeSoftware.Models
 {
     public class DealerEditVM
     {
@@ -19,6 +21,8 @@
     {
         public int DealerId { get; set; }
         public string DealerCode { get; set; }
+        [Required(ErrorMessage = "Dealer Name is required")]
+        [StringLength(200)]
         public string DealerName { get; set; }
         public string OwnerName { get; set; }
         public string GSTNo { get; set; }

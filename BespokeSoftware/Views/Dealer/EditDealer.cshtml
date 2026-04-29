@@ -1278,7 +1278,7 @@
         formData.append("IsMainRemoved", true);
     }
 
-        $.ajax({
+       @*  $.ajax({
             url: '/Dealer/EditDealer',
             type: 'POST',
             data: formData,
@@ -1296,8 +1296,27 @@
 
         });
             }
-        });
-
+        }); *@
+    $.ajax({
+    url: '/Dealer/EditDealer',
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function (res) {
+    if (res.success) {
+    Swal.fire("Success", "Dealer updated successfully", "success")
+    .then(() => {
+    window.location.href = '/Dealer/Index';
+    });
+    } else {
+    Swal.fire("Error", res.message, "error");
+    }
+    },
+    error: function () {
+    Swal.fire("Error", "Dealer Name is required", "error");
+    }
+    });
     });
 </script>
 
