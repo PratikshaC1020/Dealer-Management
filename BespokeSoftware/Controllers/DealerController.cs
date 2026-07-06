@@ -339,6 +339,8 @@ public class DealerController : Controller
         {
             return Unauthorized();
         }
+        ViewBag.CanDelete = repo.HasPermission(role, "Dealer", "Delete");
+
         // ViewBag.CategoryList = repo.GetCategories();
         var data = repo.GetDealerFullDetails(dealerId);
         var categories = repo.GetCategories();
@@ -424,9 +426,37 @@ public class DealerController : Controller
         return View("PrintNotes", model);
     }
 
+    //[HttpPost]
+    //public JsonResult DeleteNote(int id)
+    //{
+    //    using (SqlConnection con = new SqlConnection(_connectionString))
+    //    {
+    //        con.Open();
+
+    //        SqlCommand cmd = new SqlCommand(
+    //            "DELETE FROM T_DealerNotes WHERE NoteId = @Id", con);
+
+    //        cmd.Parameters.AddWithValue("@Id", id);
+
+    //        int rows = cmd.ExecuteNonQuery();
+
+    //        return Json(new { success = rows > 0 });
+    //    }
+    //}
     [HttpPost]
     public JsonResult DeleteNote(int id)
     {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (!repo.HasPermission(role, "Dealer", "Delete"))
+        {
+            return Json(new
+            {
+                success = false,
+                message = "No permission"
+            });
+        }
+
         using (SqlConnection con = new SqlConnection(_connectionString))
         {
             con.Open();
@@ -441,7 +471,6 @@ public class DealerController : Controller
             return Json(new { success = rows > 0 });
         }
     }
-
     [HttpPost]
     public JsonResult UpdateDealerStatus(int id, bool isActive)
     {

@@ -29,7 +29,7 @@
 
     /* 🔥 SCROLL LOGIC */
     .inner-scroll {
-        max-height: 220px;
+        max-height: 400px;
         overflow-y: auto;
         padding-right: 5px;
     }
@@ -303,10 +303,13 @@
                                     <div class="box position-relative">
 
                                         <!-- ❌ DELETE ICON -->
-                                        <i class="bi bi-x-circle-fill text-danger"
-                                           style="position:absolute; top:8px; right:10px; cursor:pointer; font-size:18px;"
-                                           onclick="deleteNote(@note.NoteId, this)">
-                                        </i>
+                                        @if (ViewBag.CanDelete)
+                                        {
+                                            <i class="bi bi-x-circle-fill text-danger"
+                                               style="position:absolute; top:8px; right:10px; cursor:pointer; font-size:18px;"
+                                               onclick="deleteNote(@note.NoteId, this)">
+                                            </i>
+                                        }
 
                                         <div class="row g-2 align-items-center">
 
@@ -329,7 +332,7 @@
                                             <!-- NOTE TEXT -->
                                             <div class="col-md-7">
                                                 <label class="fw-bold">Note</label>
-                                                <textarea class="form-control" rows="1" readonly style="resize:none;">
+                                                <textarea class="form-control" rows="3" readonly style="resize:none;">
                     @note.NoteText
                 </textarea>
                                             </div>
