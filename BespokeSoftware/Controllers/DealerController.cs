@@ -257,6 +257,7 @@ public class DealerController : Controller
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
         ViewBag.CanUpdate = repo.HasPermission(role, "Dealer", "Update");
+        ViewBag.CanDelete = repo.HasPermission(role, "Dealer", "Delete");
 
         if (!(bool)ViewBag.CanUpdate)
         {

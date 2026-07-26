@@ -137,8 +137,14 @@
                     @for (int i = 0; i < Model.DealerAddresses.Count; i++)
                     {
                         <div class="box">
-                            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+@*                             <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
+ *@
+                            @if (ViewBag.CanDelete)
+                            {
+                                <i class="bi bi-x-circle text-danger remove"
+                                   onclick="$(this).parent().remove()"></i>
+                            }
                             <input name="DealerAddresses[@i].AddressType" value="@Model.DealerAddresses[i].AddressType" class="form-control mb-1" />
                             <input name="DealerAddresses[@i].AddressLine" value="@Model.DealerAddresses[i].AddressLine" class="form-control" />
                         </div>
@@ -162,9 +168,13 @@
                 {
                     <div class="box">
 
-                        <i class="bi bi-x-circle text-danger remove"
-                           onclick="$(this).parent().remove()"></i>
-
+                     @*    <i class="bi bi-x-circle text-danger remove"
+                           onclick="$(this).parent().remove()"></i> *@
+                            @if (ViewBag.CanDelete)
+                            {
+                                <i class="bi bi-x-circle text-danger remove"
+                                   onclick="$(this).parent().remove()"></i>
+                            }
                         <div class="row">
 
                             <!-- CATEGORY -->
@@ -252,11 +262,18 @@
 
                                 <img src="@img" class="img-fluid rounded" />
 
-                                <i class="bi bi-x-circle text-danger"
+                               @*  <i class="bi bi-x-circle text-danger"
                                    style="position:absolute;top:5px;right:5px;cursor:pointer;"
                                    onclick="$(this).parent().parent().remove()">
-                                </i>
+                                </i> *@
 
+                                @if (ViewBag.CanDelete)
+                                {
+                                    <i class="bi bi-x-circle text-danger"
+                                       style="position:absolute;top:5px;right:5px;cursor:pointer;"
+                                       onclick="$(this).parent().parent().remove()">
+                                    </i>
+                                }
                             </div>
                         </div>
                     }
@@ -742,12 +759,16 @@
     Edit
     </button>
 
-    <button type="button"
+  @*   <button type="button"
     class="btn btn-sm btn-danger mt-2"
     onclick="removePerson(${i})">
     Remove
     </button>
+ *@
 
+    @(ViewBag.CanDelete
+   ? Html.Raw("<button type='button' class='btn btn-sm btn-danger mt-2' onclick='removePerson(${i})'>Remove</button>")
+   : Html.Raw(""))
             </div>
             </div>
             `);
@@ -999,10 +1020,12 @@
                             <img src="${e.target.result}"
                                  style="width:120px;height:120px;object-fit:cover" />
 
-                            <i class="bi bi-x-circle text-danger"
+                           @*  <i class="bi bi-x-circle text-danger"
                                style="position:absolute;top:5px;right:5px;cursor:pointer;">
-                            </i>
-
+                            </i> *@
+    @(ViewBag.CanDelete
+? Html.Raw("<i class='bi bi-x-circle text-danger' style='position:absolute;top:5px;right:5px;cursor:pointer;'></i>")
+: Html.Raw(""))
                         </div>
                     </div>
                 `);
@@ -1028,10 +1051,12 @@
                     <img src="${img}"
                          style="width:120px;height:120px;object-fit:cover" />
 
-                    <i class="bi bi-x-circle text-danger"
+                  @*   <i class="bi bi-x-circle text-danger"
                        style="position:absolute;top:5px;right:5px;cursor:pointer;"
-                       onclick="removeImage(${i})"></i>
-
+                       onclick="removeImage(${i})"></i> *@
+    @(ViewBag.CanDelete
+? Html.Raw("<i class='bi bi-x-circle text-danger' style='position:absolute;top:5px;right:5px;cursor:pointer;' onclick='removeImage(${i})'></i>")
+: Html.Raw(""))
                 </div>
             </div>
             `);
@@ -1057,8 +1082,12 @@
 
         $("#dealerAddressContainer").append(`
         <div class="box">
-            <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
+@*             <i class="bi bi-x-circle text-danger remove" onclick="$(this).parent().remove()"></i>
 
+ *@
+    @(ViewBag.CanDelete
+   ? Html.Raw("<i class='bi bi-x-circle text-danger remove' onclick=\"$(this).parent().remove()\"></i>")
+   : Html.Raw(""))
             <input name="DealerAddresses[${dealerAddressIndex}].AddressType" class="form-control mb-1"/>
             <input name="DealerAddresses[${dealerAddressIndex}].AddressLine" class="form-control"/>
         </div>
@@ -1081,8 +1110,10 @@
 
         <div class="box">
 
-            <i class="bi bi-x-circle text-danger remove"
-               onclick="$(this).parent().remove()"></i>
+          @*   <i class="bi bi-x-circle text-danger remove"
+               onclick="$(this).parent().remove()"></i> *@
+
+    @(ViewBag.CanDelete ? Html.Raw("<i class='bi bi-x-circle text-danger remove' onclick=\"$(this).parent().remove()\"></i>") : Html.Raw(""))
 
             <div class="row">
 
@@ -1212,9 +1243,17 @@
                     <img src="${mainOfficeImage}"
                          style="width:80px;height:80px;object-fit:cover"/>
 
-                    <i class="bi bi-x-circle text-danger"
+                   @*  <i class="bi bi-x-circle text-danger"
                        style="position:absolute;top:5px;right:5px;cursor:pointer;"
-                       onclick="removeMainOffice()"></i>
+                       onclick="removeMainOffice()"></i> *@
+
+    @if (ViewBag.CanDelete)
+    {
+        <i class="bi bi-x-circle text-danger"
+           style="position:absolute;top:5px;right:5px;cursor:pointer;"
+           onclick="$(this).parent().parent().remove()">
+        </i>
+    }
 
                 </div>
             `);
